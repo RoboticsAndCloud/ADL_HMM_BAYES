@@ -1,0 +1,148 @@
+
+/home/ascc/LF_Workspace/ReinforcementLearning/ASCC_Energy_Consumption/ASCC-RL-Algorithms
+
+source ~/LF_Workspace/venv3.8_rl_pytorch/bin/activate
+
+python sac_v2_lstm_ascc.py --train
+
+
+
+    activity_str = activity_date_dict[str_d_act]
+KeyError: '2009-10-16 08:44:25'
+
+Given a time, it may not have the relavant activity record
+
+KeyError: '2009-10-16 08:44:25'
+
+2009-10-16 08:44:17.000043	M026	OFF
+2009-10-16 08:44:24	M026	ON
+2009-10-16 08:44:26.000088	M008	ON
+
+check GPU usage
+watch -d -n 0.5 nvidia-smi
+
+https://unix.stackexchange.com/questions/38560/gpu-usage-monitoring-cuda
+
+good data
+2009-10-25: false - ture
+
+
+
+
+python sac_v2_lstm_ascc.py --train  > milan_res_1116_penalty_threshold_15_each_day_10_eps_50.txt
+Traceback (most recent call last):
+  File "sac_v2_lstm_ascc.py", line 672, in <module>
+    train_reward = train(day_time_str)
+  File "sac_v2_lstm_ascc.py", line 561, in train
+    train_reward = train_by_day(date_day_hour_time)
+  File "sac_v2_lstm_ascc.py", line 436, in train_by_day
+    next_state, reward, done = env.step(action)
+  File "/home/ascc/LF_Workspace/ReinforcementLearning/ASCC_Energy_Consumption/ASCC-RL-Algorithms/environment_ascc.py", line 655, in step
+    action = abs(int((abs(p_action[0])-0.001) * 100))
+ValueError: cannot convert float NaN to integer
+
+
+
+Traceback (most recent call last):
+  File "sac_v2_lstm_ascc.py", line 680, in <module>
+    train_reward = train_from_model(day_time_str)
+  File "sac_v2_lstm_ascc.py", line 553, in train_from_model
+    train_reward = train_by_day(date_day_hour_time)
+  File "sac_v2_lstm_ascc.py", line 464, in train_by_day
+    _ = sac_trainer.update(batch_size, reward_scale=10., auto_entropy=AUTO_ENTROPY,
+  File "sac_v2_lstm_ascc.py", line 225, in update
+    q_value_loss1.backward()
+  File "/home/ascc/LF_Workspace/venv3.8_rl_pytorch/lib/python3.8/site-packages/torch/tensor.py", line 245, in backward
+    torch.autograd.backward(self, gradient, retain_graph, create_graph, inputs=inputs)
+  File "/home/ascc/LF_Workspace/venv3.8_rl_pytorch/lib/python3.8/site-packages/torch/autograd/__init__.py", line 145, in backward
+    Variable._execution_engine.run_backward(
+RuntimeError: cudnn RNN backward can only be called in training mode
+
+in function() load_model in sac_v2_lstm_ascc.py, add self.soft_q_net1.train()
+
+https://discuss.pytorch.org/t/cudnn-rnn-backward-can-only-be-called-in-training-mode/37622
+
+
+
+>>> day_time_train = datetime.strptime(base_date, DAY_FORMAT_STR) + timedelta(days=65)
+>>> day_time_train
+datetime.datetime(2009, 12, 20, 0, 0)
+
+        # format time
+
+
+        # from datetime import timedelta
+        # import datetime
+        #
+        # a = datetime.datetime.strptime("2021-11-06 16:30:30", date_format_str)
+        #
+        # print("year =", a.year)
+        # print("month =", a.month)
+        # print("hour =", a.hour)
+        # print("minute =", a.minute)
+        # print("timestamp =", a.timestamp())
+
+        # a.strftime(DAY_FORMAT_STR)
+        # b = a + timedelta(days=1)
+        # b.strftime(DAY_FORMAT_STR) format it to the string '2021-11-07'
+        #
+
+
+grep 'Train day_by_day done_reward: Reward:'
+
+grep 'Day End Running time:
+
+
+
+Train_by_day times: 0  Train time: 109.21821241703583
+Train_by_day times: 1  Train time: 110.00249674497172
+Train_by_day times: 1  Train time: 3614.078051146993
+Train_by_day times: 0  Train time: 574.6596399120172
+Train_by_day times: 1  Train time: 574.350991491985
+Train_by_day times: 1  Train time: 4015.4817955530016
+Train_by_day times: 0  Train time: 572.9121845790069
+Train_by_day times: 1  Train time: 572.3214747220045
+Train_by_day times: 1  Train time: 4005.1442087580217
+Train_by_day times: 0  Train time: 577.0580186759471
+Train_by_day times: 1  Train time: 577.2738354430185
+Train_by_day times: 1  Train time: 4039.557869320968
+Train_by_day times: 0  Train time: 571.6515811470454
+Train_by_day times: 1  Train time: 572.3527933790465
+Train_by_day times: 1  Train time: 6872.260002434021
+Train_by_day times: 0  Train time: 571.1453629889875
+Train_by_day times: 1  Train time: 569.4953797289636
+Train_by_day times: 1  Train time: 6841.517632728966
+Train_by_day times: 0  Train time: 567.727523286012
+Train_by_day times: 1  Train time: 568.168310159992
+Train_by_day times: 1  Train time: 4548.665332070959
+Train_by_day times: 0  Train time: 513.6784846619703
+Train_by_day times: 1  Train time: 513.9650511959917
+Train_by_day times: 1  Train time: 58653.06160627102
+
+16 hours for 10-26
+
+/home/ascc/LF_Workspace/ReinforcementLearning/ASCC_Energy_Consumption/ASCC-RL-Algorithms_New_Reward/Train_Res_back/Train_Res_20min_steps110_penalty_4/model_2009-12-10
+
+# monition 
+
+https://docs.google.com/spreadsheets/d/1oWxLWxc0MSYiwQjNPDnw2ONWpzN88aEedCuV1nKmc0s/edit#gid=0
+
+
+## real environment test 
+
+time python sac_v2_lstm_ascc_real.py --test > ./res_0325_periodcal_motion_2min.txt 
+time python sac_v2_lstm_ascc_real.py --test > ./res_0325_periodcal_motionless_2min.txt 
+
+model:
+md5sum Train_Res_20min_steps110_penalty_4/model_2009-12-10/sac_v2_lstm_policy 
+97d20286379848d873bb33e0f9bc7d5b  Train_Res_20min_steps110_penalty_4/model_2009-12-10/sac_v2_lstm_policy
+
+time python sac_v2_lstm_ascc.py --test > ./res_0516_rl_motionless.txt 
+
+
+
+python motion_lstm_v1.py --train > milan_res_0519_54actions.txt
+
+python motion_lstm_v1.py --test > milan_res_0519_1231.txt
+
+python motion_hmm.py
