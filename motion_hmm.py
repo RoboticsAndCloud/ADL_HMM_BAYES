@@ -26,12 +26,16 @@ for i in range(len(state_list) -15):
 print('len sequence:', len(sequences))
 print(sequences[1])
 
+# exit(0)
+
 model = hmm.train(sequences, delta=0.00000000001, smoothing=0)
 
 correct = 0
 incorrect = 0
 print('test==========================')
-testseq = ('Master_Bathroom', 'Kitchen_Activity', 'Read', 'Guest_Bathroom', 'Kitchen_Activity', 'Morning_Meds', 'Master_Bedroom_Activity', 'Master_Bathroom', 'Read', 'Kitchen_Activity', 'Guest_Bathroom', 'Master_Bedroom_Activity', 'Read', 'Desk_Activity', 'Master_Bathroom', 'Kitchen_Activity', 'Read', 'Sleep', 'Master_Bathroom', 'Kitchen_Activity', 'Master_Bedroom_Activity', 'Master_Bathroom', 'Kitchen_Activity', 'Leave_Home', 'Desk_Activity', 'Kitchen_Activity', 'Guest_Bathroom', 'Watch_TV', 'Master_Bedroom_Activity', 'Master_Bathroom', 'Master_Bathroom', 'Master_Bathroom', 'Watch_TV', 'Guest_Bathroom', 'Kitchen_Activity', 'Watch_TV', 'Guest_Bathroom', 'Kitchen_Activity', 'Watch_TV', 'Master_Bathroom', 'Guest_Bathroom', 'Kitchen_Activity', 'Master_Bathroom')
+# todo new testseq
+testseq = state_list[len(state_list) -10]
+# testseq = ('Master_Bathroom', 'Kitchen_Activity', 'Read', 'Guest_Bathroom', 'Kitchen_Activity', 'Morning_Meds', 'Master_Bedroom_Activity', 'Master_Bathroom', 'Read', 'Kitchen_Activity', 'Guest_Bathroom', 'Master_Bedroom_Activity', 'Read', 'Desk_Activity', 'Master_Bathroom', 'Kitchen_Activity', 'Read', 'Sleep', 'Master_Bathroom', 'Kitchen_Activity', 'Master_Bedroom_Activity', 'Master_Bathroom', 'Kitchen_Activity', 'Leave_Home', 'Desk_Activity', 'Kitchen_Activity', 'Guest_Bathroom', 'Watch_TV', 'Master_Bedroom_Activity', 'Master_Bathroom', 'Master_Bathroom', 'Master_Bathroom', 'Watch_TV', 'Guest_Bathroom', 'Kitchen_Activity', 'Watch_TV', 'Guest_Bathroom', 'Kitchen_Activity', 'Watch_TV', 'Master_Bathroom', 'Guest_Bathroom', 'Kitchen_Activity', 'Master_Bathroom')
 print('symbolist:', testseq)
 print(model.evaluate(testseq))
 decode_seq = model.decode(testseq)

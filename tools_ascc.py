@@ -278,6 +278,18 @@ DAY_FORMAT_STR = '%Y-%m-%d'
 # Seconds, if the time does not match the records, try to get the activity around
 ACTIVITY_TOLERANCE = 60 * 2 
 
+ACTIVITY_NOON_HOUR = 12
+ACTIVITY_NIGHT_HOUR = 18
+
+# the Activity Node for HMM
+class Activity_Node:
+    def __init__(self, a_name, time_type):
+        self.name = a_name
+        self.time_type = time_type
+    
+    def get_info(self):
+        return self.name, self.time_type
+
 class Dictlist(dict):
     def __setitem__(self, key, value):
         try:
@@ -946,7 +958,23 @@ def get_activity_count_state_list_by_date(base_date):
             if duration > 0:
                 tmp_str = key + "\t" + time_list_begin[t_i] + "\t" + time_list_end[t_i] + "\t" + str(duration)
                 output_dict[time_list_begin[t_i]] = tmp_str
-                output_activity_dict[time_list_begin[t_i]] = key
+                # output_activity_dict[time_list_begin[t_i]] = key
+
+                # print('t_begin:', time_list_begin[t_i], ':', tmp_a_begin)
+                activity_type = 'M'
+                if tmp_a_begin.hour < ACTIVITY_NOON_HOUR:
+                    activity_type = 'M'
+                elif tmp_a_begin.hour < ACTIVITY_NIGHT_HOUR:
+                    activity_type = 'A'
+                else:
+                    activity_type = 'N'
+                
+                # print('activity_type:', activity_type)
+                output_activity_dict[time_list_begin[t_i]] = key + '_' + activity_type
+
+
+                # todo:  key_type: check the begin time, and convert into Morning, Afternoon, Night
+                
                 # print(key, "\t", time_list_begin[t_i], "\t", time_list_end[t_i], "\t", duration)
 
     # if len(activity_begin_list) == 0:
@@ -1148,6 +1176,7 @@ def get_activity_for_state_list():
         print("=============================================================================")
         print("day_time_str:", day_time_str)
         cnt, state_list = get_activity_count_state_list_by_date(day_time_str)
+        print('state_list, len:', len(state_list), ',content:',state_list)
         if len(state_list) < 10:
             continue
         state_list_all.append(state_list)
