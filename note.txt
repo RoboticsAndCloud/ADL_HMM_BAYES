@@ -141,8 +141,30 @@ time python sac_v2_lstm_ascc.py --test > ./res_0516_rl_motionless.txt
 
 
 
+
+('Morning_Meds', 'Leave_Home', 'Read', 'Kitchen_Activity', 'Chores', 'Read', 'Chores', 'Guest_Bathroom', 'Kitchen_Activity', 'Master_Bathroom', 'Leave_Home', 'Watch_TV', 'Desk_Activity', 'Chores', 'Leave_Home', 'Guest_Bathroom', 'Read', 'Leave_Home', 'Read', 'Guest_Bathroom', 'Chores', 'Kitchen_Activity', 'Watch_TV', 'Guest_Bathroom', 'Master_Bathroom', 'Kitchen_Activity', 'Kitchen_Activity', 'Master_Bathroom'), 
+('Morning_Meds_M_0.36666666666666664', 'Leave_Home_M_0.7666666666666667', 'Read_M_65.8', 'Kitchen_Activity_M_90.71666666666667', 'Chores_M_63.86666666666667', 'Read_A_37.85', 'Chores_A_53.083333333333336', 'Guest_Bathroom_A_1.05', 'Kitchen_Activity_A_30.716666666666665', 'Master_Bathroom_A_5.15', 'Leave_Home_A_49.11666666666667', 'Watch_TV_A_18.35', 'Desk_Activity_A_2.25', 'Chores_A_74.7', 'Leave_Home_A_1.1333333333333333', 'Guest_Bathroom_A_1.8166666666666667', 'Read_A_28.166666666666668', 'Leave_Home_A_1.4833333333333334', 'Read_A_38.6', 'Guest_Bathroom_A_2.1166666666666667', 'Chores_A_3.8', 'Kitchen_Activity_A_41.85', 'Watch_TV_A_5.8', 'Guest_Bathroom_N_0.7166666666666667', 'Master_Bathroom_N_1.7333333333333334', 'Kitchen_Activity_N_0.5333333333333333', 'Kitchen_Activity_N_1.4333333333333333', 'Master_Bathroom_N_5.8'))
+
+
+('Morning_Meds', 'Leave_Home', 'Read', 'Kitchen_Activity', 'Chores', 'Read', 'Chores', 'Guest_Bathroom', 'Kitchen_Activity', 'Master_Bathroom', 'Leave_Home', 'Watch_TV', 'Desk_Activity', 'Chores', 'Leave_Home', 'Guest_Bathroom', 'Read', 'Leave_Home', 'Read', 'Guest_Bathroom', 'Chores', 'Kitchen_Activity', 'Watch_TV', 'Guest_Bathroom', 'Master_Bathroom', 'Kitchen_Activity', 'Kitchen_Activity', 'Master_Bathroom'), 
+('Morning_Meds_M_5', 'Leave_Home_M_5', 'Read_M_60', 'Kitchen_Activity_M_60', 'Chores_M_60', 'Read_A_60', 'Chores_A_60', 'Guest_Bathroom_A_5', 'Kitchen_Activity_A_60', 'Master_Bathroom_A_10', 'Leave_Home_A_60', 'Watch_TV_A_20', 'Desk_Activity_A_5', 'Chores_A_60', 'Leave_Home_A_5', 'Guest_Bathroom_A_5', 'Read_A_30', 'Leave_Home_A_5', 'Read_A_60', 'Guest_Bathroom_A_5', 'Chores_A_5', 'Kitchen_Activity_A_60', 'Watch_TV_A_10', 'Guest_Bathroom_N_5', 'Master_Bathroom_N_5', 'Kitchen_Activity_N_5', 'Kitchen_Activity_N_5', 'Master_Bathroom_N_10'))
+
+
+
+
 python motion_lstm_v1.py --train > milan_res_0519_54actions.txt
 
 python motion_lstm_v1.py --test > milan_res_0519_1231.txt
 
 python motion_hmm.py
+
+
+dnn_acc = 0.90
+acc: 0.9698890649762282
+
+dnn_acc = 0.80
+acc: 0.96513470681458
+
+
+just statelist: 0.692551, dnn_acc=0.90
+just symblist: 0.516640, dnn_acc = 0.90

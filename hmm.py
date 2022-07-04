@@ -5,6 +5,30 @@
 from math import log
 import re
 
+"""
+		'Master_Bedroom_Activity': 0.0,
+		'Bed_to_Toilet': 0.0,
+		'Eve_Meds': 0.0,
+		'Meditate': 0.09523809523809523,
+		'Chores': 0.0,
+		'Guest_Bathroom': 0.09523809523809523,
+		'Master_Bathroom': 0.23809523809523808,
+		'Dining_Rm_Activity': 0.0,
+		'Read': 0.19047619047619047,
+		'Watch_TV': 0.0,
+		'Morning_Meds': 0.0,
+		'Kitchen_Activity': 0.09523809523809523,
+		'Sleep': 0.047619047619047616,
+		'Leave_Home': 0.23809523809523808,
+		'Desk_Activity': 0.0
+"""
+TOTAL_ACTIVITY_CNT = 15
+
+# for image recognition, we can get the reuslt for DNN, from the confusion matrix
+DNN_ACC = 0.90
+
+
+
 def _normalize_prob(prob, item_set):
     result = {}
     if prob is None:
@@ -64,7 +88,7 @@ def _get_init_model(sequences):
             else:
                 _count_two_dim(pre_state, state, state_trans_count)
             pre_state = state
-    print('trans:', state_trans_count)
+    print('init trans:', state_trans_count)
     return Model(state_count.keys(), symbol_count.keys(),
         state_start_count, state_trans_count, state_symbol_count)
 
@@ -86,9 +110,9 @@ def train(sequences, delta=0.0001, smoothing=0):
     length = len(sequences)
 
     print('========================')
-    print('start:', model._start_prob)
-    print('emit:', model._emit_prob)
-    print('trans:', model._trans_prob)
+    print('init start prob:', model._start_prob)
+    print('init emit prob:', model._emit_prob)
+    print('init trans prob:', model._trans_prob)
     
 
     old_likelihood = 0
@@ -101,6 +125,8 @@ def train(sequences, delta=0.0001, smoothing=0):
         new_likelihood = 0
         for _, symbol_list in sequences:
             model.learn(symbol_list, smoothing)
+            # print('Train learn Master_Bathroom_M trans:', model._trans_prob['Master_Bathroom_M'])
+
             res = model.evaluate(symbol_list)
             # print("res:", res)
             # print("symbol_list:", symbol_list)
@@ -109,15 +135,20 @@ def train(sequences, delta=0.0001, smoothing=0):
 
         new_likelihood /= length
 
+        print('old_likelihood:', old_likelihood)
+        print('new_likelihood:', new_likelihood)
+
         if abs(new_likelihood - old_likelihood) < delta:
             break
+
+
 
         old_likelihood = new_likelihood
 
     print('========================')
-    print('start:', model._start_prob)
-    print('emit:', model._emit_prob)
-    print('trans:', model._trans_prob)
+    print('Train End start:', model._start_prob)
+    print('Train End emit:', model._emit_prob)
+    print('Train End trans:', model._trans_prob)
 
     return model
 
@@ -191,14 +222,17 @@ class Model(object):
         """
 
         # for image recognition, we can get the reuslt for DNN, from the confusion matrix
+        dnn_acc = DNN_ACC
         if state == symbol:
             # print('equal:', state, ' ', symbol)
-            return 0.93
+            return dnn_acc # 0.98, 0.095
         else:
-            return 0.1
+            return (1-dnn_acc)/(TOTAL_ACTIVITY_CNT-1) # 0.002, 0.005, totally 15 activities
 
         if state not in self._states or symbol not in self._symbols:
+            print('not in self states')
             return 0
+
         return self._emit_prob[state][symbol]
 
     def _forward(self, sequence):

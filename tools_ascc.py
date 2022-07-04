@@ -282,13 +282,31 @@ ACTIVITY_NOON_HOUR = 12
 ACTIVITY_NIGHT_HOUR = 18
 
 # the Activity Node for HMM
-class Activity_Node:
-    def __init__(self, a_name, time_type):
+class Activity_Node_Observable:
+    def __init__(self, a_name, time_type, a_duration = 0):
         self.name = a_name
-        self.time_type = time_type
+        self.time_type = time_type # Moring, Afternoon, Night
+        self.duration = self.duration_converter(a_duration) # 5, 30, 60
     
     def get_info(self):
         return self.name, self.time_type
+    
+    def activity_res_generation(self):
+        return self.name + '_' + str(self.time_type) + '_' + str(self.duration)
+    
+    def duration_converter(self, duration):
+        res = 0
+        if duration == 0:
+            res = 0
+        elif duration <= 5:
+            res = 5
+        elif duration <= 30:
+            res = 30
+        else:
+            res = 60
+        
+        return res
+
 
 class Dictlist(dict):
     def __setitem__(self, key, value):
@@ -917,6 +935,7 @@ def get_activity_count_state_list_by_date(base_date):
     import collections
     output_dict = {}
     output_activity_dict = {}
+    output_activity_symbol_dict = {}
 
     # print("Activity", "\t", "Start", "\t", "End", "\t", "Duration")
 
@@ -970,7 +989,12 @@ def get_activity_count_state_list_by_date(base_date):
                     activity_type = 'N'
                 
                 # print('activity_type:', activity_type)
-                output_activity_dict[time_list_begin[t_i]] = key + '_' + activity_type
+
+                node = Activity_Node_Observable(key, activity_type, 0)
+
+                output_activity_dict[time_list_begin[t_i]] = key
+
+                output_activity_symbol_dict[time_list_begin[t_i]] = node.activity_res_generation()
 
 
                 # todo:  key_type: check the begin time, and convert into Morning, Afternoon, Night
@@ -993,17 +1017,28 @@ def get_activity_count_state_list_by_date(base_date):
 
     sd = sorted(output_activity_dict.items())
     state_list = []
-
     for k,v in sd:
         # print(v)
         state_list.append(v)
 
     # print("motion_activity_cnt:", motion_activity_cnt)
     # print("len:", len(sd))
-
     state_list_tuple = tuple(state_list)
 
-    return motion_activity_cnt, state_list_tuple
+
+    sd_symbol = sorted(output_activity_symbol_dict.items())
+    symbol_list = []
+    for k,v in sd_symbol:
+        # print(v)
+        symbol_list.append(v)
+
+    symbol_list_tuple = tuple(symbol_list)
+
+
+
+
+
+    return motion_activity_cnt, state_list_tuple, symbol_list_tuple
 
 
 def get_activity_count_by_date(base_date):
@@ -1156,6 +1191,7 @@ def get_activity_for_state_list():
     res_activity_duration_list = []
     igore_list = []
     state_list_all = []
+    symbol_list_all = []
     for i in range(DATASET_TRAIN_DAYS):
     # for i in range(2):
 
@@ -1175,17 +1211,18 @@ def get_activity_for_state_list():
         
         print("=============================================================================")
         print("day_time_str:", day_time_str)
-        cnt, state_list = get_activity_count_state_list_by_date(day_time_str)
-        print('state_list, len:', len(state_list), ',content:',state_list)
+        cnt, state_list, symbol_list = get_activity_count_state_list_by_date(day_time_str)
+        print('state_list, len:', len(state_list), ',state_list:',state_list, 'symbol_list:', symbol_list)
         if len(state_list) < 10:
             continue
         state_list_all.append(state_list)
+        symbol_list_all.append(symbol_list)
 
         
 
         # exit(0)
 
-    return state_list_all
+    return state_list_all, symbol_list_all
 
 def get_activity_information_all():
 
