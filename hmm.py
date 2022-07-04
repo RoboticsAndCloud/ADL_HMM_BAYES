@@ -25,7 +25,7 @@ import re
 TOTAL_ACTIVITY_CNT = 15
 
 # for image recognition, we can get the reuslt for DNN, from the confusion matrix
-DNN_ACC = 0.90
+DNN_ACC = 0.99
 
 
 
@@ -123,6 +123,9 @@ def train(sequences, delta=0.0001, smoothing=0):
 
     while True:
         new_likelihood = 0
+
+        # todo: update the _emit_prob, _trans_prob when get a bood likelihood
+        break;
         for _, symbol_list in sequences:
             model.learn(symbol_list, smoothing)
             # print('Train learn Master_Bathroom_M trans:', model._trans_prob['Master_Bathroom_M'])
@@ -138,7 +141,11 @@ def train(sequences, delta=0.0001, smoothing=0):
         print('old_likelihood:', old_likelihood)
         print('new_likelihood:', new_likelihood)
 
+
         if abs(new_likelihood - old_likelihood) < delta:
+            break
+
+        if (new_likelihood) < old_likelihood:
             break
 
 
@@ -223,11 +230,12 @@ class Model(object):
 
         # for image recognition, we can get the reuslt for DNN, from the confusion matrix
         dnn_acc = DNN_ACC
-        if state == symbol:
+        if (state + '_M_0' == symbol) or (state + '_A_0' == symbol) or (state + '_N_0' == symbol):
+        # if state == symbol:
             # print('equal:', state, ' ', symbol)
-            return dnn_acc # 0.98, 0.095
+            return dnn_acc 
         else:
-            return (1-dnn_acc)/(TOTAL_ACTIVITY_CNT-1) # 0.002, 0.005, totally 15 activities
+            return (1-dnn_acc)/(TOTAL_ACTIVITY_CNT-1) # totally 15 activities
 
         if state not in self._states or symbol not in self._symbols:
             print('not in self states')
