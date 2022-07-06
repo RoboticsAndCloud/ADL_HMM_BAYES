@@ -1,0 +1,25 @@
+
+source  ~/LF_Workspace/venv3.7_energy/bin/activate
+#source  ~/LF_Workspace/venv3.6_energy/bin/activate
+
+
+37s 14s/step - loss: 0.0103 - accuracy: 1.0000 - val_loss: 0.0386 - val_accuracy: 0.9940
+
+3/3 [==============================] - 34s 12s/step - loss: 0.0482 - accuracy: 0.9902 - val_loss: 0.0279 - val_accuracy: 0.9950
+
+room_classifier.py
+
+python room_test.py
+
+#########################################
+source  ~/LF_Workspace/venv3.7_energy/bin/activate
+pip install keras
+python tflite_converter.py 
+
+python 3.7
+keras = 2.8.0
+tensorflow= 2.8.0
+
+
+Train:Found 2810 images belonging to 12 classes., each 234
+Validate:Found 868 images belonging to 12 classes.
