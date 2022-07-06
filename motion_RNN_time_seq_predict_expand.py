@@ -107,7 +107,7 @@ def run_train_lstm():
     batch_size = 65
     mod_dir = '.'
 
-    max_eps = 1000 * 1
+    max_eps = 1000 * 10
     # max_eps = 1000 
 
     '''load data'''
@@ -176,6 +176,10 @@ def run_train_lstm():
     
         if e % 200 == 0:
             print('Epoch: {:4}, Loss: {:.8f}'.format(e, loss.item()))
+
+        if loss.item() < 0.00000005:
+            break
+
     torch.save(net.state_dict(), '{}/net.pth'.format(mod_dir))
     print("Save in:", '{}/net.pth'.format(mod_dir))
 

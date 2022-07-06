@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import torch
 from torch import nn
@@ -175,7 +176,8 @@ def run_train_lstm():
     plt.plot(loss_arr, 'r', label='loss')
     plt.legend(loc='best')
     plt.savefig('plot_figure/lstm_activity_prediction_loss.png')
-    plt.pause(4)
+    plt.pause(0.1)
+    plt.close()
 
 
 def run_test_lstm():
@@ -340,7 +342,8 @@ def run_test_lstm():
     print('acc:', acc)
 
 
-
+    plt.close('all')
+    
     plt.plot(test_pred_y, 'r', label='pred')
     plt.plot(test_data_y, 'b', label='real', alpha=0.3)
     # plt.plot(pred_y, 'r', label='pred')
@@ -448,5 +451,7 @@ def load_data_from_casas_dataset():
 
 if __name__ == '__main__':
     run_train_lstm()
+
+    time.sleep(3)
 
     run_test_lstm()
