@@ -99,6 +99,7 @@ def run_train_gru():
 
 
 def run_train_lstm():
+    print("Run train...")
     inp_dim = 3
     out_dim = 1
     mid_dim = 196
@@ -157,6 +158,13 @@ def run_train_lstm():
     print("Training Start")
     for e in range(max_eps):
         out = net(batch_var_x)
+
+        print('out:',out.shape)
+        print('batch_var_y:', batch_var_y.shape)
+
+        # print('out 0:', out)
+        # print('batch_var_y:',batch_var_y)
+
     
         # loss = criterion(out, batch_var_y)
         loss = (out - batch_var_y) ** 2 * weights
@@ -422,6 +430,7 @@ def load_data_from_casas_dataset2():
     return seq
 
 def load_data_from_casas_dataset():
+    print("Loading data...")
     res = tools_ascc.get_duration_from_dataset()
     seq = np.array(res,dtype=np.float32)
     print(len(seq))
@@ -430,9 +439,7 @@ def load_data_from_casas_dataset():
     seq = (seq - seq.mean(axis=0)) / seq.std(axis=0)
 
     print(seq)
-
-
-
+    print("Loading data end.")
     return seq
 
 

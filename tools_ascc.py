@@ -281,6 +281,9 @@ ACTIVITY_TOLERANCE = 60 * 2
 ACTIVITY_NOON_HOUR = 12
 ACTIVITY_NIGHT_HOUR = 18
 
+
+activity_set_for_lstm = set()
+
 # the Activity Node for HMM
 class Activity_Node_Observable:
     def __init__(self, a_name, time_type, a_duration = 0):
@@ -1167,6 +1170,8 @@ def get_activity_duration_by_date(base_date):
                 duration_list = [duration, timestamp, activity_index]
                 activity_duration_list.append(duration_list)
 
+                activity_set_for_lstm.add(activity_index)
+
     # if len(activity_begin_list) == 0:
     #     continue
 
@@ -1181,7 +1186,7 @@ def get_activity_duration_by_date(base_date):
     # print(activity_duration_list)
     temp = np.array(activity_duration_list, dtype=np.float32)
 
-    print(max(temp[:,0]))
+    # print(max(temp[:,0]))
 
 
     return activity_duration_list
@@ -1223,6 +1228,8 @@ def get_activity_for_state_list():
         # exit(0)
 
     return state_list_all, symbol_list_all
+    #return symbol_list_all, symbol_list_all
+    #return state_list_all, state_list_all
 
 def get_activity_information_all():
 
@@ -1305,12 +1312,14 @@ def get_duration_from_dataset():
         if str(day_time_str) in igore_list:
             print("in ignore day_time_str:", day_time_str)
             continue
-        print("day_time_str:", day_time_str)
+        # print("day_time_str:", day_time_str)
 
         activity_duration_list = get_activity_duration_by_date(day_time_str)
         res_activity_duration_list.extend(activity_duration_list)
 
         # exit(0)
+    print(activity_set_for_lstm)
+    print('len activity set:',len(activity_set_for_lstm))
 
     return res_activity_duration_list
 
