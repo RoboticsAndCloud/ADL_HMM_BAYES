@@ -107,7 +107,7 @@ def run_train_lstm():
     batch_size = 65
     mod_dir = '.'
 
-    max_eps = 1000 * 10
+    max_eps = 1000 * 100
     # max_eps = 1000 
 
     '''load data'''
@@ -156,11 +156,12 @@ def run_train_lstm():
         weights = torch.tensor(weights, dtype=torch.float32, device=device)
 
     print("Training Start")
+    loss_arr = []
     for e in range(max_eps):
         out = net(batch_var_x)
 
-        print('out:',out.shape)
-        print('batch_var_y:', batch_var_y.shape)
+        # print('out:',out.shape)
+        # print('batch_var_y:', batch_var_y.shape)
 
         # print('out 0:', out)
         # print('batch_var_y:',batch_var_y)
@@ -169,6 +170,8 @@ def run_train_lstm():
         # loss = criterion(out, batch_var_y)
         loss = (out - batch_var_y) ** 2 * weights
         loss = loss.mean()
+
+        loss_arr.append(loss.item())
     
         optimizer.zero_grad()
         loss.backward()
@@ -177,11 +180,17 @@ def run_train_lstm():
         if e % 200 == 0:
             print('Epoch: {:4}, Loss: {:.8f}'.format(e, loss.item()))
 
-        if loss.item() < 0.00000005:
+        if loss.item() < 0.000005:
             break
 
     torch.save(net.state_dict(), '{}/net.pth'.format(mod_dir))
     print("Save in:", '{}/net.pth'.format(mod_dir))
+
+    plt.plot(loss_arr, 'r', label='loss')
+    plt.legend(loc='best')
+    plt.savefig('plot_figure/lstm_activity_duration_loss.png')
+    plt.pause(0.1)
+    plt.close()
 
     '''eval'''
     net.load_state_dict(torch.load('{}/net.pth'.format(mod_dir), map_location=lambda storage, loc: storage))

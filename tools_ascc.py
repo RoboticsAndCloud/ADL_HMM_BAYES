@@ -1597,9 +1597,30 @@ def check_motion_action(action, interval, time_str):
 
     return action
 
+def get_activity_count_info():
+    counts = dict()
+
+    res = get_duration_from_dataset()
+    total_cnt = 0
+    for l in res:
+        index = l[2]
+        a = ACTIVITY_DICT[index]
+        counts[a] = counts.get(a, 0) + 1
+        total_cnt = total_cnt + 1
+
+    p_counts = dict()
+    for k in counts:
+        p_counts[k] = counts[k] * 1.0 /total_cnt
+
+    return counts, p_counts
 
 if __name__ == "__main__":
 
+    res, p_res = get_activity_count_info()
+    print('res:', res)
+    print()
+    print('p_res:', p_res)
+    exit(0)
 
     # get_activity_information_all()
 
