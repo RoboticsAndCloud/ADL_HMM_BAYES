@@ -5,6 +5,9 @@ Date: 07/10/2022
 """
 
 
+from multiprocessing import set_forkserver_preload
+
+
 PROB_OF_ALL_ACTIVITIES = {'Bed_to_Toilet': 0.039303482587064675, 'Morning_Meds': 0.01791044776119403, 'Watch_TV': 0.05124378109452736, 'Kitchen_Activity': 0.2517412935323383, 'Chores': 0.011442786069651741, 'Leave_Home': 0.10248756218905472, 'Read': 0.14477611940298507, 'Guest_Bathroom': 0.15074626865671642, 'Master_Bathroom': 0.1328358208955224, 'Desk_Activity': 0.021890547263681594, 'Eve_Meds': 0.007462686567164179, 'Meditate': 0.00845771144278607, 'Dining_Rm_Activity': 0.009950248756218905, 'Master_Bedroom_Activity': 0.04975124378109453}
 
 READ_ACTIVITY = 'read'
@@ -28,6 +31,13 @@ P1_Location_Under_Act = {
 #prob_of_location_under_all_acts
 Prob_Of_Location_Under_All_Act = {}
 
+
+# for image recognition, we can get the reuslt for DNN, from the confusion matrix
+DNN_ACC = 0.99
+TOTAL_ACTIVITY_CNT = len(PROB_OF_ALL_ACTIVITIES)
+
+MIN_Prob = 1e-20
+
 # CNN Confusion matrix
 
 class Bayes_Model_Vision(object):
@@ -35,9 +45,14 @@ class Bayes_Model_Vision(object):
     This class is an implementation of the Bayes Model.
     """
 
-    def __init__(self, act_name, location):
+    def __init__(self, act_name, location, simulation = False):
         self.act_name = act_name
         self.location = location
+        self.simulation = simulation
+        self.cur_time = ''
+
+    def set_time(self, time):
+        self.cur_time = time
 
 
     def get_prob(self, pre_activity, act_name, location):
@@ -49,7 +64,7 @@ class Bayes_Model_Vision(object):
         return p
 
     def prob_of_location_under_act(self, location, act_name):
-        p = 0
+        p = MIN_Prob
 
         try:
             p = P1_Location_Under_Act[act_name][location]
@@ -59,7 +74,7 @@ class Bayes_Model_Vision(object):
         return p
 
     def prob_prior_act(self, pre_activity, act_name):
-        p = 1e-5
+        p = MIN_Prob
         try:
             p = HMM_TRANS_MATRIX[pre_activity][act_name]
         except Exception as e:
@@ -69,18 +84,29 @@ class Bayes_Model_Vision(object):
 
     # Total probability rule, 15 activities
     def prob_of_location_under_all_acts(self, location):
-        p = 1e-5
+        p = MIN_Prob
 
         for act in PROB_OF_ALL_ACTIVITIES.keys():
-            p = p + 1
-
-
+            p = p + self.prob_of_location_under_act(location, act) * self.prob_of_location_vision(act)
 
         return p
     
     # From CNN model, confusion matrix for simulation
     # For real time experiments, use CNN to predict the activity and get the probability
-    def prob_of_location_vision(self):
-        p = 1e-5
+    def prob_of_location_vision(self, act):
+        p = MIN_Prob
+        # todo, how to get the confusion matrix of CNN recognition model
+
+        if self.simulation == True:
+            activity = get_activity_from_dataset_by_time(self.cur_time)
+            if activity == act:
+                p = DNN_ACC
+            else:
+                p = (1-DNN_ACC)/(TOTAL_ACTIVITY_CNT-1) # totally 15 activities
+
+            pass
+
+        else:
+            pass
 
         return p
