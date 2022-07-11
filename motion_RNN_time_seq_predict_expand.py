@@ -428,20 +428,6 @@ def load_data():
     exit(0)
     return seq
 
-def load_data_from_casas_dataset2():
-    res = tools_ascc.get_duration_from_dataset2()
-    seq = np.array(res,dtype=np.float32)
-    print(len(seq))
-
-        # normalization
-    seq = (seq - seq.mean(axis=0)) / seq.std(axis=0)
-
-    print(seq)
-
-
-
-    return seq
-
 def load_data_from_casas_dataset():
     print("Loading data...")
     res = tools_ascc.get_duration_from_dataset()
