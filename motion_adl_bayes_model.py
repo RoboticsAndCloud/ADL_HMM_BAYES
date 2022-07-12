@@ -85,6 +85,7 @@ class Bayes_Model_Vision(object):
 
         return p
 
+
     def prob_of_location_under_act(self, location, act_name):
         p = MIN_Prob
 
@@ -102,7 +103,9 @@ class Bayes_Model_Vision(object):
         except Exception as e:
             print('Got error from HMM_TRANS_MATRIX, pre_activity, act_name:', pre_activity, ', ', act_name, ', err:', e)
 
+        # during acitivty
         if pre_activity == act_name:
+            p = 1
             pass
 
         return p

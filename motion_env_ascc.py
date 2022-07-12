@@ -109,6 +109,14 @@ TIRED_THRESHOLD = 4 # check 3
 
 MOTION_TRIGGERRED_ACTION = 1
 
+
+INTERVAL_FOR_COLLECTING_DATA = 10 # Seconds
+
+AUDIO_ACTION = 0
+VISION_ACTION = 1
+MOTION_ACTION = 2
+FUSION_ACTION = 3
+
 # action map
 # 0 => audio, 1=>vison, 2=>motion, 3=>audio+vision+motion
 # ACTION_DICT = {
@@ -140,187 +148,27 @@ Interval (Secconds)
 # }
 
 ACTION_DICT = {
-    0: "audio with 0 interval",  # "audio",
-    1: "vision with 0 interval", #"vision",
-    2: "audio_vision with 0 interval", #"audio_vision"
+    0: "audio with 10 interval",  # "audio",
+    1: "vision with 10 interval", #"vision",
+    2: "motion with 10 interval", #"motion"
+    3: "audio with 10 interval",  # "fusion",
 
-    3: "audio with 1 interval",  # "audio",
-    4: "vision with 1 interval",  # "vision",
-    5: "audio_vision with 1 interval",  # "audio_vision"
-
-    6: "audio with 5 interval",  # "audio",
-    7: "vision with 5 interval",  # "vision",
-    8: "audio_vision with 5 interval",  # "audio_vision"
-
-    9: "audio with 10 interval",  # "audio",
-    10: "vision with 10 interval",  # "vision",
-    11: "audio_vision with 10 interval",  # "audio_vision"
-
-    12: "audio with 30 interval",  # "audio",
-    13: "vision with 30 interval",  # "vision",
-    14: "audio_vision with 30 interval",  # "audio_vision"
-
-    15: "audio with 60 interval",  # "audio",
-    16: "vision with 60 interval",  # "vision",
-    17: "audio_vision with 60 interval",  # "audio_vision"
-
-    18: "audio with 120 interval",  # "audio",
-    19: "vision with 120 interval",  # "vision",
-    20: "audio_vision with 120 interval",  # "audio_vision"
-
-    21: "audio with 180 interval",  # "audio",
-    22: "vision with 180 interval",  # "vision",
-    23: "audio_vision with 180 interval",  # "audio_vision"
-
-    24: "audio with 240 interval",  # "audio",
-    25: "vision with 240 interval",  # "vision",
-    26: "audio_vision with 240 interval",  # "audio_vision"
-
-    27: "audio with 300 interval",  # "audio",
-    28: "vision with 300 interval",  # "vision",
-    29: "audio_vision with 300 interval",  # "audio_vision"
-
-    30: "audio with 360 interval",  # "audio",
-    31: "vision with 360 interval",  # "vision",
-    32: "audio_vision with 360 interval",  # "audio_vision"
-
-    33: "audio with 420 interval",  # "audio",
-    34: "vision with 420 interval",  # "vision",
-    35: "audio_vision with 420 interval",  # "audio_vision"
-
-    36: "audio with 600 interval",  # "audio",
-    37: "vision with 600 interval",  # "vision",
-    38: "audio_vision with 600 interval",  # "audio_vision"
-
-    39: "audio with 1200 interval",  # "audio",
-    40: "vision with 1200 interval",  # "vision",
-    41: "audio_vision with 1200 interval",  # "audio_vision"
-
-    42: "audio with 1800 interval",  # "audio",
-    43: "vision with 1800 interval",  # "vision",
-    44: "audio_vision with 1800 interval",  # "audio_vision"
-
-    45: "audio with 1800 interval",  # "audio",
-    46: "vision with 1800 interval",  # "vision",
-    47: "audio_vision with 1800 interval",  # "audio_vision"
-
-    48: "audio with 1800 interval",  # "audio",
-    49: "vision with 1800 interval",  # "vision",
-    50: "audio_vision with 1800 interval",  # "audio_vision"
-
-    51: "audio with 1800 interval",  # "audio",
-    52: "vision with 1800 interval",  # "vision",
-    53: "audio_vision with 1800 interval",  # "audio_vision"
 
 }
 
 
-# ACTION_INTERVAL_DICT = {
-#     0: 0,  # "audio",
-#     1: 0, #"vision",
-#     2: 0, #"audio_vision"
-
-#     3: 1,  # "audio",
-#     4: 1,  # "vision",
-#     5: 1,  # "audio_vision"
-
-#     6: 5,  # "audio",
-#     7: 5,  # "vision",
-#     8: 5,  # "audio_vision"
-
-#     9: 10,  # "audio",
-#     10: 10,  # "vision",
-#     11: 10,  # "audio_vision"
-
-#     12: 30,  # "audio",
-#     13: 30,  # "vision",
-#     14: 30,  # "audio_vision"
-
-#     15: 60,  # "audio",
-#     16: 60,  # "vision",
-#     17: 60,  # "audio_vision"
-
-#     18: 120,  # "audio",
-#     19: 120,  # "vision",
-#     20: 120,  # "audio_vision"
-
-#     21: 180,  # "audio",
-#     22: 180,  # "vision",
-#     23: 180,  # "audio_vision"
-
-#     24: 240,  # "audio",
-#     25: 240,  # "vision",
-#     26: 240,  # "audio_vision"
-
-#     27: 300,  # "audio",
-#     28: 300,  # "vision",
-#     29: 300,  # "audio_vision"
-
-#     30: 360,  # "audio",
-#     31: 360,  # "vision",
-#     32: 360,  # "audio_vision"
-
-#     33: 420,  # "audio",
-#     34: 420,  # "vision",
-#     35: 420,  # "audio_vision"
-
-
-#     36: 600,  # "audio",
-#     37: 600,  # "vision",
-#     38: 600,  # "audio_vision"
-
-
-#     39: 1200,  # "audio",
-#     40: 1200,  # "vision",
-#     41: 1200,  # "audio_vision"
-
-#     42: 1800,  # "audio",
-#     43: 1800,  # "vision",
-#     44: 1800,  # "audio_vision"
-
-#     45: 2400,  # "audio",
-#     46: 2400,  # "vision",
-#     47: 2400,  # "audio_vision"
-
-#     48: 3000,  # "audio",
-#     49: 3000,  # "vision",
-#     50: 3000,  # "audio_vision"
-
-#     51: 3600,  # "audio",
-#     52: 3600,  # "vision",
-#     53: 3600,  # "audio_vision"
-# }
-
-# # 1 2 5 8 10 12 15 18 20 25 30 35 40 45 50 55 60 
 ACTION_INTERVAL_DICT = {
-    0: 1 * 60,  # "audio",
-    1: 2 * 60, #"vision",
-    2: 5 * 60, #"audio_vision"
-
-    3: 8 * 60,  # "audio",
-    4: 10 * 60,  # "vision",
-    5: 12 * 60,  # "audio_vision"
-
-    6: 15 * 60,  # "audio",
-    7: 18 * 60,  # "vision",
-    8: 20 * 60,  # "audio_vision"
-
-    9: 25 * 60,  # "audio",
-    10: 30 * 60,  # "vision",
-    11: 35 * 60,  # "audio_vision"
-
-    12: 40 * 60,  # "audio",
-    13: 45 * 60,  # "vision",
-    14: 50 * 60,  # "audio_vision"
-
-    15: 55 * 60,  # "audio",
-    16: 60 * 60  # "vision",
-  
+    0: 1 * 10,  # "audio",
+    1: 1 * 10, #"vision",
+    2: 1 * 10, #"motion"
+    3: 1 * 10, # fusion
 }
 
-AUDIO_ACTION_LIST = [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51]
-VISION_ACTION_LIST = [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37, 40, 43, 46, 49, 52]
-AUDIO_AND_VISION_ACTION_LIST = [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35, 38, 41, 44, 47, 50, 53]
+AUDIO_ACTION_LIST = [0]
+VISION_ACTION_LIST = [1]
+MOTION_ACTION_LIST = [2]
+FUSION_ACTION_LIST = [3]
+# AUDIO_AND_VISION_ACTION_LIST = [3]
 
 
 
@@ -1015,144 +863,7 @@ class EnvASCC():
         return action, motion_triggered_interval
 
     def get_hit_activity_info(self, action):
-        """
-        acc = 0.99
->>> 240 *(0.1*acc - 0.8*ef)
--149.04000000000002
->>> (240+80) *(0.1*acc - 0.8*ef)
--198.72000000000003
->>> 240 *(0.1*0.8 - 0.8*ef)
--153.60000000000002
->>> (240+80) *(0.1*0.99 - 0.8*ef)
--198.72000000000003
->>> (240+80) *(0.1*0.99 - 0.8*ef)
--198.72000000000003
->>> 240 *(0.1*0.6 - 0.8*ef)
--158.40000000000003
->>> 240 *(0.1*0.9 - 0.8*ef)
--151.20000000000002
->>> 240 *(0.1*0.6 - 0.8*ef)
--158.40000000000003
->>> ef
-0.9
->>> ef
-0.9
->>> ef = 0.7
->>> 240 *(0.1*0.6 - 0.8*ef)
--119.99999999999999
->>> (240+80) *(0.1*0.99 - 0.8*ef)
--147.51999999999998
->>> (240+80) *(0.1*0.99 - 0.8*0.9)
--198.72000000000003
->>> (240+80) *(0.1*0.99 - 0.8*ef)
--147.51999999999998
->>> 240 *(0.1*0.3 - 0.8*ef)
--127.19999999999997
->>> 240 *(0.1*0.1 - 0.8*ef)
--131.99999999999997
->>> 240 *(0.1*0.6 - 0.8*ef)
--119.99999999999999
->>> ef
-0.7
->>> ef=.05
->>> 240 *(0.1*0.6 - 0.8*ef)
-4.799999999999997
->>> 240 *(0.1*0.8 - 0.8*ef)
-9.600000000000001
->>> ef = 0.5
->>> 240 *(0.1*0.8 - 0.8*ef)
--76.8
->>> (240+80) *(0.1*0.99 - 0.8*0.9)
--198.72000000000003
->>> (240+80) *(0.1*0.99 - 0.8*ef)
--96.32000000000002
->>> ef = 0.3
->>> (240+80) *(0.1*0.99 - 0.8*ef)
--45.12
->>> 240 *(0.1*0.8 - 0.8*ef)
--38.39999999999999
->>> ef = 0.1
->>> 240 *(0.1*0.8 - 0.8*ef)
-0.0
->>> ef = 0.2
->>> 240 *(0.1*0.8 - 0.8*ef)
--19.200000000000003
->>> (240+80) *(0.1*0.99 - 0.8*ef)
--19.52000000000001
->>> 240 *(0.1*0.7 - 0.8*ef)
--21.60000000000001
->>>
- ef = 0.15
->>> (240) *(0.1*0.8 - 0.8*ef)
--9.599999999999994
->>> (240+80) *(0.1*0.99 - 0.8*ef)
--6.719999999999997
->>> (240) *(0.1*0.9 - 0.8*ef)
--7.199999999999997
->>> (240+80) *(0.1*0.99 - 0.8*ef)
--6.719999999999997
->>> (240) *(0.1*0.9 - 0.8*ef)
--7.199999999999997
->>> (240) *(0.1*0.99 - 0.8*ef)
--5.039999999999997
->>> (240) *(0.1*0.95 - 0.8*ef)
--5.999999999999998
->>> (240+80) *(0.1*0.99 - 0.8*ef)
--6.719999999999997
->>> (240) *(0.1*0.95 - 0.8*ef)
--5.999999999999998
->>> (240) *(0.1*0.9 - 0.8*ef)
--7.199999999999997
->>> (240+80) *(0.1*0.99 - 0.8*ef)
--6.719999999999997
->>> ef = 0.2
->>> (240+80) *(0.1*0.99 - 0.8*ef)
--19.52000000000001
->>> (240) *(0.1*0.9 - 0.8*ef)
--16.800000000000004
->>> (240) *(0.1*0.8 - 0.8*ef)
--19.200000000000003
->>> (240) *(0.1*0.7 - 0.8*ef)
--21.60000000000001
->>> (240) *(0.1*0.7 - 0.8*ef)
-
->>> ef = 0.59
->>> (240+80) *((1-ef)*0.99 - 0.8*ef)
--21.15199999999998
->>> (240) *((1-ef)*0.9 - 0.8*ef)
--24.71999999999998
->>> (240) *((1-ef)*0.8 - 0.8*ef)
--34.559999999999974
->>> ef=0.6
->>> (240) *((1-ef)*0.8 - 0.8*ef)
--38.39999999999998
->>> (240+80) *((1-ef)*0.99 - 0.8*ef)
--26.87999999999999
->>> (240) *((1-ef)*0.9 - 0.8*ef)
--28.799999999999986
->>>
->>> ef = 0.7
->>> (240+80) *((1-ef)*0.99 - 0.8*ef)
--84.15999999999997
->>> (240) *((1-ef)*0.9 - 0.8*ef)
--69.59999999999997
->>> (240) *((1-ef)*0.8 - 0.8*ef)
--76.79999999999997
->>> (240) *((1-ef)*0.7 - 0.8*ef)
--83.99999999999999
->>> ef = 0.62
->>> (240+80) *((1-ef)*0.99 - 0.8*ef)
--38.336000000000006
->>> (240) *((1-ef)*0.8 - 0.8*ef)
--46.079999999999984
->>> (240) *((1-ef)*0.9 - 0.8*ef)
--36.959999999999994
-
-
-
-        :param action:
-        :return:
-        """
+       
         # Accuracy of Activity Recognition based on the data from triggered sensors
         # Energy cost : Different actions cost different energy regarding data collection(sensor type),
         #  data sending(data size, WiFi bandwidth)
@@ -2151,6 +1862,8 @@ class EnvASCC():
         
         return motion_activity_dict
 
+    def get_running_time(self):
+        return self.running_time
 
 
 
