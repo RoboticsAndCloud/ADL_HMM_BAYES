@@ -75,6 +75,11 @@ AUDIO_FILE_SIZE = 50  # KB, Duration: 5 seconds
 AUDIO_RECORDING_TIME_COST = 5  # 5 seconds
 
 
+# AUDIO_FILE_SIZE = 87  # KB, Duration: 1 seconds
+# AUDIO_RECORDING_TIME_COST = 1  # 1 seconds
+
+
+
 ACCELEROMETER_DATA_SIZE = 1  # KB  float 4 bytes,  3-axis,  data rate 10 HZ, recording time 5 seconds, size= 4 * 3 * 10 * 5 = 600 bytes
 ACCELEROMETER_DATA_RECORDING_TIME_COST = 5  # 5 seconds (Reference: xxx)
 

@@ -20,7 +20,6 @@ TEST_BASE_DATE = '2009-12-11'
 Given the duration, return the probability that the activity may be finished
 For Example: Read, we got 20mins(5 times), 30mins(10), 40mins(25), 60mins(2),  for duration of 20mins, the probability would be 5/(5+10+25+2) = 11.90% 
 """
-
 act_duration_cnt_dict = tools_ascc.get_activity_duration_cnt_set()
 def get_end_of_activity_prob_by_duration(activity_duration, activity):
     d_lis = act_duration_cnt_dict[activity]
@@ -38,6 +37,7 @@ def get_end_of_activity_prob_by_duration(activity_duration, activity):
     return prob
 
 
+
 env = motion_env_ascc.EnvASCC(TEST_BASE_DATE + '00:00:00')
 env.reset()
 
@@ -49,6 +49,7 @@ cur_activity = ''
 activity_begin_time = '2009-10-16 06:00:00'
 activity_duration = 0
 
+# TODO how to record transition activities
 res_prob = {}
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []

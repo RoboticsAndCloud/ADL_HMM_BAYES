@@ -12,9 +12,9 @@ import tools_ascc
 PROB_OF_ALL_ACTIVITIES = {'Bed_to_Toilet': 0.039303482587064675, 'Morning_Meds': 0.01791044776119403, 'Watch_TV': 0.05124378109452736, 'Kitchen_Activity': 0.2517412935323383, 'Chores': 0.011442786069651741, 'Leave_Home': 0.10248756218905472, 'Read': 0.14477611940298507, 'Guest_Bathroom': 0.15074626865671642, 'Master_Bathroom': 0.1328358208955224, 'Desk_Activity': 0.021890547263681594, 'Eve_Meds': 0.007462686567164179, 'Meditate': 0.00845771144278607, 'Dining_Rm_Activity': 0.009950248756218905, 'Master_Bedroom_Activity': 0.04975124378109453}
 
 READ_ACTIVITY = 'read'
-READINGROOM = 'readingroom'
-BEDROOM = 'bedroom'
-LIVINGROOM = 'livingroom'
+LOCATION_READINGROOM = 'readingroom'
+LOCATION_BEDROOM = 'bedroom'
+LOCATION_LIVINGROOM = 'livingroom'
 OTHER = 'other'
 
 # HMM Trans matrix, get it from motion_hmm.py
@@ -25,16 +25,28 @@ HMM_START_MATRIX = {'Desk_Activity': 0.0, 'Morning_Meds': 0.09090909090909091, '
 # Read
 # p1: location probability under one act
 P1_Location_Under_Act = {
-    READ_ACTIVITY:{READINGROOM: 0.9, BEDROOM: 0.05, LIVINGROOM:0.04, OTHER:0.01}
+    READ_ACTIVITY:{LOCATION_READINGROOM: 0.9, LOCATION_BEDROOM: 0.05, LOCATION_LIVINGROOM:0.04, OTHER:0.01}
 }
 
+MOTION_TYPE_SITTING = 'sitting'
+MOTION_TYPE_STANDING = 'standing'
+MOTION_TYPE_WALKING = 'walking'
+
+P1_Motion_type_Under_Act = {
+    READ_ACTIVITY:{MOTION_TYPE_SITTING: 0.9, MOTION_TYPE_STANDING: 0.09, OTHER:0.01}
+
+}
 
 #prob_of_location_under_all_acts
 Prob_Of_Location_Under_All_Act = {}
 
 
 # for image recognition, we can get the reuslt for DNN, from the confusion matrix
-DNN_ACC = 0.99
+DNN_ACC_IMAGE = 0.99
+
+CNN_ACC_MOTION = 0.93
+CNN_ACC_SOUND = 0.93
+
 TOTAL_ACTIVITY_CNT = len(PROB_OF_ALL_ACTIVITIES)
 
 MIN_Prob = 1e-20
@@ -53,7 +65,7 @@ class Bayes_Model_Vision(object):
         self.simulation = simulation
         self.cur_time = ''
 
-        self.base_date = '2009-12-11'
+        self.base_date = base_date
 
         self.activity_dict_init()
 
@@ -128,9 +140,9 @@ class Bayes_Model_Vision(object):
         if self.simulation == True:
             activity, _, _ = self.get_activity_from_dataset_by_time(self.cur_time)
             if activity == act:
-                p = DNN_ACC
+                p = DNN_ACC_IMAGE
             else:
-                p = (1-DNN_ACC)/(TOTAL_ACTIVITY_CNT-1) # totally 15 activities
+                p = (1-DNN_ACC_IMAGE)/(TOTAL_ACTIVITY_CNT-1) # totally 15 activities
 
         else:
             # find the probability of location from CNN recognition results
@@ -177,7 +189,7 @@ class Bayes_Model_Motion(object):
         self.simulation = simulation
         self.cur_time = ''
 
-        self.base_date = '2009-12-11'
+        self.base_date = base_date
 
         self.activity_dict_init()
 
@@ -198,25 +210,26 @@ class Bayes_Model_Motion(object):
     def set_act_name(self, act_name):
         self.act_name = act_name
 
-    def set_location(self, location):
-        self.location = location
+    def set_motion_type(self, motion_type):
+        self.motion_type = motion_type
 
-    def get_prob(self, pre_activity, act_name, location):
+    def get_prob(self, pre_activity, act_name, motion_type):
         """ Return the state set of this model. """
         p = 0
-        p =  self.prob_of_location_under_act(location, act_name) \
-             * self.prob_prior_act(pre_activity, act_name) /(self.prob_of_location_under_all_acts(location)) * self.prob_of_location_using_vision(location, act_name)
+        p =  self.prob_of_motion_type_under_act(motion_type, act_name) \
+             * self.prob_prior_act(pre_activity, act_name) /(self.prob_of_motion_type_under_all_acts(motion_type))\
+                 * self.prob_of_motion_type_using_motion(motion_type, act_name)
 
         return p
 
 
-    def prob_of_location_under_act(self, location, act_name):
+    def prob_of_motion_type_under_act(self, motion_type, act_name):
         p = MIN_Prob
 
         try:
-            p = P1_Location_Under_Act[act_name][location]
+            p = P1_Motion_type_Under_Act[act_name][motion_type]
         except Exception as e:
-            print('Got error from P_Location_Under_Act, location, act_name:', location, ', ', act_name, ', err:', e)
+            print('Got error from P1_Motion_type_Under_Act, location, act_name:', motion_type, ', ', act_name, ', err:', e)
 
         return p
 
@@ -235,26 +248,26 @@ class Bayes_Model_Motion(object):
         return p
 
     # Total probability rule, 15 activities
-    def prob_of_location_under_all_acts(self, location):
+    def prob_of_motion_type_under_all_acts(self, motion_type):
         p = MIN_Prob
 
         for act in PROB_OF_ALL_ACTIVITIES.keys():
-            p = p + self.prob_of_location_under_act(location, act) * self.prob_of_activity_in_dataset(act)
+            p = p + self.prob_of_motion_type_under_act(motion_type, act) * self.prob_of_activity_in_dataset(act)
 
         return p
     
     # From CNN model, confusion matrix for simulation
     # For real time experiments, use CNN to predict the activity and get the probability
-    def prob_of_location_using_vision(self, location, act = None):
+    def prob_of_motion_type_using_motion(self, motion_type, act = None):
         p = MIN_Prob
         # todo, how to get the confusion matrix of CNN recognition model
 
         if self.simulation == True:
             activity, _, _ = self.get_activity_from_dataset_by_time(self.cur_time)
             if activity == act:
-                p = DNN_ACC
+                p = CNN_ACC_MOTION
             else:
-                p = (1-DNN_ACC)/(TOTAL_ACTIVITY_CNT-1) # totally 15 activities
+                p = (1-CNN_ACC_MOTION)/(TOTAL_ACTIVITY_CNT-1) # totally 15 activities
 
         else:
             # find the probability of location from CNN recognition results
