@@ -1614,7 +1614,50 @@ def get_activity_count_info():
 
     return counts, p_counts
 
+def get_activity_duration_prob():
+    res = get_duration_from_dataset()
+
+    act_dict = {}
+
+    for lis in res:
+        duration = lis[0]
+        key = lis[2]
+        if act_dict.get(key) == None:
+            act_dict[key] = []
+        
+        act_dict[key].append(duration)
+
+    res_dict = {}
+    for key in act_dict.keys():
+        tmp_list = act_dict[key]
+        tmp_list.sort()
+        act_str = ACTIVITY_DICT[key]
+        res_dict[act_str] = tmp_list
+
+    # print(res_dict)
+    # print('============================================================================================================================')
+    # print(res_dict[ACTIVITY_DICT[0]])
+
+    return res_dict
+
 if __name__ == "__main__":
+
+    get_activity_duration_prob()
+    # res = get_duration_from_dataset()
+    # print(res)
+    # print(len(res))
+
+    # ACTIVITY_DICT
+    # lens = []
+    # for i in res:
+    #     print(len(i))
+    #     lens.append(len(i))
+    #     print(i)
+    # print("max:", max(lens))
+
+    
+
+    exit(0)
 
     res, p_res = get_activity_count_info()
     print('res:', res)
