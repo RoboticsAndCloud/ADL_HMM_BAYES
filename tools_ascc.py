@@ -1614,7 +1614,7 @@ def get_activity_count_info():
 
     return counts, p_counts
 
-def get_activity_duration_prob():
+def get_activity_duration_cnt_set():
     res = get_duration_from_dataset()
 
     act_dict = {}

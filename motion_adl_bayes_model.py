@@ -167,4 +167,125 @@ class Bayes_Model_Vision(object):
         return expected_activity_str, expected_beginning_activity, expected_end_activity
 
 # Bayes Model using Motion
+# todo
+class Bayes_Model_Motion(object):
+    """
+    This class is an implementation of the Bayes Model.
+    """
 
+    def __init__(self,simulation = False, base_date = '2009-12-11'):
+        self.simulation = simulation
+        self.cur_time = ''
+
+        self.base_date = '2009-12-11'
+
+        self.activity_dict_init()
+
+
+    def activity_dict_init(self):
+
+        date_day_hour_time = self.base_date + " 00:00:00"
+
+        self.activity_date_dict, self.activity_begin_dict, self.activity_end_dict, \
+        self.activity_begin_list, self.activity_end_list  = tools_ascc.get_activity_date(date_day_hour_time)
+
+    def set_time(self, time):
+        self.cur_time = time
+
+    def set_base_date(self, date_time):
+        self.base_date = date_time #base_date = '2009-12-11'
+
+    def set_act_name(self, act_name):
+        self.act_name = act_name
+
+    def set_location(self, location):
+        self.location = location
+
+    def get_prob(self, pre_activity, act_name, location):
+        """ Return the state set of this model. """
+        p = 0
+        p =  self.prob_of_location_under_act(location, act_name) \
+             * self.prob_prior_act(pre_activity, act_name) /(self.prob_of_location_under_all_acts(location)) * self.prob_of_location_using_vision(location, act_name)
+
+        return p
+
+
+    def prob_of_location_under_act(self, location, act_name):
+        p = MIN_Prob
+
+        try:
+            p = P1_Location_Under_Act[act_name][location]
+        except Exception as e:
+            print('Got error from P_Location_Under_Act, location, act_name:', location, ', ', act_name, ', err:', e)
+
+        return p
+
+    def prob_prior_act(self, pre_activity, act_name):
+        p = MIN_Prob
+        try:
+            p = HMM_TRANS_MATRIX[pre_activity][act_name]
+        except Exception as e:
+            print('Got error from HMM_TRANS_MATRIX, pre_activity, act_name:', pre_activity, ', ', act_name, ', err:', e)
+
+        # during acitivty
+        if pre_activity == act_name:
+            p = 1
+            pass
+
+        return p
+
+    # Total probability rule, 15 activities
+    def prob_of_location_under_all_acts(self, location):
+        p = MIN_Prob
+
+        for act in PROB_OF_ALL_ACTIVITIES.keys():
+            p = p + self.prob_of_location_under_act(location, act) * self.prob_of_activity_in_dataset(act)
+
+        return p
+    
+    # From CNN model, confusion matrix for simulation
+    # For real time experiments, use CNN to predict the activity and get the probability
+    def prob_of_location_using_vision(self, location, act = None):
+        p = MIN_Prob
+        # todo, how to get the confusion matrix of CNN recognition model
+
+        if self.simulation == True:
+            activity, _, _ = self.get_activity_from_dataset_by_time(self.cur_time)
+            if activity == act:
+                p = DNN_ACC
+            else:
+                p = (1-DNN_ACC)/(TOTAL_ACTIVITY_CNT-1) # totally 15 activities
+
+        else:
+            # find the probability of location from CNN recognition results
+            pass
+
+        return p
+
+    def prob_of_activity_in_dataset(self, act):
+        "Get from dataset"
+        p = PROB_OF_ALL_ACTIVITIES[act]
+
+        return p
+
+
+
+    def get_activity_from_dataset_by_time(self, time_str):
+
+        # base_date = MILAN_BASE_DATE
+        # day_time_train = datetime.strptime(base_date, DAY_FORMAT_STR) + timedelta(days=i + 56)
+        # day_time_str = day_time_train.strftime(DAY_FORMAT_STR)
+
+        # activity_date_dict, activity_begin_dict, activity_end_dict, activity_begin_list, activity_end_list = \
+        #     tools_ascc.get_activity_date(day_time_str)
+
+        # # get expected_activity at current time (running time)
+        # run_time = self.running_time.strftime(DATE_HOUR_TIME_FORMAT)
+
+        test_time_str = '2009-12-11 12:58:33'
+        time_str = test_time_str
+        expected_activity_str, expected_beginning_activity, expected_end_activity = \
+            tools_ascc.get_activity(self.activity_date_dict, self.activity_begin_list,
+                                    self.activity_end_list, time_str)
+                
+        return expected_activity_str, expected_beginning_activity, expected_end_activity
