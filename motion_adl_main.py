@@ -37,11 +37,37 @@ def get_end_of_activity_prob_by_duration(activity_duration, activity):
     return prob
 
 
+def get_location_by_activity(activity):
+    return activity
+
+def get_motion_type_by_activity(activity):
+    # motion type: sitting, standing, walking, random by the probs
+
+    return activity
+
+def get_audio_type_by_activity(activity):
+    # audio type:
+    # door_open_closed
+    # drinking, eating
+    # flush_toilet
+    # keyboard
+    # microwave
+    # pouring_water_into_glass
+    # quiet
+    # toothbrushing
+    # tv_news
+    # vacuum
+    # washing_hand
+    
+    return activity
+
+
 
 env = motion_env_ascc.EnvASCC(TEST_BASE_DATE + '00:00:00')
 env.reset()
 
 bayes_model_vision = motion_adl_bayes_model.Bayes_Model_Vision()
+bayes_model_motion = motion_adl_bayes_model.Bayes_Model_Motion()
 
 cur_activity_prob = 0
 pre_activity = ''
@@ -53,7 +79,7 @@ activity_duration = 0
 res_prob = {}
 rank1_res_prob = []
 rank2_res_prob = []
-rank2_res_prob = []
+rank3_res_prob = []
 
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
@@ -147,10 +173,12 @@ while(not env.done):
         activity_duration = (cur_time - activity_begin_time).seconds() / 60 # in minutes
         prob_of_activity_by_duration = get_end_of_activity_prob_by_duration(activity_duration, cur_activity)
 
-        location = cur_activity
+        location = get_location_by_activity(cur_activity)
+        motion_type = get_motion_type_by_activity(cur_activity)
+        audio_type = get_audio_type_by_activity(cur_activity)
         for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
 
-            p =  bayes_model_motion.get_prob(pre_activity, act, location) 
+            p =  bayes_model_motion.get_prob(pre_activity, act, motion_type) 
             p = p * prob_of_activity_by_duration
             # p3 = bayes_model_audio.get_prob(pre_activity, cur_activity, location)
 
@@ -170,13 +198,13 @@ while(not env.done):
         rank2_res_prob.append(top3_prob[1])
         rank3_res_prob.append(top3_prob[2])
 
+        # todo, if rank1 - rank2 < 0.001, p= p+ p*p_audio, to get a more accurate res
+        #
+
         pre_activity = top3_prob[0][1]
         cur_activity = top3_prob[0][1]
 
-    
 
 
-    if p > 0.8:
-        pass
 
 

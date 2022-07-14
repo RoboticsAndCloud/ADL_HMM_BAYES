@@ -37,6 +37,13 @@ P1_Motion_type_Under_Act = {
 
 }
 
+AUDIO_TYPE_ENV = 'quite'
+P1_Audio_type_Under_Act = {
+    READ_ACTIVITY:{AUDIO_TYPE_ENV: 0.95, OTHER:0.05}
+}
+
+
+
 #prob_of_location_under_all_acts
 Prob_Of_Location_Under_All_Act = {}
 
@@ -45,11 +52,12 @@ Prob_Of_Location_Under_All_Act = {}
 DNN_ACC_IMAGE = 0.99
 
 CNN_ACC_MOTION = 0.93
-CNN_ACC_SOUND = 0.93
+CNN_ACC_AUDIO = 0.92 # Sound-Recognition-Tutorial/train_res.txt
+CNN_ACC_SOUND = CNN_ACC_AUDIO
 
 TOTAL_ACTIVITY_CNT = len(PROB_OF_ALL_ACTIVITIES)
 
-MIN_Prob = 1e-20
+MIN_Prob = 1e-10
 
 # CNN Confusion matrix
 
@@ -268,6 +276,133 @@ class Bayes_Model_Motion(object):
                 p = CNN_ACC_MOTION
             else:
                 p = (1-CNN_ACC_MOTION)/(TOTAL_ACTIVITY_CNT-1) # totally 15 activities
+
+        else:
+            # find the probability of location from CNN recognition results
+            pass
+
+        return p
+
+    def prob_of_activity_in_dataset(self, act):
+        "Get from dataset"
+        p = PROB_OF_ALL_ACTIVITIES[act]
+
+        return p
+
+
+
+    def get_activity_from_dataset_by_time(self, time_str):
+
+        # base_date = MILAN_BASE_DATE
+        # day_time_train = datetime.strptime(base_date, DAY_FORMAT_STR) + timedelta(days=i + 56)
+        # day_time_str = day_time_train.strftime(DAY_FORMAT_STR)
+
+        # activity_date_dict, activity_begin_dict, activity_end_dict, activity_begin_list, activity_end_list = \
+        #     tools_ascc.get_activity_date(day_time_str)
+
+        # # get expected_activity at current time (running time)
+        # run_time = self.running_time.strftime(DATE_HOUR_TIME_FORMAT)
+
+        test_time_str = '2009-12-11 12:58:33'
+        time_str = test_time_str
+        expected_activity_str, expected_beginning_activity, expected_end_activity = \
+            tools_ascc.get_activity(self.activity_date_dict, self.activity_begin_list,
+                                    self.activity_end_list, time_str)
+                
+        return expected_activity_str, expected_beginning_activity, expected_end_activity
+
+
+
+
+# Bayes Model using Audio
+class Bayes_Model_Audio(object):
+    """
+    This class is an implementation of the Bayes Model.
+    """
+
+    def __init__(self,simulation = False, base_date = '2009-12-11'):
+        self.simulation = simulation
+        self.cur_time = ''
+
+        self.base_date = base_date
+
+        self.activity_dict_init()
+
+
+    def activity_dict_init(self):
+
+        date_day_hour_time = self.base_date + " 00:00:00"
+
+        self.activity_date_dict, self.activity_begin_dict, self.activity_end_dict, \
+        self.activity_begin_list, self.activity_end_list  = tools_ascc.get_activity_date(date_day_hour_time)
+
+    def set_time(self, time):
+        self.cur_time = time
+
+    def set_base_date(self, date_time):
+        self.base_date = date_time #base_date = '2009-12-11'
+
+    def set_act_name(self, act_name):
+        self.act_name = act_name
+
+    def set_audio_type(self, audio_type):
+        self.audio_type = audio_type
+
+    def get_prob(self, pre_activity, act_name, audio_type):
+        """ Return the state set of this model. """
+        p = 0
+        p =  self.prob_of_audio_type_under_act(audio_type, act_name) \
+             * self.prob_prior_act(pre_activity, act_name) /(self.prob_of_audio_type_under_all_acts(audio_type))\
+                 * self.prob_of_audio_type_using_audio(audio_type, act_name)
+
+        return p
+
+
+    def prob_of_audio_type_under_act(self, audio_type, act_name):
+        p = MIN_Prob
+
+        try:
+            p = P1_Audio_type_Under_Act[act_name][audio_type]
+        except Exception as e:
+            print('Got error from P1_Audio_type_Under_Act, location, act_name:', audio_type, ', ', act_name, ', err:', e)
+
+        return p
+
+    def prob_prior_act(self, pre_activity, act_name):
+        p = MIN_Prob
+        try:
+            p = HMM_TRANS_MATRIX[pre_activity][act_name]
+        except Exception as e:
+            print('Got error from HMM_TRANS_MATRIX, pre_activity, act_name:', pre_activity, ', ', act_name, ', err:', e)
+
+        # during acitivty
+        if pre_activity == act_name:
+            p = 1
+            pass
+
+        return p
+
+    # Total probability rule, 15 activities
+    def prob_of_audio_type_under_all_acts(self, audio_type):
+        p = MIN_Prob
+
+        for act in PROB_OF_ALL_ACTIVITIES.keys():
+            p = p + self.prob_of_audio_type_under_act(audio_type, act) * self.prob_of_activity_in_dataset(act)
+
+        return p
+    
+    # From CNN model, confusion matrix for simulation
+    # For real time experiments, use CNN to predict the activity and get the probability
+    def prob_of_audio_type_using_audio(self, audio_type, act = None):
+        p = MIN_Prob
+        # todo, how to get the confusion matrix of CNN recognition model
+
+        if self.simulation == True:
+            activity, _, _ = self.get_activity_from_dataset_by_time(self.cur_time)
+            if activity == act:
+                p = CNN_ACC_AUDIO
+            else:
+                p = (1-CNN_ACC_AUDIO)/(TOTAL_ACTIVITY_CNT-1) # totally 15 activities
 
         else:
             # find the probability of location from CNN recognition results
