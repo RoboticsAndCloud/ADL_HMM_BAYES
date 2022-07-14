@@ -48,7 +48,8 @@ def get_motion_type_by_activity(activity):
 def get_audio_type_by_activity(activity):
     # audio type:
     # door_open_closed
-    # drinking, eating
+    # drinking
+    # eating
     # flush_toilet
     # keyboard
     # microwave
