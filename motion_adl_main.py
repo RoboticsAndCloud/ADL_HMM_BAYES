@@ -51,6 +51,10 @@ activity_duration = 0
 
 # TODO how to record transition activities
 res_prob = {}
+rank1_res_prob = []
+rank2_res_prob = []
+rank2_res_prob = []
+
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
@@ -69,15 +73,26 @@ if pre_activity == '':
     # Bayes model
     location = cur_activity
     # prob = bayes_model_vision.get_prob(pre_activity, cur_activity, location)
+    
+    heap_prob = []
 
     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
         p =  bayes_model_vision.prob_of_location_under_act(location, act) \
              * motion_adl_bayes_model.HMM_START_MATRIX[act] /(bayes_model_vision.prob_of_location_under_all_acts(location)) * bayes_model_vision.prob_of_location_using_vision(location, act)
              
         res_prob[act].append(p)
+        heap_prob.append((act, p, cur_time))
 
-    pre_activity = cur_activity
+
+    top3_prob = sorted(heap_prob, reverse=True)[:3]
+    rank1_res_prob.append(top3_prob[0])
+    rank2_res_prob.append(top3_prob[1])
+    rank3_res_prob.append(top3_prob[2])
+    pre_activity = top3_prob[0][1]
+    cur_activity = top3_prob[0][1]
     activity_begin_time = cur_time
+    # TODO top3 data
+    # TODO how to get the accuracy
 
 
 while(not env.done):
@@ -91,6 +106,7 @@ while(not env.done):
         # new activity
         # Bayes model prob
 
+    heap_prob = []
     if transition_motion:
         cur_time = env.get_running_time()
         print('Env Running:', cur_time) 
@@ -108,6 +124,7 @@ while(not env.done):
 
 
             res_prob[act].append(p1) 
+            heap_prob.append((act, p, cur_time))
 
             # p = p1 + p1*p2 + p1*p3
             # todo print out top 3
@@ -139,6 +156,7 @@ while(not env.done):
 
 
             res_prob[act].append(p) 
+            heap_prob.append((act, p, cur_time))
 
             # p = p2 + p2*p3
             # todo print out top 3
@@ -147,6 +165,13 @@ while(not env.done):
             pre_activity = cur_activity
     
 
+        top3_prob = sorted(heap_prob, reverse=True)[:3]
+        rank1_res_prob.append(top3_prob[0])
+        rank2_res_prob.append(top3_prob[1])
+        rank3_res_prob.append(top3_prob[2])
+
+        pre_activity = top3_prob[0][1]
+        cur_activity = top3_prob[0][1]
 
     
 
