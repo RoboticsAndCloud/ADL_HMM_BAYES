@@ -38,10 +38,32 @@ def get_end_of_activity_prob_by_duration(activity_duration, activity):
 
 
 def get_location_by_activity(activity):
+    """
+    # Location
+LOCATION_READINGROOM = 'readingroom'
+LOCATION_BATHROOM = 'bathroom'
+LOCATION_BEDROOM = 'bedroom'
+LOCATION_LIVINGROOM = 'livingroom'
+LOCATION_KITCHEN = 'Kitchen'
+LOCATION_DININGROOM = 'diningroom'
+LOCATION_DOOR = 'door'
+LOCATION_LOBBY = 'lobby'
+    """
+    # Mapping
+    act_dict = motion_adl_bayes_model.P1_Location_Under_Act(activity)
+
+    sd = sorted(act_dict.items(), reverse=True)
+    res = sd[0][0]
     return activity
 
 def get_motion_type_by_activity(activity):
     # motion type: sitting, standing, walking, random by the probs
+
+        # Mapping
+    act_dict = motion_adl_bayes_model.P1_Motion_type_Under_Act(activity)
+
+    sd = sorted(act_dict.items(), reverse=True)
+    res = sd[0][0]
 
     return activity
 
@@ -59,6 +81,12 @@ def get_audio_type_by_activity(activity):
     # tv_news
     # vacuum
     # washing_hand
+
+    # Mapping
+    act_dict = motion_adl_bayes_model.P1_Audio_type_Under_Act(activity)
+
+    sd = sorted(act_dict.items(), reverse=True)
+    res = sd[0][0]
     
     return activity
 
