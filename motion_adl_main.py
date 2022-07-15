@@ -131,6 +131,9 @@ env.reset()
 
 bayes_model_vision = motion_adl_bayes_model.Bayes_Model_Vision()
 bayes_model_motion = motion_adl_bayes_model.Bayes_Model_Motion()
+bayes_model_audio = motion_adl_bayes_model.Bayes_Model_Audio()
+bayes_model_object = motion_adl_bayes_model.Bayes_Model_Vision_Object()
+
 
 cur_activity_prob = 0
 pre_activity = ''
@@ -160,18 +163,25 @@ if pre_activity == '':
 
     # detect activity, cur_activity, pre_activity
     # Bayes model
-    location = cur_activity
-    # prob = bayes_model_vision.get_prob(pre_activity, cur_activity, location)
+    location = get_location_by_activity(cur_activity)
+    object = get_object_by_activity(cur_activity)
+    audio_type = get_audio_type_by_activity(cur_activity)
+    motion_type = get_motion_type_by_activity(cur_activity)
     
     heap_prob = []
 
     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
-        p =  bayes_model_vision.prob_of_location_under_act(location, act) \
+        p1 =  bayes_model_vision.prob_of_location_under_act(location, act) \
              * motion_adl_bayes_model.HMM_START_MATRIX[act] /(bayes_model_vision.prob_of_location_under_all_acts(location)) * bayes_model_vision.prob_of_location_using_vision(location, act)
+        
+        p2 = bayes_model_motion.get_prob(pre_activity, cur_activity, motion_type)
+        p3 = bayes_model_audio.get_prob(pre_activity, cur_activity, audio_type)
+        p4 = bayes_model_object.get_prob(pre_activity, cur_activity, object)
+
+        p = p1*p2*p3*p4
              
         res_prob[act].append(p)
         heap_prob.append((act, p, cur_time))
-
 
     top3_prob = sorted(heap_prob, reverse=True)[:3]
     rank1_res_prob.append(top3_prob[0])
