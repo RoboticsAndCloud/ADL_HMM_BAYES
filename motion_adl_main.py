@@ -7,6 +7,7 @@ Date: 07/10/2022
 import motion_env_ascc
 import motion_adl_bayes_model
 import tools_ascc
+import random
 
 
 MILAN_BASE_DATE = '2009-10-16'
@@ -54,7 +55,14 @@ LOCATION_LOBBY = 'lobby'
 
     sd = sorted(act_dict.items(), reverse=True)
     res = sd[0][0]
-    return activity
+
+    random_t = random.random()
+    print('random_t:', random_t)
+    if random_t > sd[0][1]:
+        index = random.randint(1, len(sd) -1)
+        res = sd[index][0]
+
+    return res
 
 def get_motion_type_by_activity(activity):
     # motion type: sitting, standing, walking, random by the probs
@@ -65,7 +73,13 @@ def get_motion_type_by_activity(activity):
     sd = sorted(act_dict.items(), reverse=True)
     res = sd[0][0]
 
-    return activity
+    random_t = random.random()
+    print('random_t:', random_t)
+    if random_t > sd[0][1]:
+        index = random.randint(1, len(sd) -1)
+        res = sd[index][0]
+
+    return res
 
 def get_audio_type_by_activity(activity):
     # audio type:
@@ -87,9 +101,14 @@ def get_audio_type_by_activity(activity):
 
     sd = sorted(act_dict.items(), reverse=True)
     res = sd[0][0]
-    
-    return activity
 
+    random_t = random.random()
+    print('random_t:', random_t)
+    if random_t > sd[0][1]:
+        index = random.randint(1, len(sd) -1)
+        res = sd[index][0]
+    
+    return res
 
 
 env = motion_env_ascc.EnvASCC(TEST_BASE_DATE + '00:00:00')
