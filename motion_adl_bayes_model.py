@@ -172,6 +172,23 @@ ACTIVITY_MASTER_BEDROOM : {OBJECT_MEDICINE:0.2}
 }
 
 
+act_duration_cnt_dict = tools_ascc.get_activity_duration_cnt_set()
+def get_end_of_activity_prob_by_duration(activity_duration, activity):
+    d_lis = act_duration_cnt_dict[activity]
+    total_cnt = len(d_lis)
+    cnt = 0
+    for d in d_lis:
+        if activity_duration >= d:
+            cnt += 1
+    
+    prob = 1 - cnt * 1.0 /total_cnt
+
+    if prob < 0.01:
+        prob = 0.01
+
+    return prob
+
+
 #prob_of_location_under_all_acts
 Prob_Of_Location_Under_All_Act = {}
 
@@ -199,7 +216,8 @@ class Bayes_Model_Vision_Location(object):
     This class is an implementation of the Bayes Model.
     """
 
-    def __init__(self,simulation = False, base_date = '2009-12-11'):
+    def __init__(self, bayes_model, simulation = False, base_date = '2009-12-11'):
+        self.bayse_model = bayes_model
         self.simulation = simulation
         self.cur_time = ''
 
@@ -227,11 +245,11 @@ class Bayes_Model_Vision_Location(object):
     def set_location(self, location):
         self.location = location
 
-    def get_prob(self, pre_activity, act_name, location):
+    def get_prob(self, pre_activity_list, act_name, location, act_duration):
         """ Return the state set of this model. """
         p = 0
         p =  self.prob_of_location_under_act(location, act_name) \
-             * self.prob_prior_act(pre_activity, act_name) /(self.prob_of_location_under_all_acts(location)) * self.prob_of_location_using_vision(location, act_name)
+             * self.prob_prior_act_by_prelist(pre_activity_list, act_name, act_duration) /(self.prob_of_location_under_all_acts(location)) * self.prob_of_location_using_vision(location, act_name)
 
         return p
 
@@ -259,6 +277,60 @@ class Bayes_Model_Vision_Location(object):
             pass
 
         return p
+
+    def prob_prior_act_by_prelist(self, pre_activity_list, target_act_name, duration = None):
+        p = MIN_Prob
+
+        if len(pre_act_list) == 0:
+            return HMM_START_MATRIX[target_act_name]
+
+        if pre_act_list[-1] == target_act_name:
+
+            p = get_end_of_activity_prob_by_duration(duration, target_act_name)
+
+            return p
+        
+        pre_act_list = pre_activity_list
+
+        res = {}
+        act_type_list = ['M', 'A', 'N']
+        
+        for index in tools_ascc.ACTIVITY_DICT.keys():
+            act = tools_ascc.ACTIVITY_DICT[index]
+            for type in act_type_list:
+                activity_type = type
+                node = tools_ascc.Activity_Node_Observable(act, activity_type, 0)
+        
+                next_act = node.activity_res_generation()
+
+                test_lis = pre_act_list
+                test_lis.append(next_act)
+                prob = self.bayse_model.evaluate(test_lis)
+
+                print('test_lis:', test_lis)
+                print('prob:', prob)
+                res[next_act] = prob
+
+        print('=========================================================')
+
+        sd = sorted(res.items(), key=tools_ascc.sorter_take_count, reverse=True)
+        print(sd)
+
+        for k in sd.keys():
+            for type in act_type_list:
+                activity_type = type
+                tmp_node = tools_ascc.Activity_Node_Observable(k, activity_type, 0)
+                tmp_act = tmp_node.activity_res_generation()
+
+                target_node = tools_ascc.Activity_Node_Observable(target_act_name, activity_type, 0)
+                target_act = target_node.activity_res_generation()
+
+                if target_act == tmp_act:
+                    p = sd[target_act]
+                    break
+        
+        return p
+
 
     # Total probability rule, 15 activities
     def prob_of_location_under_all_acts(self, location):
@@ -351,11 +423,11 @@ class Bayes_Model_Motion(object):
     def set_motion_type(self, motion_type):
         self.motion_type = motion_type
 
-    def get_prob(self, pre_activity, act_name, motion_type):
+    def get_prob(self, pre_activity, act_name, motion_type, activity_duration):
         """ Return the state set of this model. """
         p = 0
         p =  self.prob_of_motion_type_under_act(motion_type, act_name) \
-             * self.prob_prior_act(pre_activity, act_name) /(self.prob_of_motion_type_under_all_acts(motion_type))\
+             * self.prob_prior_act_by_prelist(pre_activity, act_name, activity_duration) /(self.prob_of_motion_type_under_all_acts(motion_type))\
                  * self.prob_of_motion_type_using_motion(motion_type, act_name)
 
         return p
@@ -383,6 +455,59 @@ class Bayes_Model_Motion(object):
             p = 1
             pass
 
+        return p
+
+    def prob_prior_act_by_prelist(self, pre_activity_list, target_act_name, duration = None):
+        p = MIN_Prob
+
+        if len(pre_act_list) == 0:
+            return HMM_START_MATRIX[target_act_name]
+
+        if pre_act_list[-1] == target_act_name:
+
+            p = get_end_of_activity_prob_by_duration(duration, target_act_name)
+
+            return p
+        
+        pre_act_list = pre_activity_list
+
+        res = {}
+        act_type_list = ['M', 'A', 'N']
+        
+        for index in tools_ascc.ACTIVITY_DICT.keys():
+            act = tools_ascc.ACTIVITY_DICT[index]
+            for type in act_type_list:
+                activity_type = type
+                node = tools_ascc.Activity_Node_Observable(act, activity_type, 0)
+        
+                next_act = node.activity_res_generation()
+
+                test_lis = pre_act_list
+                test_lis.append(next_act)
+                prob = self.bayse_model.evaluate(test_lis)
+
+                print('test_lis:', test_lis)
+                print('prob:', prob)
+                res[next_act] = prob
+
+        print('=========================================================')
+
+        sd = sorted(res.items(), key=tools_ascc.sorter_take_count, reverse=True)
+        print(sd)
+
+        for k in sd.keys():
+            for type in act_type_list:
+                activity_type = type
+                tmp_node = tools_ascc.Activity_Node_Observable(k, activity_type, 0)
+                tmp_act = tmp_node.activity_res_generation()
+
+                target_node = tools_ascc.Activity_Node_Observable(target_act_name, activity_type, 0)
+                target_act = target_node.activity_res_generation()
+
+                if target_act == tmp_act:
+                    p = sd[target_act]
+                    break
+        
         return p
 
     # Total probability rule, 15 activities
@@ -478,11 +603,11 @@ class Bayes_Model_Audio(object):
     def set_audio_type(self, audio_type):
         self.audio_type = audio_type
 
-    def get_prob(self, pre_activity, act_name, audio_type):
+    def get_prob(self, pre_activity, act_name, audio_type, activity_duration):
         """ Return the state set of this model. """
         p = 0
         p =  self.prob_of_audio_type_under_act(audio_type, act_name) \
-             * self.prob_prior_act(pre_activity, act_name) /(self.prob_of_audio_type_under_all_acts(audio_type))\
+             * self.prob_prior_act_by_prelist(pre_activity, act_name, activity_duration) /(self.prob_of_audio_type_under_all_acts(audio_type))\
                  * self.prob_of_audio_type_using_audio(audio_type, act_name)
 
         return p
@@ -510,6 +635,59 @@ class Bayes_Model_Audio(object):
             p = 1
             pass
 
+        return p
+
+    def prob_prior_act_by_prelist(self, pre_activity_list, target_act_name, duration = None):
+        p = MIN_Prob
+
+        if len(pre_act_list) == 0:
+            return HMM_START_MATRIX[target_act_name]
+
+        if pre_act_list[-1] == target_act_name:
+
+            p = get_end_of_activity_prob_by_duration(duration, target_act_name)
+
+            return p
+        
+        pre_act_list = pre_activity_list
+
+        res = {}
+        act_type_list = ['M', 'A', 'N']
+        
+        for index in tools_ascc.ACTIVITY_DICT.keys():
+            act = tools_ascc.ACTIVITY_DICT[index]
+            for type in act_type_list:
+                activity_type = type
+                node = tools_ascc.Activity_Node_Observable(act, activity_type, 0)
+        
+                next_act = node.activity_res_generation()
+
+                test_lis = pre_act_list
+                test_lis.append(next_act)
+                prob = self.bayse_model.evaluate(test_lis)
+
+                print('test_lis:', test_lis)
+                print('prob:', prob)
+                res[next_act] = prob
+
+        print('=========================================================')
+
+        sd = sorted(res.items(), key=tools_ascc.sorter_take_count, reverse=True)
+        print(sd)
+
+        for k in sd.keys():
+            for type in act_type_list:
+                activity_type = type
+                tmp_node = tools_ascc.Activity_Node_Observable(k, activity_type, 0)
+                tmp_act = tmp_node.activity_res_generation()
+
+                target_node = tools_ascc.Activity_Node_Observable(target_act_name, activity_type, 0)
+                target_act = target_node.activity_res_generation()
+
+                if target_act == tmp_act:
+                    p = sd[target_act]
+                    break
+        
         return p
 
     # Total probability rule, 15 activities
@@ -604,11 +782,11 @@ class Bayes_Model_Vision_Object(object):
     def set_object(self, object):
         self.object = object
 
-    def get_prob(self, pre_activity, act_name, object):
+    def get_prob(self, pre_activity, act_name, object, activity_duration):
         """ Return the state set of this model. """
         p = 0
         p =  self.prob_of_object_under_act(object, act_name) \
-             * self.prob_prior_act(pre_activity, act_name) /(self.prob_of_object_under_all_acts(object)) * self.prob_of_object_using_vision(object, act_name)
+             * self.prob_prior_act_by_prelist(pre_activity, act_name, activity_duration) /(self.prob_of_object_under_all_acts(object)) * self.prob_of_object_using_vision(object, act_name)
 
         return p
 
@@ -635,6 +813,59 @@ class Bayes_Model_Vision_Object(object):
             p = 1
             pass
 
+        return p
+
+    def prob_prior_act_by_prelist(self, pre_activity_list, target_act_name, duration = None):
+        p = MIN_Prob
+
+        if len(pre_act_list) == 0:
+            return HMM_START_MATRIX[target_act_name]
+
+        if pre_act_list[-1] == target_act_name:
+
+            p = get_end_of_activity_prob_by_duration(duration, target_act_name)
+
+            return p
+        
+        pre_act_list = pre_activity_list
+
+        res = {}
+        act_type_list = ['M', 'A', 'N']
+        
+        for index in tools_ascc.ACTIVITY_DICT.keys():
+            act = tools_ascc.ACTIVITY_DICT[index]
+            for type in act_type_list:
+                activity_type = type
+                node = tools_ascc.Activity_Node_Observable(act, activity_type, 0)
+        
+                next_act = node.activity_res_generation()
+
+                test_lis = pre_act_list
+                test_lis.append(next_act)
+                prob = self.bayse_model.evaluate(test_lis)
+
+                print('test_lis:', test_lis)
+                print('prob:', prob)
+                res[next_act] = prob
+
+        print('=========================================================')
+
+        sd = sorted(res.items(), key=tools_ascc.sorter_take_count, reverse=True)
+        print(sd)
+
+        for k in sd.keys():
+            for type in act_type_list:
+                activity_type = type
+                tmp_node = tools_ascc.Activity_Node_Observable(k, activity_type, 0)
+                tmp_act = tmp_node.activity_res_generation()
+
+                target_node = tools_ascc.Activity_Node_Observable(target_act_name, activity_type, 0)
+                target_act = target_node.activity_res_generation()
+
+                if target_act == tmp_act:
+                    p = sd[target_act]
+                    break
+        
         return p
 
     # Total probability rule, 15 activities

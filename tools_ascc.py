@@ -186,10 +186,10 @@ ACTIVITY_DICT = {
     11: "Eve_Meds",
     12: "Leave_Home",
     13: "Morning_Meds",
-    14: "Master_Bedroom_Activity",
-    15: "Phone_Call",
-    16: "Fall",
-    17: "Medication"
+    14: "Master_Bedroom_Activity"
+    # 15: "Phone_Call",
+    # 16: "Fall",
+    # 17: "Medication"
 }
 
 
@@ -619,7 +619,7 @@ def get_exist_image_dir(time_str, action='vision'):
     return ''
 
 def sorter_take_count(elem):
-    print('elem:', elem)
+    # print('elem:', elem)
     return elem[1]
 
 def get_activity_by_vision_dnn(time_str, action='vision'):

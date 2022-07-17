@@ -21,21 +21,21 @@ TEST_BASE_DATE = '2009-12-11'
 Given the duration, return the probability that the activity may be finished
 For Example: Read, we got 20mins(5 times), 30mins(10), 40mins(25), 60mins(2),  for duration of 20mins, the probability would be 5/(5+10+25+2) = 11.90% 
 """
-act_duration_cnt_dict = tools_ascc.get_activity_duration_cnt_set()
-def get_end_of_activity_prob_by_duration(activity_duration, activity):
-    d_lis = act_duration_cnt_dict[activity]
-    total_cnt = len(d_lis)
-    cnt = 0
-    for d in d_lis:
-        if activity_duration >= d:
-            cnt += 1
+# act_duration_cnt_dict = tools_ascc.get_activity_duration_cnt_set()
+# def get_end_of_activity_prob_by_duration(activity_duration, activity):
+#     d_lis = act_duration_cnt_dict[activity]
+#     total_cnt = len(d_lis)
+#     cnt = 0
+#     for d in d_lis:
+#         if activity_duration >= d:
+#             cnt += 1
     
-    prob = 1 - cnt * 1.0 /total_cnt
+#     prob = 1 - cnt * 1.0 /total_cnt
 
-    if prob < 0.01:
-        prob = 0.01
+#     if prob < 0.01:
+#         prob = 0.01
 
-    return prob
+#     return prob
 
 
 def get_object_by_activity(activity):
@@ -129,7 +129,7 @@ def get_audio_type_by_activity(activity):
 env = motion_env_ascc.EnvASCC(TEST_BASE_DATE + '00:00:00')
 env.reset()
 
-bayes_model_vision = motion_adl_bayes_model.Bayes_Model_Vision()
+bayes_model_location = motion_adl_bayes_model.Bayes_Model_Vision_Location()
 bayes_model_motion = motion_adl_bayes_model.Bayes_Model_Motion()
 bayes_model_audio = motion_adl_bayes_model.Bayes_Model_Audio()
 bayes_model_object = motion_adl_bayes_model.Bayes_Model_Vision_Object()
@@ -147,6 +147,13 @@ rank1_res_prob = []
 rank2_res_prob = []
 rank3_res_prob = []
 
+pre_act_list = []
+
+def get_pre_act_list():
+
+    return []
+
+# init
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
@@ -159,7 +166,7 @@ if pre_activity == '':
     # test_time_str = '2009-12-11 12:58:33'
     cur_time = env.get_running_time()
     cur_activity, cur_beginning_activity, cur_end_activity = \
-        bayes_model_vision.get_activity_from_dataset_by_time(cur_time)
+        bayes_model_location.get_activity_from_dataset_by_time(cur_time)
 
     # detect activity, cur_activity, pre_activity
     # Bayes model
@@ -171,12 +178,14 @@ if pre_activity == '':
     heap_prob = []
 
     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
-        p1 =  bayes_model_vision.prob_of_location_under_act(location, act) \
-             * motion_adl_bayes_model.HMM_START_MATRIX[act] /(bayes_model_vision.prob_of_location_under_all_acts(location)) * bayes_model_vision.prob_of_location_using_vision(location, act)
+        p1 = bayes_model_location.get_prob(pre_act_list, cur_activity, location)
         
-        p2 = bayes_model_motion.get_prob(pre_activity, cur_activity, motion_type)
-        p3 = bayes_model_audio.get_prob(pre_activity, cur_activity, audio_type)
-        p4 = bayes_model_object.get_prob(pre_activity, cur_activity, object)
+        #  bayes_model_location.prob_of_location_under_act(location, act) \
+            #  * motion_adl_bayes_model.HMM_START_MATRIX[act] /(bayes_model_location.prob_of_location_under_all_acts(location)) * bayes_model_location.prob_of_location_using_vision(location, act)
+        
+        p2 = bayes_model_motion.get_prob(pre_act_list, cur_activity, motion_type)
+        p3 = bayes_model_audio.get_prob(pre_act_list, cur_activity, audio_type)
+        p4 = bayes_model_object.get_prob(pre_act_list, cur_activity, object)
 
         p = p1*p2*p3*p4
              
@@ -187,17 +196,27 @@ if pre_activity == '':
     rank1_res_prob.append(top3_prob[0])
     rank2_res_prob.append(top3_prob[1])
     rank3_res_prob.append(top3_prob[2])
+
     pre_activity = top3_prob[0][1]
     cur_activity = top3_prob[0][1]
     activity_begin_time = cur_time
+
+    pre_act_list.append(pre_activity)
     # TODO top3 data
     # TODO how to get the accuracy
 
-
+need_recollect_data = False
 while(not env.done):
 
-    # INTERVAL_FOR_COLLECTING_DATA
-    audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.MOTION_ACTION)  
+    # TODO:
+    # p = rank1_res_prob[-1]
+    # if p of previous detection is smaller than threshodl, env.step(motion_env_ascc.FUSION_ACTION)
+
+    if need_recollect_data:
+        audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.AUDIO_ACTION)  
+    else:
+        # INTERVAL_FOR_COLLECTING_DATA
+        audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.MOTION_ACTION)  
 
     # detect motion
     #if transition_motion:
@@ -210,27 +229,25 @@ while(not env.done):
         cur_time = env.get_running_time()
         print('Env Running:', cur_time) 
         cur_activity, cur_beginning_activity, cur_end_activity = \
-            bayes_model_vision.get_activity_from_dataset_by_time(cur_time)
+            bayes_model_location.get_activity_from_dataset_by_time(cur_time)
 
-        location = cur_activity
+        location = get_location_by_activity(cur_activity)
+        object = get_object_by_activity(cur_activity)
+        audio_type = get_audio_type_by_activity(cur_activity)
+        motion_type = get_motion_type_by_activity(cur_activity)
+        
+        activity_duration = (cur_time - activity_begin_time).seconds() / 60 # in minutes
+
+
         for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
-            p1 =  bayes_model_vision.get_prob(pre_activity, act, location)
+            p1 = bayes_model_location.get_prob(pre_act_list, act, location, activity_duration)
+            p2 = bayes_model_motion.get_prob(pre_act_list, cur_activity, motion_type, activity_duration)
+            p3 = bayes_model_audio.get_prob(pre_act_list, cur_activity, audio_type, activity_duration)
+            p4 = bayes_model_object.get_prob(pre_act_list, cur_activity, object, activity_duration)
+            p = p1*p2*p3*p4
 
-            # p2 = bayes_model_audio.get_prob(pre_activity, act, location)
-            # p3 = bayes_model_motion.get_prob(pre_activity, act, location)
-
-            # calculate the duration of activity to get the probability
-
-
-            res_prob[act].append(p1) 
+            res_prob[act].append(p) 
             heap_prob.append((act, p, cur_time))
-
-            # p = p1 + p1*p2 + p1*p3
-            # todo print out top 3
-
-            # pre_activity should be the acitivty with high probability
-            pre_activity = cur_activity
-            activity_begin_time = cur_time
 
     else:
         # motion data  or audio data
@@ -240,43 +257,57 @@ while(not env.done):
         cur_time = env.get_running_time()
         print('Env Running:', cur_time) 
         cur_activity, cur_beginning_activity, cur_end_activity = \
-            bayes_model_vision.get_activity_from_dataset_by_time(cur_time)
+            bayes_model_location.get_activity_from_dataset_by_time(cur_time)
 
         
         activity_duration = (cur_time - activity_begin_time).seconds() / 60 # in minutes
-        prob_of_activity_by_duration = get_end_of_activity_prob_by_duration(activity_duration, cur_activity)
+        # prob_of_activity_by_duration = get_end_of_activity_prob_by_duration(activity_duration, cur_activity)
 
         location = get_location_by_activity(cur_activity)
         motion_type = get_motion_type_by_activity(cur_activity)
         audio_type = get_audio_type_by_activity(cur_activity)
+
         for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
 
-            p =  bayes_model_motion.get_prob(pre_activity, act, motion_type) 
-            p = p * prob_of_activity_by_duration
-            # p3 = bayes_model_audio.get_prob(pre_activity, cur_activity, location)
+            p2 = bayes_model_motion.get_prob(pre_act_list, cur_activity, motion_type, activity_duration)
+            p3 = bayes_model_audio.get_prob(pre_act_list, cur_activity, audio_type, activity_duration)
 
+            if need_recollect_data:
+                p = p2 * p3
+            p = p2
 
             res_prob[act].append(p) 
             heap_prob.append((act, p, cur_time))
-
-            # p = p2 + p2*p3
-            # todo print out top 3
-
-            # pre_activity should be the acitivty with high probability
-            pre_activity = cur_activity
     
-
         top3_prob = sorted(heap_prob, reverse=True)[:3]
+        # TODO: normalization for the top3 prob
+        # if top3_prob[0] < threshold:
+        #     need_recollect_data = True
+
         rank1_res_prob.append(top3_prob[0])
         rank2_res_prob.append(top3_prob[1])
         rank3_res_prob.append(top3_prob[2])
 
         # todo, if rank1 - rank2 < 0.001, p= p+ p*p_audio, to get a more accurate res
-        #
-
-        pre_activity = top3_prob[0][1]
+        #        
         cur_activity = top3_prob[0][1]
 
+        if pre_activity != cur_activity:
+            pre_activity = cur_activity
+            pre_act_list.append[pre_activity]
+            activity_begin_time = cur_time
+            need_recollect_data = False
+
+
+# print out results
+print('rank1:')
+print(rank1_res_prob)
+
+print('rank2:')
+print(rank2_res_prob)
+
+print('rank3:')
+print(rank3_res_prob)
 
 
 
