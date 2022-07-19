@@ -227,7 +227,7 @@ class Bayes_Model_Vision_Location(object):
 
     def activity_dict_init(self):
 
-        date_day_hour_time = self.base_date + " 00:00:00"
+        date_day_hour_time = self.base_date
 
         self.activity_date_dict, self.activity_begin_dict, self.activity_end_dict, \
         self.activity_begin_list, self.activity_end_list  = tools_ascc.get_activity_date(date_day_hour_time)
@@ -379,8 +379,8 @@ class Bayes_Model_Vision_Location(object):
         # # get expected_activity at current time (running time)
         # run_time = self.running_time.strftime(DATE_HOUR_TIME_FORMAT)
 
-        test_time_str = '2009-12-11 12:58:33'
-        time_str = test_time_str
+        test_time_str = '2009-12-11 12:57:20'
+        # time_str = test_time_str
         expected_activity_str, expected_beginning_activity, expected_end_activity = \
             tools_ascc.get_activity(self.activity_date_dict, self.activity_begin_list,
                                     self.activity_end_list, time_str)

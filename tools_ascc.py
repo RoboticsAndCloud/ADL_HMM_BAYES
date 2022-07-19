@@ -157,7 +157,7 @@ import numpy as np
 
 from matplotlib import image
 
-DEBUG = False
+DEBUG = True
 
 ASCC_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/notice.txt'
 ASCC_DATA_RES_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/recognition_result.txt'
@@ -1642,7 +1642,7 @@ def get_activity_duration_cnt_set():
 
 if __name__ == "__main__":
 
-    get_activity_duration_prob()
+    # get_activity_duration_prob()
     # res = get_duration_from_dataset()
     # print(res)
     # print(len(res))
@@ -1657,23 +1657,23 @@ if __name__ == "__main__":
 
     
 
-    exit(0)
+    # exit(0)
 
-    res, p_res = get_activity_count_info()
-    print('res:', res)
-    print()
-    print('p_res:', p_res)
-    exit(0)
+    # res, p_res = get_activity_count_info()
+    # print('res:', res)
+    # print()
+    # print('p_res:', p_res)
+    # exit(0)
 
     # get_activity_information_all()
 
-    state_list = get_activity_for_state_list()
-    print(state_list)
-    print(len(state_list))
+    # state_list = get_activity_for_state_list()
+    # print(state_list)
+    # print(len(state_list))
 
-    for i in range(len(state_list)):
-        print(state_list[i])
-        print("==")
+    # for i in range(len(state_list)):
+    #     print(state_list[i])
+    #     print("==")
 
 
     # cnt = get_activity_count_by_date('2009-12-10')
@@ -1694,7 +1694,7 @@ if __name__ == "__main__":
     
     # print(max(res[:, 0]))
 
-    exit(0)
+    # exit(0)
 
     time_str = '2009-12-11 09:10:46' # leaving home door
     # time_str = '2009-12-11 10:06:39' # reading
@@ -1742,16 +1742,16 @@ if __name__ == "__main__":
     # get_activity_duration_output()
     # exit(0)
 
-    action = 15
-    interval = ACTION_INTERVAL_DICT[action]
-    time_str = '2009-10-16 08:40:50'
+    # action = 15
+    # interval = ACTION_INTERVAL_DICT[action]
+    # time_str = '2009-10-16 08:40:50'
     
-    action = check_motion_action(action, interval, time_str)
-    print("action:", action)
+    # action = check_motion_action(action, interval, time_str)
+    # print("action:", action)
 
-    # # get_activity_duration()
+    # # # get_activity_duration()
 
-    exit(0)
+    # exit(0)
     ### test   2009-10-16 - 2010-01-06, totally 84, ignore 01-06
     base_date = '2009-12-11'
 
@@ -1769,7 +1769,7 @@ if __name__ == "__main__":
 
     # exit(0)
 
-    get_day_begin_end(activity_date_dict, activity_begin_dict, activity_end_dict)
+    # get_day_begin_end(activity_date_dict, activity_begin_dict, activity_end_dict)
 
 
     # print(activity_date_dict.keys())

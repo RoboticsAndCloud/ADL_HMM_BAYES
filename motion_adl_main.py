@@ -192,21 +192,24 @@ while(pre_activity == ''):
 
     # env.running_time
     # test_time_str = '2009-12-11 12:58:33'
-    cur_time = env.get_running_time()
+    cur_time = env.get_running_time().strftime(motion_env_ascc.DATE_HOUR_TIME_FORMAT)
+    print('cur_time:', cur_time)
+    # todo change to str
+
     cur_activity, cur_beginning_activity, cur_end_activity = \
         bayes_model_location.get_activity_from_dataset_by_time(cur_time)
 
     print('cur_time:', cur_time, ' cur_activity:', cur_activity)
+    # exit(0)
 
     """
     2009-12-11 08:42:03.000082	M021	ON	Sleep end
     2009-12-11 08:42:04.000066	M028	ON
     2009-12-11 08:42:06.000089	M020	ON
     """
-    if cur_activity == None:
+    if cur_activity == None or cur_activity == '':
         continue
 
-    exit(0)
 
     # detect activity, cur_activity, pre_activity
     # Bayes model
