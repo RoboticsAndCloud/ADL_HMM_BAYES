@@ -125,6 +125,7 @@ def train(sequences, delta=0.0001, smoothing=0):
         new_likelihood = 0
 
         # todo: update the _emit_prob, _trans_prob when get a bood likelihood
+        # currently, the init emit_prob and trans_prob are good
         break;
         for _, symbol_list in sequences:
             model.learn(symbol_list, smoothing)

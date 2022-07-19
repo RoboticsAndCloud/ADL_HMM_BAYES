@@ -2,12 +2,9 @@
 Brief: We use open-source data set for the simulation environment
 @Author: Fei.Liang
 @Date: 08/10/2021
-
 Paper proposal:
 https://docs.google.com/document/d/1wtd85OB5lnGRIPESCkamNU-O3fMSz_IUwTgspzic8bM/edit#
 https://docs.google.com/spreadsheets/d/12XW3PZJMzoQOc3ugGb_I_gqVh8pD2grAcE7QxYFMX0c/edit#gid=0
-
-
 @Reference:
 python_style_rules:
 1) https://zh-google-styleguide.readthedocs.io/en/latest/google-python-styleguide/python_style_rules/#id21
@@ -26,15 +23,12 @@ import time
 from typing import Dict
 import numpy as np
 import tkinter as tk
-from PIL import ImageTk, Image
+from PIL import Image
 
 from datetime import datetime
 from datetime import timedelta
 
-from numpy.core.fromnumeric import diagonal
 
-
-from gym import spaces
 import tools_ascc
 
 
@@ -57,7 +51,7 @@ STATE_TIME_TRANS = 1000*1000*1000*10
 
 
 np.random.seed(1)
-PhotoImage = ImageTk.PhotoImage
+
 UNIT = 100
 HEIGHT = 5
 WIDTH = 5
@@ -153,20 +147,20 @@ Interval (Secconds)
 # }
 
 ACTION_DICT = {
-    0: "audio with 10 interval",  # "audio",
-    1: "vision with 10 interval", #"vision",
-    2: "motion with 10 interval", #"motion"
-    3: "audio with 10 interval",  # "fusion",
+    0: "audio with 1 interval",  # "audio",
+    1: "vision with 1/3 interval", #"vision",
+    2: "motion with 3 interval", #"motion"
+    3: "audio vision (fusion) with 4+1/3 interval",  # "fusion",
 
 
 }
 
 
 ACTION_INTERVAL_DICT = {
-    0: 1 * 10,  # "audio",
-    1: 1 * 10, #"vision",
-    2: 1 * 10, #"motion"
-    3: 1 * 10, # fusion
+    0: 1,  # "audio",
+    1: 1.0/3, #"vision",
+    2: 3, #"motion"
+    3: 4+1.0/3, # fusion
 }
 
 AUDIO_ACTION_LIST = [0]
@@ -357,43 +351,6 @@ class EnvASCC():
         self.n_actions = 0.42
 
         self.n_features = 2
-        self.action_space = spaces.Box(
-            # low=-18.0, high=18.0, shape=(1,), dtype=np.float32
-            #low=-18, high=18, shape=(1,), dtype=np.int32
-            # low=-2, high=2, shape=(1,), dtype=np.float32
-            # low=-0.18, high=0.18, shape=(1,), dtype=np.float32
-            low=-(self.n_actions), high=self.n_actions, shape=(1,), dtype=np.float32
-
-        )
-        self.observation_space = spaces.Box(low=-high, high=high, dtype=np.float32)
-
-        # from gym import spaces
-        # spaces box source code
-        # https://doctorj.gitlab.io/sairen/_modules/gym/spaces/box.html
-        # https://github.com/openai/gym/blob/master/gym/envs/classic_control/pendulum.py
-        #        def __init__(self, g=10.0):
-        # self.max_speed = 8
-        # self.max_torque = 2.0
-        # self.dt = 0.05
-        # self.g = g
-        # self.m = 1.0
-        # self.l = 1.0
-        # self.viewer = None
-
-        # high = np.array([1.0, 1.0, self.max_speed], dtype=np.float32)
-        # self.action_space = spaces.Box(
-        #     low=-self.max_torque, high=self.max_torque, shape=(1,), dtype=np.float32
-        # )
-        # self.observation_space = spaces.Box(low=-high, high=high, dtype=np.float32)
-
-
-
-        # self.action_space = spaces.Box(
-        #     np.array([-1, 0, 0]).astype(np.float32),
-        #     np.array([+1, +1, +1]).astype(np.float32),
-        # )  # steer, gas, brake
-        # Reference:  https://github.com/openai/gym/blob/master/gym/envs/box2d/car_racing.py
-        # https://programtalk.com/python-examples/gym.spaces.Box/
 
         self.texts = []
 
@@ -578,56 +535,17 @@ class EnvASCC():
         if DEBUG:
             print("Step--running_time:", self.running_time)
 
-        #print("Step--running_time:", self.running_time)
-
-        ## if done, just do notining
-#        if self.done:
-#            next_state_ = [0, -1,-1]
-#
-#            reward = -1 * 1000 * 1000 * 1000
-#
-#            return next_state_, reward, True
-#
         if not self.done:
             self.done_totol_check_times = self.done_totol_check_times + 1
         
         self.totol_check_times = self.totol_check_times + 1
 
-        # todo: how to simulate the motion triggerred method
-        # first check the running time + interval, if there is a 'motion activity' during the interval, 
-        # We trigger the camera + microphone, and return the corresponding activity
-        # For this case, as the action is replaced by the motion-triggerred action, the next action need to be predicated again 
-        
-        """
-        motion_activity_dict = get_motion_activity()
-
-        if key in running + interval:
-            action = 3
-            motion_triggerred ++
-            if pre_action != 3:
-                xxxx
 
 
-        """
-
-
-        try:
-            # action = abs(int((abs(p_action[0])-0.001) * 100))
-            action = p_action
-        except Exception as e:
-            print("Got errer: p_action", p_action)
-            print(e)
-            action = 0
+        action = p_action
         # if(p_action[0] in {'NaN','infinity','nan','Infinity'}):
         #     action = 0
 
-        # 1, 5, 10, 30, 60, 120, 180, 240, 300, 360, 420, 600, 1200, 1800 seconds,
-        # 5, 8, 11, 14, 17, 20,  23, 26, 29, 32, 35, 38, 41, 44
-
-        # action = 41
-
-        if action >= 55:
-            exit(0)
         
 
         running_time_str = self.running_time.strftime(TRAIN_RUNNING_TIME_FORMAT)
@@ -644,37 +562,34 @@ class EnvASCC():
 
         ###############################change here ###########################
 
-        day_interval = 60*60*10
-        self.running_time = self.get_current_running_time(1)
-        # action, self.motion_triggered_interval = self.check_motion_action(action, day_interval)
         action, self.motion_triggered_interval = pre_action, pre_interval
 
-        day_active_time_duration = (self.day_end - self.day_begin).seconds
-        print('day_active_time_duration:', day_active_time_duration)
-    
+        motion_triggerred_flag = False
 
-        motion_triggerred_action, motion_triggered_interval = self.check_motion_action(action, day_active_time_duration)
+        motion_interval = 3 # 3 seconds to detect the motion activity
+        if action == MOTION_ACTION or action == FUSION_ACTION:
+            motion_triggerred_flag, self.motion_triggered_interval = self.check_motion_action(action, motion_interval)
 
 
         self.runing_time_action_dict_motion[running_time_str] = action
 
         self.action_count_store(action)
-        
-        power_consumption, time_cost = self.energy_time_cost(action)
+
+        sensors_power_consumption, sensors_time_cost = self.sensors_energy_time_cost(action)
 
         if DEBUG:
-            print("Step--p_action power_consumption:", power_consumption, " time cost:", time_cost)
+            print("Step--p_action power_consumption:", sensors_power_consumption, " time cost:", sensors_time_cost)
 
         done = False
 
         # power restriction
-        self.residual_power = self.residual_power - power_consumption
+        self.residual_power = self.residual_power - sensors_power_consumption
 
-        sensors_power_consumption, sensors_time_cost = self.sensors_energy_time_cost(action)
 
-        self.time_cost = self.time_cost + sensors_time_cost
+        self.time_cost = self.time_cost + sensors_time_cost 
         self.energy_cost = self.energy_cost + sensors_power_consumption
 
+        self.running_time = self.get_current_running_time(interval)
 
 
         if not self.done:
@@ -683,81 +598,16 @@ class EnvASCC():
             self.done_running_time = self.running_time
             self.done_time_cost = self.done_time_cost + sensors_time_cost
             self.done_energy_cost = self.done_energy_cost + sensors_power_consumption
-            self.done_total_time_cost = self.done_total_time_cost + time_cost
+            self.done_total_time_cost = self.done_total_time_cost + sensors_time_cost
 
         if self.residual_power <= 0:
             done = True #  Battery is dead
             self.done = True
             # print("Done = True, self.residual_power: ", self.residual_power)
-
-        # Reward
-        # reward = self.get_reward(action)
-        self.get_hit_activity_info(action)
-        
-        reward = 0
-        print('pre_interval:', pre_interval, 'motion_triggered_interval', motion_triggered_interval)
-        time_diff = abs(motion_triggered_interval - pre_interval) / 60
-
-        if pre_interval <  motion_triggered_interval:
-            reward = time_diff * (-0.5)
-
-            if time_diff < 5:
-                reward = time_diff * (-0.1)
-
-            if time_diff > 15:
-                reward = time_diff * (-0.8)
-
-            if time_diff < 2:
-                reward = time_diff * (2)
-        else:
-            time_diff = abs(motion_triggered_interval - pre_interval) / 60
-            print("time_diff:", time_diff)
-            reward = abs(motion_triggered_interval - pre_interval) / 60 * (-2)
-            
-            if time_diff < 2:
-                reward = abs(motion_triggered_interval - pre_interval) / 60 * (1)
-
-            if time_diff > 60:
-                reward = abs(motion_triggered_interval - pre_interval) / 60 * (-9)                
-            elif time_diff > 55:
-                reward = abs(motion_triggered_interval - pre_interval) / 60 * (-8)
-            elif time_diff > 45:
-                reward = abs(motion_triggered_interval - pre_interval) / 60 * (-7)
-            elif time_diff > 35:
-                reward = abs(motion_triggered_interval - pre_interval) / 60 * (-6)
-            elif time_diff > 25:
-                reward = abs(motion_triggered_interval - pre_interval) / 60 * (-5)
-            elif time_diff > 15:
-                reward = abs(motion_triggered_interval - pre_interval) / 60 * (-4)
-            
-            elif time_diff > 10:
-                reward = abs(motion_triggered_interval - pre_interval) / 60 * (-3)
-
         
 
-        print('each reward:', reward)
+        self.running_time = self.get_current_running_time(sensors_time_cost)
 
-        # if motion occurs, that means the previous interval and action is not good, 
-        # so we need to calculate the previous action's cost as the penalty 
-        # if pre_action != action:
-        #     reward = self.get_reward(pre_action) 
-        # 
-        penalty_for_miss_motion = -2 * power_consumption
-
-        # if pre_action != motion_triggerred_action:
-        #     print("pre-action != motion_triggerred")
-        #     reward = reward + (pre_interval - motion_triggered_interval) *1.0/motion_triggered_interval * penalty_for_miss_motion
-
-        # if pre_interval > 0:
-        #     penalty_for_miss_motion = motion_triggered_interval * 1.0 / pre_interval
-
-        # if reward < 0:
-        #     reward = reward + penalty_for_miss_motion
-        # else:
-        #     reward = reward - penalty_for_miss_motion
-
-        time_cost = self.motion_triggered_interval
-        self.running_time = self.get_current_running_time(time_cost)
         if not self.done:
             self.done_running_time = self.running_time
 
@@ -775,433 +625,14 @@ class EnvASCC():
             done = True
             self.done = True
 
-        # next_state_ = 'time', 'activity', 'residual_power', 'priority'
-        # next_state_ = [self.running_time, self.activity, self.residual_power]
-        train_running_time = self.get_train_running_time()
-
-        if not self.done:
-            self.done_reward = reward
-            # self.done_residual_power = self.residual_power
-            # self.done_running_time = self.running_time
-
         if self.done:
             if DEBUG:
                 print("Step Done || Running time: ", self.running_time, "Residual power: ", self.residual_power)
 
-        # next_state_ = [train_running_time, self.initial_state, self.residual_power]
-        # next_state_ = [train_running_time / STATE_TIME_TRANS, (self.activity / 100), self.residual_power /(1000 * 1000)]
-        next_state_ = [train_running_time / STATE_TIME_TRANS, (self.activity / 100)]
-
 
         self.res_hit_plus_miss_event_dict = merge_dicts(self.res_hit_event_dict, self.res_random_event_dict)
 
-        return next_state_, reward, done
-
-
-# ACTION_INTERVAL_DICT = {
-#     0: 1 * 60,  # "audio",
-#     1: 2 * 60, #"vision",
-#     2: 5 * 60, #"audio_vision"
-
-#     3: 8 * 60,  # "audio",
-#     4: 10 * 60,  # "vision",
-#     5: 12 * 60,  # "audio_vision"
-
-#     6: 15 * 60,  # "audio",
-#     7: 18 * 60,  # "vision",
-#     8: 20 * 60,  # "audio_vision"
-
-#     9: 25 * 60,  # "audio",
-#     10: 30 * 60,  # "vision",
-#     11: 35 * 60,  # "audio_vision"
-
-#     12: 40 * 60,  # "audio",
-#     13: 45 * 60,  # "vision",
-#     14: 50 * 60,  # "audio_vision"
-
-#     15: 55 * 60,  # "audio",
-#     16: 60 * 60  # "vision",
-  
-# }
-
-    def get_motion_triggerred_action(self):
-        day_interval = 60*60*10
-        action, motion_triggered_interval = self.check_motion_action(0, day_interval)
-
-        ACTION_INTERVAL_DICT
-
-        if motion_triggered_interval > 60 * 60:
-            action = 16
-        elif motion_triggered_interval > 55 * 60:
-            action = 15
-        elif motion_triggered_interval > 50 * 60:
-            action = 14
-        elif motion_triggered_interval > 45 * 60:
-            action = 13
-        elif motion_triggered_interval > 40 * 60:
-            action = 12
-        elif motion_triggered_interval > 35 * 60:
-            action = 11
-        elif motion_triggered_interval > 30 * 60:
-            action = 10
-        elif motion_triggered_interval > 25 * 60:
-            action = 9
-        elif motion_triggered_interval > 20 * 60:
-            action = 8
-        elif motion_triggered_interval > 18 * 60:
-            action = 7
-        elif motion_triggered_interval > 15 * 60:
-            action = 6
-        elif motion_triggered_interval > 12 * 60:
-            action = 5
-        elif motion_triggered_interval > 10 * 60:
-            action = 4
-        elif motion_triggered_interval > 8 * 60:
-            action = 3
-        elif motion_triggered_interval > 5 * 60:
-            action = 2
-        elif motion_triggered_interval > 2 * 60:
-            action = 1
-        else:
-            action = 0
-       
-        return action, motion_triggered_interval
-
-    def get_hit_activity_info(self, action):
-       
-        # Accuracy of Activity Recognition based on the data from triggered sensors
-        # Energy cost : Different actions cost different energy regarding data collection(sensor type),
-        #  data sending(data size, WiFi bandwidth)
-        # Punishment from a Missed Event (?)
-
-        power_consumption, time_cost = self.energy_time_cost(action)
-        punishment_flag = 0
-
-        # get the activity after interval seconds
-        activity, activity_priority, beginning_activity, end_activity = self.get_activity_by_action(action)
-
-        
-        # get expected_activity at current time (running time)
-        run_time = self.running_time.strftime(DATE_HOUR_TIME_FORMAT)
-        expected_activity_str, expected_beginning_activity, expected_end_activity = \
-            tools_ascc.get_activity(self.activity_date_dict, self.activity_begin_list,
-                                    self.activity_end_list, run_time)
-
-        # interval = ACTION_INTERVAL_DICT[action]
-        # cur_time = self.get_current_running_time(interval)
-        # str_d_act = cur_time.strftime(DATE_HOUR_TIME_FORMAT)
-        # expected_activity_str = self.activity_date_dict[str_d_act]
-
-        expected_activity = tools_ascc.get_key(ACTIVITY_DICT, expected_activity_str)
-
-        '''
-        We compare the activity at current time with the activity after taking the action(
-            i.e. wait for interval and trigger the sensors to collect data)
-        
-        case1: they are the same activity
-        case2: they are different, for example, current activity is Watching TV, after 60 seconds,
-               the activity is cooking, that means, we cannot wait for 60 seconds then collect data,
-               we miss the activity for this case
-        case3: they are both "-1" or "-2", that means we can not find out the activities, set reward to be 0 and ignore this case
-
-        '''
-
-        ## None, could not get the record
-        if activity == -1 or activity == -2 or expected_activity == -1 or expected_activity == -2:
-            # uncertain times
-            self.uncertain_times = self.uncertain_times + 1
-            if not self.done:
-                self.done_uncertain_times = self.done_uncertain_times + 1
-            if DEBUG:
-                print("activity:", activity, "expected_activity:", expected_activity, "please check", "runing time:", self.running_time,)
-            # return 0
-
-        # interval = ACTION_INTERVAL_DICT[action]
-        interval = self.motion_triggered_interval
-        sensor_run_time = self.get_current_running_time(interval).strftime(DATE_HOUR_TIME_FORMAT)
-
-
-        # missed_event = 0
-        # if activity != expected_activity:
-        #     # todo: output the revelant data, activity, time, using a dict
-        #     if DEBUG:
-        #         print("activity:", activity, "expected_activity:", expected_activity, "please check", "runing time:", self.running_time,)
-        #
-        #     self.missed_event_times = self.missed_event_times + 1
-        #     if not self.done:
-        #         self.done_missed_event_times = self.done_missed_event_times + 1
-        #         self.res_miss_event_dict[sensor_run_time] = activity
-        #         self.res_real_miss_event_dict[sensor_run_time] = activity
-        #
-        # if expected_activity != -1 and activity == -1:
-        #     self.missed_expected_known_event_times = self.missed_expected_known_event_times + 1
-
-        # todo : activity == -2, need to return award
-        reward = 0
-
-        sensors_power_consumption, sensors_time_cost = self.sensors_energy_time_cost(action)
-        cost = sensors_power_consumption
-        print("cost:", cost)
-
-        # weight of accuracy and energy consumption for reward
-        w_acc = WEIGHT_ACC
-        w_energy = WEIGHT_ENERGY
-
-        # reward
-        reward = reward + (-cost) * w_energy
-
-
-        running_time_str = self.running_time.strftime(TRAIN_RUNNING_TIME_FORMAT)
-        duration_after_day_begin = datetime.strptime(running_time_str, TRAIN_RUNNING_TIME_FORMAT) - self.day_begin
-
-        duration_before_day_end = self.day_end - datetime.strptime(running_time_str, TRAIN_RUNNING_TIME_FORMAT)
-
-        # # exceed the end of the day, set the duration to be 0
-        # if (duration_before_day_end.days < 0):
-        #     duration_before_day_end = self.day_end - self.day_end
-
-        # todo: check the reward equation, make sure the energy and accuracy are used equally in the equation
-        # - power_consumption * w_energy - punishment_flag * activity_reward_priority * PENALTY_FOR_MISSED_EVENT
-
-        # w_power = w_energy * 7.0 / 7
-        # w_run_time = w_energy - w_power
-        # if (self.residual_power <= 0):
-        #     reward = reward - 100 * (duration_before_day_end.seconds) * 1.0 / 3600 * w_energy
-        # elif self.residual_power > 0:
-        #
-        #     #reward = reward + 100 * (self.residual_power * 1.0 / BATTERY_LIFE) * w_power \
-        #           # w_run_time is useless, as the residual power could be achieved by run_time, ignore this
-        #             #  + 100 * (duration_after_day_begin.seconds * 1.0 /3600) * w_run_time
-        #
-        #     reward = reward + 100 * (self.residual_power * 1.0 / BATTERY_LIFE) \
-        #          * (duration_after_day_begin.seconds * 1.0 /3600 / (self.day_end-self.day_begin).seconds/3600) * w_energy
-        #     # reward = reward + 100 * (self.residual_power * 1.0 / BATTERY_LIFE) \
-        #     #          * (duration_after_day_begin.seconds * 1.0 /3600)  * w_energy
-        #
-        #     if duration_before_day_end.seconds * 1.0 / 3600 < 1:
-        #         reward = reward + 5
-        #
-        #     # elif duration_before_day_end.seconds * 1.0 / 3600 < 2:
-        #     #     reward = reward + 50
-        #
-        #     # elif duration_before_day_end.seconds * 1.0 / 3600 < 3:
-        #     #     reward = reward + 30
-        #
-
-
-
-        # if activity is Beginning event
-        if beginning_activity:
-            # todo beginning activity, get more rewards
-            reward = reward + cost * w_energy * BEGINNIG_EVENT_COMPENSATION  # compensation, todo: reward = reward / interval
-
-            if interval <30 and interval > 1:
-                reward = reward / (interval)
-
-            self.beginning_event_times = self.beginning_event_times + 1
-            if not self.done:
-                self.done_beginning_event_times = self.done_beginning_event_times + 1
-
-        elif end_activity:
-            reward = reward + cost * w_energy * END_EVENT_COMPENSATION
-
-            self.end_event_times = self.end_event_times + 1
-            if not self.done:
-                self.done_end_event_times = self.done_end_event_times + 1
-        else:
-            reward = reward + cost * w_energy * MIDDLE_EVENT_COMPENSATION
-
-            self.middle_event_times = self.middle_event_times + 1
-            if not self.done:
-                self.done_middle_event_times = self.done_middle_event_times + 1
-
-            # middle event, usually we do not need to check it frequently,
-
-            if interval >= 60:
-                reward = reward / (interval/60)
-
-
-        # if activity is Middle event
-
-        # if activity is End event
-
-
-        if activity == -1 or activity == -2 or expected_activity == -1 or expected_activity == -2:
-            self.hit_event_times = self.hit_event_times + 1
-            self.res_hit_event_dict[sensor_run_time] = activity
-            if not self.done:
-                self.done_hit_event_times = self.done_hit_event_times + 1
-            # uncertain times
-            return reward
-
-
-        accuracy = 0
-        accuracy_arr = []
-        # 0, 3, 6, 9, 12, 15
-        if action in AUDIO_ACTION_LIST:
-            accuracy_arr = AUDIO_ACTIVITY_ACCURACY_DICT[activity]
-        # 1, 4, 7, 10, 13, 16
-        elif action in VISION_ACTION_LIST:
-            accuracy_arr = VISION_ACTIVITY_ACCURACY_DICT[activity]
-        # 2, 5, 8, 11, 14, 17
-        elif action in AUDIO_AND_VISION_ACTION_LIST:
-            accuracy_arr = FUSION_ACTIVITY_ACCURACY_DICT[activity]
-
-        accuracy_arr = VISION_ACTIVITY_ACCURACY_DICT[activity]
-
-        if DEBUG:
-            print("action:", action, " activity:", activity, " accuracy_arr:", accuracy_arr)
-
-        accuracy = accuracy_arr[1]  # default is middle activity
-        if beginning_activity:
-            accuracy = accuracy_arr[0]
-        elif end_activity:
-            accuracy = accuracy_arr[2]
-  
-        # check activity and expected activity
-        # if activity == expected_activity:
-            # todo: output the revelant data, activity, time, using the dict
-        # return a float number between 0-1
-        accuracy = 100
-        random_miss = random.random()
-        # print("random_miss:", random_miss, accuracy)
-        if random_miss > accuracy:
-            
-            self.missed_event_times = self.missed_event_times + 1
-
-            # todo check if it need to give penalty, because we collect the data, but recognition is not correct
-            # reward = reward miss
-
-            random_activity = random.randint(0, len(ACTIVITY_LIST) -1 )
-            while(random_activity == activity):
-                random_activity = random.randint(0, len(ACTIVITY_LIST) -1)
-
-            # two cases: 1. random activity as the noise,
-            # 2. ignore noise, we fix the noise, just add the penalty for accuracy
-            #
-            activity = random_activity
-
-            self.random_miss_event_times = self.random_miss_event_times + 1
-            self.res_random_event_dict[sensor_run_time] = activity
-
-            if not self.done:
-                self.done_missed_event_times = self.done_missed_event_times + 1
-                self.done_random_miss_event_times = self.done_random_miss_event_times + 1
-
-        else:
-            self.hit_event_times = self.hit_event_times + 1
-            if not self.done:
-                self.done_hit_event_times = self.done_hit_event_times + 1
-                self.res_hit_event_dict[sensor_run_time] = activity
-
-        #         if not self.done:
-        #             self.done_missed_event_times = self.done_missed_event_times + 1
-        #             self.res_miss_event_dict[sensor_run_time] = activity
-        #             self.done_random_miss_event_times = self.done_random_miss_event_times + 1
-        #
-        #
-        #
-        #         # self.activity = activity
-        #
-        #     else:
-        #         self.hit_event_times = self.hit_event_times + 1
-        #         if not self.done:
-        #             self.done_hit_event_times = self.done_hit_event_times + 1
-        #             self.res_hit_event_dict[sensor_run_time] = activity
-        # else:
-        #     # if miss the event by the interval, need to get penalty
-        #     reward = reward - cost * PENALTY_FOR_MISSED_EVENT_FACTOR
-
-
-
-
-
-        if activity == self.activity:
-            self.activity_middle_event_times = self.activity_middle_event_times + 1
-
-        else:
-            self.activity_middle_event_times = 0
-
-        self.activity = activity
-
-
-        # # weight of accuracy and energy consumption for reward
-        # w_acc = WEIGHT_ACC
-        # w_energy = WEIGHT_ENERGY
-
-        # running_time_str = self.running_time.strftime(TRAIN_RUNNING_TIME_FORMAT)
-        # duration_after_day_begin = datetime.strptime(running_time_str, TRAIN_RUNNING_TIME_FORMAT) - self.day_begin
-
-        # duration_before_day_end = self.day_end - datetime.strptime(running_time_str, TRAIN_RUNNING_TIME_FORMAT)
-
-        # # exceed the end of the day, set the duration to be 0
-        # if (duration_before_day_end.days < 0):
-        #     duration_before_day_end = self.day_end - self.day_end
-
-        # todo: check the reward equation, make sure the energy and accuracy are used equally in the equation
-
-        reward = reward + accuracy * cost * (1 - w_energy)
-        if accuracy < ACC_PENALTY_THRESHOLD:
-            reward = reward + (-cost) * 3 
-
-        # - power_consumption * w_energy - punishment_flag * activity_reward_priority * PENALTY_FOR_MISSED_EVENT
-
-        # w_power = w_energy * 4.0 / 7
-        # w_run_time = w_energy - w_power
-        # if (self.c <= 0):
-        #     reward = reward - 100 * (duration_before_day_end.seconds) * 1.0 / 3600 * w_energy
-        # elif self.residual_power > 0:
-
-        #     reward = reward + 100 * (self.residual_power * 1.0 / BATTERY_LIFE) * w_power \
-        #              + 100 * (duration_after_day_begin.seconds * 1.0 /3600) * w_run_time
-
-        #     # reward = reward + 100 * (self.residual_power * 1.0 / BATTERY_LIFE) \
-        #             #  * (duration_after_day_begin.seconds * 1.0 /3600 / (self.day_end-self.day_begin).seconds/3600) * w_energy 
-        #     # reward = reward + 100 * (self.residual_power * 1.0 / BATTERY_LIFE) \
-        #     #          * (duration_after_day_begin.seconds * 1.0 /3600)  * w_energy 
-            
-        # if duration_before_day_end.seconds * 1.0 / 3600 < 1:
-            # reward = reward + 5
-
-        #     # elif duration_before_day_end.seconds * 1.0 / 3600 < 2:
-        #     #     reward = reward + 50
-            
-        #     # elif duration_before_day_end.seconds * 1.0 / 3600 < 3:
-        #     #     reward = reward + 30
-
-
-
-
-        # # if activity is Beginning event
-        # if beginning_activity:
-        #     # todo beginning activity, get more rewards
-        #     reward = reward + 30
-
-        #     pass
-
-        # if end_activity:
-        #     reward = reward + 10
-
-        # if activity is Middle event
-
-        # if activity is End event
-
-        # Penalty 
-        # if it coninously check one single activity larger than TIRED_THRESHOLD times, than get penalty
-        # For example, reading may take 2 hours, if you check the activty every 1 minute, you need 200 times, 
-        # that is useless and use lots of energy 
-        if self.activity_middle_event_times > TIRED_THRESHOLD:
-
-            reward = reward - cost * TIRED_PENALTY  * self.activity_middle_event_times * 1.0 / TIRED_THRESHOLD
-
-            if not self.done:
-                self.done_penalty_times = self.done_penalty_times + 1
-            
-            if DEBUG:
-                print("Get penalty:activity_middle_event_times| TIRED_THRESHOLD", self.activity_middle_event_times, TIRED_THRESHOLD)
-
-
-        return reward
+        return '', '', '', motion_triggerred_flag
 
     # convert [-1,1], [0,17]
     def convert_action(p_action):
@@ -1725,19 +1156,6 @@ class EnvASCC():
         return activity, priority, beginning_activity, end_activity
 
 
-    def energy_normalization(self, action):
-        # Energy_StandBy = 124  # mA
-        # Energy_TX = 220  # mA
-        # Energy_Recording = 140  # mA (to be Done from Ricky)
-
-        # Max = 5341
-        # Min = Max / 200
-        # x = (x - Min) / (Max - Min)
-
-        energy_consum = 0
-
-
-        return energy_consum
 
     def trigger_acceleration(self):
         # todo, define different activity threshold, also, they should be related to the daily activities, daily time
@@ -1771,7 +1189,7 @@ class EnvASCC():
 
     
         # '2009-10-16 08:42:01': 1, '2009-10-16 08:43:59': 1,
-        for i in range(interval + int(sensors_time_cost)):
+        for i in range(interval):
             new_time = running_time + timedelta(seconds = i)
             
             for key in motion_activity_dict.keys():
@@ -1809,10 +1227,10 @@ class EnvASCC():
                     if not self.done:
                         self.motion_triggered_times = self.motion_triggered_times + 1
 
-                    return motion_trigger_action, time_cost
+                    return True, time_cost
                 
 
-        return action, time_cost
+        return False, time_cost
 
 
     def get_motion_activity(self, base_date):
@@ -1869,6 +1287,4 @@ class EnvASCC():
 
     def get_running_time(self):
         return self.running_time
-
-
 

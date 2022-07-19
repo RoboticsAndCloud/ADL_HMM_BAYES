@@ -5,7 +5,6 @@ Date: 07/10/2022
 """
 
 
-from motion_lstm_train_v1 import test
 import tools_ascc
 
 
@@ -216,8 +215,8 @@ class Bayes_Model_Vision_Location(object):
     This class is an implementation of the Bayes Model.
     """
 
-    def __init__(self, bayes_model, simulation = False, base_date = '2009-12-11'):
-        self.bayse_model = bayes_model
+    def __init__(self, hmm_model, simulation = False, base_date = '2009-12-11'):
+        self.hmm_model = hmm_model
         self.simulation = simulation
         self.cur_time = ''
 
@@ -305,7 +304,7 @@ class Bayes_Model_Vision_Location(object):
 
                 test_lis = pre_act_list
                 test_lis.append(next_act)
-                prob = self.bayse_model.evaluate(test_lis)
+                prob = self.hmm_model.evaluate(test_lis)
 
                 print('test_lis:', test_lis)
                 print('prob:', prob)
@@ -395,7 +394,8 @@ class Bayes_Model_Motion(object):
     This class is an implementation of the Bayes Model.
     """
 
-    def __init__(self,simulation = False, base_date = '2009-12-11'):
+    def __init__(self, hmm_model, simulation = False, base_date = '2009-12-11'):
+        self.hmm_model = hmm_model
         self.simulation = simulation
         self.cur_time = ''
 
@@ -484,7 +484,7 @@ class Bayes_Model_Motion(object):
 
                 test_lis = pre_act_list
                 test_lis.append(next_act)
-                prob = self.bayse_model.evaluate(test_lis)
+                prob = self.hmm_model.evaluate(test_lis)
 
                 print('test_lis:', test_lis)
                 print('prob:', prob)
@@ -575,7 +575,8 @@ class Bayes_Model_Audio(object):
     This class is an implementation of the Bayes Model.
     """
 
-    def __init__(self,simulation = False, base_date = '2009-12-11'):
+    def __init__(self, hmm_model, simulation = False, base_date = '2009-12-11'):
+        self.hmm_model = hmm_model
         self.simulation = simulation
         self.cur_time = ''
 
@@ -664,7 +665,7 @@ class Bayes_Model_Audio(object):
 
                 test_lis = pre_act_list
                 test_lis.append(next_act)
-                prob = self.bayse_model.evaluate(test_lis)
+                prob = self.hmm_model.evaluate(test_lis)
 
                 print('test_lis:', test_lis)
                 print('prob:', prob)
@@ -754,7 +755,8 @@ class Bayes_Model_Vision_Object(object):
     This class is an implementation of the Bayes Model.
     """
 
-    def __init__(self,simulation = False, base_date = '2009-12-11'):
+    def __init__(self, hmm_model, simulation = False, base_date = '2009-12-11'):
+        self.hmm_model = hmm_model
         self.simulation = simulation
         self.cur_time = ''
 
@@ -842,7 +844,7 @@ class Bayes_Model_Vision_Object(object):
 
                 test_lis = pre_act_list
                 test_lis.append(next_act)
-                prob = self.bayse_model.evaluate(test_lis)
+                prob = self.hmm_model.evaluate(test_lis)
 
                 print('test_lis:', test_lis)
                 print('prob:', prob)

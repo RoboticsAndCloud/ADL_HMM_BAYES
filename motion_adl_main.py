@@ -6,8 +6,10 @@ Date: 07/10/2022
 
 import motion_env_ascc
 import motion_adl_bayes_model
-import tools_ascc
 import random
+
+import tools_ascc
+import hmm
 
 
 MILAN_BASE_DATE = '2009-10-16'
@@ -38,6 +40,29 @@ For Example: Read, we got 20mins(5 times), 30mins(10), 40mins(25), 60mins(2),  f
 #     return prob
 
 
+def get_hmm_model():
+    state_list, symbol_list = tools_ascc.get_activity_for_state_list()
+    sequences = []
+    
+    for i in range(len(state_list) -15):
+        print(state_list[i])
+        print("==")
+        seq = (state_list[i], symbol_list[i])
+        sequences.append(seq)
+        
+    print('len sequence:', len(sequences))
+    print(sequences[1])
+
+    model = hmm.train(sequences, delta=0.001, smoothing=0)
+
+    print('model._states:', model._states)
+    print('model._symbols:', model._symbols )
+    print('model._start_prob:', model._start_prob)
+    print('model._trans_prob:', model._trans_prob)
+    print('model._emit_prob:', model._emit_prob)
+
+    return model
+
 def get_object_by_activity(activity):
     # book, medicine, laptop, plates & fork & food, toilet
     act_dict = motion_adl_bayes_model.P4_Object_Under_Act(activity)
@@ -66,7 +91,8 @@ LOCATION_DOOR = 'door'
 LOCATION_LOBBY = 'lobby'
     """
     # Mapping
-    act_dict = motion_adl_bayes_model.P1_Location_Under_Act(activity)
+    print('activity:', activity)
+    act_dict = motion_adl_bayes_model.P1_Location_Under_Act[activity]
 
     sd = sorted(act_dict.items(), reverse=True)
     res = sd[0][0]
@@ -126,13 +152,15 @@ def get_audio_type_by_activity(activity):
     return res
 
 
-env = motion_env_ascc.EnvASCC(TEST_BASE_DATE + '00:00:00')
+env = motion_env_ascc.EnvASCC(TEST_BASE_DATE + ' 00:00:00')
 env.reset()
 
-bayes_model_location = motion_adl_bayes_model.Bayes_Model_Vision_Location()
-bayes_model_motion = motion_adl_bayes_model.Bayes_Model_Motion()
-bayes_model_audio = motion_adl_bayes_model.Bayes_Model_Audio()
-bayes_model_object = motion_adl_bayes_model.Bayes_Model_Vision_Object()
+hmm_model = get_hmm_model()
+
+bayes_model_location = motion_adl_bayes_model.Bayes_Model_Vision_Location(hmm_model=hmm_model, simulation=True)
+bayes_model_motion = motion_adl_bayes_model.Bayes_Model_Motion(hmm_model=hmm_model, simulation=True)
+bayes_model_audio = motion_adl_bayes_model.Bayes_Model_Audio(hmm_model=hmm_model, simulation=True)
+bayes_model_object = motion_adl_bayes_model.Bayes_Model_Vision_Object(hmm_model=hmm_model, simulation=True)
 
 
 cur_activity_prob = 0
@@ -157,7 +185,7 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-if pre_activity == '':
+while(pre_activity == ''):
     # open camera
 
     audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.VISION_ACTION)  # motion_env_ascc.FUSION_ACTION?
@@ -167,6 +195,18 @@ if pre_activity == '':
     cur_time = env.get_running_time()
     cur_activity, cur_beginning_activity, cur_end_activity = \
         bayes_model_location.get_activity_from_dataset_by_time(cur_time)
+
+    print('cur_time:', cur_time, ' cur_activity:', cur_activity)
+
+    """
+    2009-12-11 08:42:03.000082	M021	ON	Sleep end
+    2009-12-11 08:42:04.000066	M028	ON
+    2009-12-11 08:42:06.000089	M020	ON
+    """
+    if cur_activity == None:
+        continue
+
+    exit(0)
 
     # detect activity, cur_activity, pre_activity
     # Bayes model

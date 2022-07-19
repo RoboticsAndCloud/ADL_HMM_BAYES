@@ -1214,10 +1214,10 @@ def get_activity_for_state_list():
             print("in ignore day_time_str:", day_time_str)
             continue
         
-        print("=============================================================================")
+        # print("=============================================================================")
         print("day_time_str:", day_time_str)
         cnt, state_list, symbol_list = get_activity_count_state_list_by_date(day_time_str)
-        print('state_list, len:', len(state_list), ',state_list:',state_list, 'symbol_list:', symbol_list)
+        # print('state_list, len:', len(state_list), ',state_list:',state_list, 'symbol_list:', symbol_list)
         if len(state_list) < 10:
             continue
         state_list_all.append(state_list)
