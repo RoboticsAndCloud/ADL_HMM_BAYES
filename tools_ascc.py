@@ -157,7 +157,7 @@ import numpy as np
 
 from matplotlib import image
 
-DEBUG = True
+DEBUG = False
 
 ASCC_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/notice.txt'
 ASCC_DATA_RES_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/recognition_result.txt'
@@ -1776,7 +1776,7 @@ if __name__ == "__main__":
 
     # print(activity_date_dict)
 
-    activity_str, beginning_activity, end_activity = get_activity(activity_date_dict, activity_begin_list, activity_end_list, '2009-12-11 12:58:33' )
+    activity_str, beginning_activity, end_activity = get_activity(activity_date_dict, activity_begin_list, activity_end_list, '2009-12-11 08:46:39' )
 
 
     print(activity_str, beginning_activity, end_activity)

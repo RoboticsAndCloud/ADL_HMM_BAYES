@@ -78,9 +78,8 @@ def get_object_by_activity(activity):
     res = sd[0][0]
 
     random_t = random.random()
-    print('random_t:', random_t)
-    if random_t > sd[0][1]:
-        index = random.randint(1, len(sd) -1)
+    if random_t > sd[0][1] and (len(sd) > 1):
+        index = random.randint(1, len(sd)-1)
         res = sd[index][0]
 
     return res
@@ -106,8 +105,8 @@ def get_location_by_activity(activity):
 
     random_t = random.random()
     print('random_t:', random_t)
-    if random_t > sd[0][1]:
-        index = random.randint(1, len(sd) -1)
+    if random_t > sd[0][1] and (len(sd) > 1):
+        index = random.randint(1, len(sd)-1)
         res = sd[index][0]
 
     return res
@@ -123,8 +122,8 @@ def get_motion_type_by_activity(activity):
 
     random_t = random.random()
     print('random_t:', random_t)
-    if random_t > sd[0][1]:
-        index = random.randint(1, len(sd) -1)
+    if random_t > sd[0][1] and (len(sd) > 1):
+        index = random.randint(1, len(sd)-1)
         res = sd[index][0]
 
     return res
@@ -152,8 +151,8 @@ def get_audio_type_by_activity(activity):
 
     random_t = random.random()
     print('random_t:', random_t)
-    if random_t > sd[0][1]:
-        index = random.randint(1, len(sd) -1)
+    if random_t > sd[0][1] and (len(sd) > 1):
+        index = random.randint(1, len(sd)-1)
         res = sd[index][0]
     
     return res
@@ -258,8 +257,8 @@ while(pre_activity == ''):
     rank2_res_prob.append(top3_prob[1])
     rank3_res_prob.append(top3_prob[2])
 
-    pre_activity = top3_prob[0][1]
-    cur_activity = top3_prob[0][1]
+    pre_activity = top3_prob[0][0]
+    cur_activity = top3_prob[0][0]
     activity_begin_time = cur_time
 
     pre_act_list.append(pre_activity)
@@ -298,13 +297,16 @@ while(not env.done):
 
         cur_activity, cur_beginning_activity, cur_end_activity = \
             bayes_model_location.get_activity_from_dataset_by_time(cur_time_str)
+            
+        if cur_activity == None or cur_activity == '':
+            continue
 
         location = get_location_by_activity(cur_activity)
         object = get_object_by_activity(cur_activity)
         audio_type = get_audio_type_by_activity(cur_activity)
         motion_type = get_motion_type_by_activity(cur_activity)
         
-        activity_duration = (cur_time - activity_begin_time).seconds() / 60 # in minutes
+        activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
 
 
         for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
@@ -334,6 +336,8 @@ while(not env.done):
         cur_activity, cur_beginning_activity, cur_end_activity = \
             bayes_model_location.get_activity_from_dataset_by_time(cur_time_str)
 
+        if cur_activity == None or cur_activity == '':
+            continue
         
         activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
         # prob_of_activity_by_duration = get_end_of_activity_prob_by_duration(activity_duration, cur_activity)
@@ -345,10 +349,12 @@ while(not env.done):
         for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
 
             p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
-            p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
 
             if need_recollect_data:
+                p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
+                # todo: audio_type: quiet, ignore this or not? reading? cooking?
                 p = p2 * p3
+
             p = p2
 
             res_prob[act].append(p) 
@@ -366,7 +372,7 @@ while(not env.done):
 
         # todo, if rank1 - rank2 < 0.001, p= p+ p*p_audio, to get a more accurate res
         #        
-        cur_activity = top3_prob[0][1]
+        cur_activity = top3_prob[0][0]
 
         if pre_activity != cur_activity:
             pre_activity = cur_activity
@@ -385,6 +391,8 @@ print(rank2_res_prob)
 print('rank3:')
 print(rank3_res_prob)
 
+print('res_prob:')
+print(res_prob)
 
 
 

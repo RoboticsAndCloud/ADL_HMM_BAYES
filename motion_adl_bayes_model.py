@@ -4,10 +4,9 @@ Author: Frank
 Date: 07/10/2022
 """
 
-
-from email.mime import audio
 import tools_ascc
-
+import copy
+from datetime import datetime
 
 PROB_OF_ALL_ACTIVITIES = {'Bed_to_Toilet': 0.039303482587064675, 'Morning_Meds': 0.01791044776119403, 'Watch_TV': 0.05124378109452736, 'Kitchen_Activity': 0.2517412935323383, 'Chores': 0.011442786069651741, 'Leave_Home': 0.10248756218905472, 'Read': 0.14477611940298507, 'Guest_Bathroom': 0.15074626865671642, 'Master_Bathroom': 0.1328358208955224, 'Desk_Activity': 0.021890547263681594, 'Eve_Meds': 0.007462686567164179, 'Meditate': 0.00845771144278607, 'Dining_Rm_Activity': 0.009950248756218905, 'Master_Bedroom_Activity': 0.04975124378109453}
 
@@ -189,6 +188,24 @@ def get_end_of_activity_prob_by_duration(activity_duration, activity):
     return prob
 
 
+def get_activity_type(cur_time_str):
+    
+    act_type_list = ['M', 'A', 'N']
+    cur_type_time = datetime.strptime(cur_time_str.split()[1], tools_ascc.HOUR_TIME_FORMAT)
+
+    if cur_type_time.hour < tools_ascc.ACTIVITY_NOON_HOUR - 2:
+        act_type_list = ['M']
+    elif (cur_type_time.hour >= tools_ascc.ACTIVITY_NOON_HOUR - 2) and (cur_type_time.hour < tools_ascc.ACTIVITY_NOON_HOUR + 2):
+        act_type_list = ['M', 'A']
+    elif (cur_type_time.hour >= tools_ascc.ACTIVITY_NOON_HOUR + 2) and (cur_type_time.hour < tools_ascc.ACTIVITY_NIGHT_HOUR - 2):
+        act_type_list = ['A']
+    elif (cur_type_time.hour >= tools_ascc.ACTIVITY_NIGHT_HOUR - 2) and (cur_type_time.hour < tools_ascc.ACTIVITY_NIGHT_HOUR + 2):
+        act_type_list = ['A', 'N']
+    else:
+        act_type_list = ['N']
+
+    return act_type_list
+
 #prob_of_location_under_all_acts
 Prob_Of_Location_Under_All_Act = {}
 
@@ -264,24 +281,24 @@ class Bayes_Model_Vision_Location(object):
 
         return p
 
-    def prob_prior_act(self, pre_activity, act_name):
-        p = MIN_Prob
-        try:
-            p = HMM_TRANS_MATRIX[pre_activity][act_name]
-        except Exception as e:
-            print('Got error from HMM_TRANS_MATRIX, pre_activity, act_name:', pre_activity, ', ', act_name, ', err:', e)
+    # def prob_prior_act(self, pre_activity, act_name):
+    #     p = MIN_Prob
+    #     try:
+    #         p = HMM_TRANS_MATRIX[pre_activity][act_name]
+    #     except Exception as e:
+    #         print('Got error from HMM_TRANS_MATRIX, pre_activity, act_name:', pre_activity, ', ', act_name, ', err:', e)
 
-        # during acitivty
-        if pre_activity == act_name:
-            p = 1
-            pass
+    #     # during acitivty
+    #     if pre_activity == act_name:
+    #         p = 1
+    #         pass
 
-        return p
+    #     return p
 
     def prob_prior_act_by_prelist(self, pre_activity_list, target_act_name, duration = None):
         p = MIN_Prob
 
-        pre_act_list = pre_activity_list
+        pre_act_list = copy.deepcopy(pre_activity_list)
 
         if len(pre_act_list) == 0:
             return HMM_START_MATRIX[target_act_name]
@@ -293,7 +310,7 @@ class Bayes_Model_Vision_Location(object):
             return p
         
         res = {}
-        act_type_list = ['M', 'A', 'N']
+        act_type_list = get_activity_type(self.cur_time)
         
         for index in tools_ascc.ACTIVITY_DICT.keys():
             act = tools_ascc.ACTIVITY_DICT[index]
@@ -461,7 +478,7 @@ class Bayes_Model_Motion(object):
     def prob_prior_act_by_prelist(self, pre_activity_list, target_act_name, duration = None):
         p = MIN_Prob
 
-        pre_act_list = pre_activity_list
+        pre_act_list = copy.deepcopy(pre_activity_list)
         print('motion pre_act_list:', pre_act_list)
 
         if len(pre_act_list) == 0:
@@ -476,7 +493,8 @@ class Bayes_Model_Motion(object):
 
 
         res = {}
-        act_type_list = ['M', 'A', 'N']
+        act_type_list = get_activity_type(self.cur_time)
+
         
         for index in tools_ascc.ACTIVITY_DICT.keys():
             act = tools_ascc.ACTIVITY_DICT[index]
@@ -563,7 +581,7 @@ class Bayes_Model_Motion(object):
         # run_time = self.running_time.strftime(DATE_HOUR_TIME_FORMAT)
 
         test_time_str = '2009-12-11 12:58:33'
-        time_str = test_time_str
+        # time_str = test_time_str
         expected_activity_str, expected_beginning_activity, expected_end_activity = \
             tools_ascc.get_activity(self.activity_date_dict, self.activity_begin_list,
                                     self.activity_end_list, time_str)
@@ -645,8 +663,7 @@ class Bayes_Model_Audio(object):
     def prob_prior_act_by_prelist(self, pre_activity_list, target_act_name, duration = None):
         p = MIN_Prob
 
-        pre_act_list = pre_activity_list
-
+        pre_act_list = copy.deepcopy(pre_activity_list)
         if len(pre_act_list) == 0:
             return HMM_START_MATRIX[target_act_name]
 
@@ -659,7 +676,7 @@ class Bayes_Model_Audio(object):
 
 
         res = {}
-        act_type_list = ['M', 'A', 'N']
+        act_type_list = get_activity_type(self.cur_time)
         
         for index in tools_ascc.ACTIVITY_DICT.keys():
             act = tools_ascc.ACTIVITY_DICT[index]
@@ -749,7 +766,7 @@ class Bayes_Model_Audio(object):
         # run_time = self.running_time.strftime(DATE_HOUR_TIME_FORMAT)
 
         test_time_str = '2009-12-11 12:58:33'
-        time_str = test_time_str
+        # time_str = test_time_str
         expected_activity_str, expected_beginning_activity, expected_end_activity = \
             tools_ascc.get_activity(self.activity_date_dict, self.activity_begin_list,
                                     self.activity_end_list, time_str)
@@ -829,8 +846,7 @@ class Bayes_Model_Vision_Object(object):
     def prob_prior_act_by_prelist(self, pre_activity_list, target_act_name, duration = None):
         p = MIN_Prob
 
-        pre_act_list = pre_activity_list
-
+        pre_act_list = copy.deepcopy(pre_activity_list)
 
         if len(pre_act_list) == 0:
             return HMM_START_MATRIX[target_act_name]
@@ -843,7 +859,7 @@ class Bayes_Model_Vision_Object(object):
         
 
         res = {}
-        act_type_list = ['M', 'A', 'N']
+        act_type_list = get_activity_type(self.cur_time)
         
         for index in tools_ascc.ACTIVITY_DICT.keys():
             act = tools_ascc.ACTIVITY_DICT[index]
@@ -930,7 +946,7 @@ class Bayes_Model_Vision_Object(object):
         # run_time = self.running_time.strftime(DATE_HOUR_TIME_FORMAT)
 
         test_time_str = '2009-12-11 12:58:33'
-        time_str = test_time_str
+        # time_str = test_time_str
         expected_activity_str, expected_beginning_activity, expected_end_activity = \
             tools_ascc.get_activity(self.activity_date_dict, self.activity_begin_list,
                                     self.activity_end_list, time_str)
