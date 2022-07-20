@@ -40,6 +40,11 @@ For Example: Read, we got 20mins(5 times), 30mins(10), 40mins(25), 60mins(2),  f
 #     return prob
 
 
+def sorter_take_count(elem):
+    # print('elem:', elem)
+    return elem[1]
+
+
 def get_hmm_model():
     state_list, symbol_list = tools_ascc.get_activity_for_state_list()
     sequences = []
@@ -65,7 +70,9 @@ def get_hmm_model():
 
 def get_object_by_activity(activity):
     # book, medicine, laptop, plates & fork & food, toilet
-    act_dict = motion_adl_bayes_model.P4_Object_Under_Act(activity)
+    print('object activity:', activity)
+    act_dict = motion_adl_bayes_model.P4_Object_Under_Act[activity]
+    print(act_dict)
 
     sd = sorted(act_dict.items(), reverse=True)
     res = sd[0][0]
@@ -81,14 +88,14 @@ def get_object_by_activity(activity):
 def get_location_by_activity(activity):
     """
     # Location
-LOCATION_READINGROOM = 'readingroom'
-LOCATION_BATHROOM = 'bathroom'
-LOCATION_BEDROOM = 'bedroom'
-LOCATION_LIVINGROOM = 'livingroom'
-LOCATION_KITCHEN = 'Kitchen'
-LOCATION_DININGROOM = 'diningroom'
-LOCATION_DOOR = 'door'
-LOCATION_LOBBY = 'lobby'
+    LOCATION_READINGROOM = 'readingroom'
+    LOCATION_BATHROOM = 'bathroom'
+    LOCATION_BEDROOM = 'bedroom'
+    LOCATION_LIVINGROOM = 'livingroom'
+    LOCATION_KITCHEN = 'Kitchen'
+    LOCATION_DININGROOM = 'diningroom'
+    LOCATION_DOOR = 'door'
+    LOCATION_LOBBY = 'lobby'
     """
     # Mapping
     print('activity:', activity)
@@ -109,7 +116,7 @@ def get_motion_type_by_activity(activity):
     # motion type: sitting, standing, walking, random by the probs
 
         # Mapping
-    act_dict = motion_adl_bayes_model.P2_Motion_type_Under_Act(activity)
+    act_dict = motion_adl_bayes_model.P2_Motion_type_Under_Act[activity]
 
     sd = sorted(act_dict.items(), reverse=True)
     res = sd[0][0]
@@ -138,7 +145,7 @@ def get_audio_type_by_activity(activity):
     # washing_hand
 
     # Mapping
-    act_dict = motion_adl_bayes_model.P3_Audio_type_Under_Act(activity)
+    act_dict = motion_adl_bayes_model.P3_Audio_type_Under_Act[activity]
 
     sd = sorted(act_dict.items(), reverse=True)
     res = sd[0][0]
@@ -192,12 +199,19 @@ while(pre_activity == ''):
 
     # env.running_time
     # test_time_str = '2009-12-11 12:58:33'
-    cur_time = env.get_running_time().strftime(motion_env_ascc.DATE_HOUR_TIME_FORMAT)
+    cur_time = env.get_running_time()
+    cur_time_str = cur_time.strftime(motion_env_ascc.DATE_HOUR_TIME_FORMAT)
     print('cur_time:', cur_time)
+    
+    bayes_model_location.set_time(cur_time_str)
+    bayes_model_motion.set_time(cur_time_str)
+    bayes_model_audio.set_time(cur_time_str)
+    bayes_model_object.set_time(cur_time_str)
+
     # todo change to str
 
     cur_activity, cur_beginning_activity, cur_end_activity = \
-        bayes_model_location.get_activity_from_dataset_by_time(cur_time)
+        bayes_model_location.get_activity_from_dataset_by_time(cur_time_str)
 
     print('cur_time:', cur_time, ' cur_activity:', cur_activity)
     # exit(0)
@@ -221,21 +235,25 @@ while(pre_activity == ''):
     heap_prob = []
 
     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
-        p1 = bayes_model_location.get_prob(pre_act_list, cur_activity, location)
+        p1 = bayes_model_location.get_prob(pre_act_list, act, location, 0)
         
         #  bayes_model_location.prob_of_location_under_act(location, act) \
             #  * motion_adl_bayes_model.HMM_START_MATRIX[act] /(bayes_model_location.prob_of_location_under_all_acts(location)) * bayes_model_location.prob_of_location_using_vision(location, act)
         
-        p2 = bayes_model_motion.get_prob(pre_act_list, cur_activity, motion_type)
-        p3 = bayes_model_audio.get_prob(pre_act_list, cur_activity, audio_type)
-        p4 = bayes_model_object.get_prob(pre_act_list, cur_activity, object)
+        p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, 0)
+        p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, 0)
+        p4 = bayes_model_object.get_prob(pre_act_list, act, object, 0)
 
         p = p1*p2*p3*p4
              
         res_prob[act].append(p)
-        heap_prob.append((act, p, cur_time))
+        heap_prob.append((act, p, cur_time_str))
+        
+    print('heap_prob:', heap_prob)
+    top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
+    print('top3_prob:', top3_prob)
 
-    top3_prob = sorted(heap_prob, reverse=True)[:3]
+
     rank1_res_prob.append(top3_prob[0])
     rank2_res_prob.append(top3_prob[1])
     rank3_res_prob.append(top3_prob[2])
@@ -270,9 +288,16 @@ while(not env.done):
     heap_prob = []
     if transition_motion:
         cur_time = env.get_running_time()
+        cur_time_str = cur_time.strftime(motion_env_ascc.DATE_HOUR_TIME_FORMAT)
         print('Env Running:', cur_time) 
+        
+        bayes_model_location.set_time(cur_time_str)
+        bayes_model_motion.set_time(cur_time_str)
+        bayes_model_audio.set_time(cur_time_str)
+        bayes_model_object.set_time(cur_time_str)
+
         cur_activity, cur_beginning_activity, cur_end_activity = \
-            bayes_model_location.get_activity_from_dataset_by_time(cur_time)
+            bayes_model_location.get_activity_from_dataset_by_time(cur_time_str)
 
         location = get_location_by_activity(cur_activity)
         object = get_object_by_activity(cur_activity)
@@ -284,13 +309,13 @@ while(not env.done):
 
         for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
             p1 = bayes_model_location.get_prob(pre_act_list, act, location, activity_duration)
-            p2 = bayes_model_motion.get_prob(pre_act_list, cur_activity, motion_type, activity_duration)
-            p3 = bayes_model_audio.get_prob(pre_act_list, cur_activity, audio_type, activity_duration)
-            p4 = bayes_model_object.get_prob(pre_act_list, cur_activity, object, activity_duration)
+            p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
+            p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
+            p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
             p = p1*p2*p3*p4
 
             res_prob[act].append(p) 
-            heap_prob.append((act, p, cur_time))
+            heap_prob.append((act, p, cur_time_str))
 
     else:
         # motion data  or audio data
@@ -298,12 +323,19 @@ while(not env.done):
         # Bayes model prob    
 
         cur_time = env.get_running_time()
+        cur_time_str = cur_time.strftime(motion_env_ascc.DATE_HOUR_TIME_FORMAT)
         print('Env Running:', cur_time) 
+
+        bayes_model_location.set_time(cur_time_str)
+        bayes_model_motion.set_time(cur_time_str)
+        bayes_model_audio.set_time(cur_time_str)
+        bayes_model_object.set_time(cur_time_str)
+
         cur_activity, cur_beginning_activity, cur_end_activity = \
-            bayes_model_location.get_activity_from_dataset_by_time(cur_time)
+            bayes_model_location.get_activity_from_dataset_by_time(cur_time_str)
 
         
-        activity_duration = (cur_time - activity_begin_time).seconds() / 60 # in minutes
+        activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
         # prob_of_activity_by_duration = get_end_of_activity_prob_by_duration(activity_duration, cur_activity)
 
         location = get_location_by_activity(cur_activity)
@@ -312,17 +344,18 @@ while(not env.done):
 
         for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
 
-            p2 = bayes_model_motion.get_prob(pre_act_list, cur_activity, motion_type, activity_duration)
-            p3 = bayes_model_audio.get_prob(pre_act_list, cur_activity, audio_type, activity_duration)
+            p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
+            p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
 
             if need_recollect_data:
                 p = p2 * p3
             p = p2
 
             res_prob[act].append(p) 
-            heap_prob.append((act, p, cur_time))
-    
-        top3_prob = sorted(heap_prob, reverse=True)[:3]
+            heap_prob.append((act, p, cur_time_str))
+        print('heap_prob:', heap_prob)
+        top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
+        print('top3_prob:', top3_prob)
         # TODO: normalization for the top3 prob
         # if top3_prob[0] < threshold:
         #     need_recollect_data = True
@@ -337,7 +370,7 @@ while(not env.done):
 
         if pre_activity != cur_activity:
             pre_activity = cur_activity
-            pre_act_list.append[pre_activity]
+            pre_act_list.append(pre_activity)
             activity_begin_time = cur_time
             need_recollect_data = False
 

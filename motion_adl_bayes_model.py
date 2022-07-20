@@ -5,6 +5,7 @@ Date: 07/10/2022
 """
 
 
+from email.mime import audio
 import tools_ascc
 
 
@@ -121,7 +122,7 @@ AUDIO_TYPE_QUITE = AUDIO_TYPE_ENV
 
 P3_Audio_type_Under_Act = {
 ACTIVITY_BED_TO_TOILET: {AUDIO_TYPE_FLUSH_TOILET:0.2, AUDIO_TYPE_ENV:0.4, AUDIO_TYPE_WASHING_HAND:0.4},
-ACTIVITY_MORNING_MEDS : {AUDIO_TYPE_POURING_WATER_INTO_GLASS:0.1, AUDIO_TYPE_DRINKING:0.2, AUDIO_TYPE_ENV:'0.7'},
+ACTIVITY_MORNING_MEDS : {AUDIO_TYPE_POURING_WATER_INTO_GLASS:0.1, AUDIO_TYPE_DRINKING:0.2, AUDIO_TYPE_ENV:0.7},
 ACTIVITY_WATCH_TV : {AUDIO_TYPE_ENV: 0.1, AUDIO_TYPE_TV: 0.9},
 ACTIVITY_KITCHEN : {AUDIO_TYPE_EATING: 0.3, AUDIO_TYPE_POURING_WATER_INTO_GLASS:0.1, AUDIO_TYPE_DRINKING:0.2, AUDIO_TYPE_MICROWAVE:0.1, AUDIO_TYPE_ENV:0.3},
 ACTIVITY_CHORES : {AUDIO_TYPE_VACUUM:0.9, AUDIO_TYPE_ENV:0.1},
@@ -130,7 +131,7 @@ ACTIVITY_READ : {AUDIO_TYPE_ENV: 0.99},
 ACTIVITY_GUEST_BATHROOM : {AUDIO_TYPE_TOOTHBRUSHING : 0.2, AUDIO_TYPE_FLUSH_TOILET: 0.1, AUDIO_TYPE_ENV:0.5, AUDIO_TYPE_WASHING_HAND:0.2},
 ACTIVITY_MASTER_BATHROOM : {AUDIO_TYPE_TOOTHBRUSHING : 0.2, AUDIO_TYPE_FLUSH_TOILET: 0.1, AUDIO_TYPE_ENV:0.5, AUDIO_TYPE_WASHING_HAND:0.2},
 ACTIVITY_DESK_ACTIVITY : {AUDIO_TYPE_KEYBOARD:0.3, AUDIO_TYPE_ENV: 0.7},
-ACTIVITY_EVE_MEDS : {AUDIO_TYPE_POURING_WATER_INTO_GLASS:0.1, AUDIO_TYPE_DRINKING:0.2, AUDIO_TYPE_ENV:'0.7'},
+ACTIVITY_EVE_MEDS : {AUDIO_TYPE_POURING_WATER_INTO_GLASS:0.1, AUDIO_TYPE_DRINKING:0.2, AUDIO_TYPE_ENV:0.7},
 ACTIVITY_MEDITATE : {AUDIO_TYPE_ENV:0.99},
 ACTIVITY_DINING_RM_ACTIVITY : {AUDIO_TYPE_EATING: 0.4, AUDIO_TYPE_POURING_WATER_INTO_GLASS:0.1, AUDIO_TYPE_DRINKING:0.2, AUDIO_TYPE_ENV:0.3},
 ACTIVITY_MASTER_BEDROOM : {AUDIO_TYPE_ENV:0.99}
@@ -259,7 +260,7 @@ class Bayes_Model_Vision_Location(object):
         try:
             p = P1_Location_Under_Act[act_name][location]
         except Exception as e:
-            print('Got error from P_Location_Under_Act, location, act_name:', location, ', ', act_name, ', err:', e)
+            print('Got error from P1_Location_Under_Act, location, act_name:', location, ', ', act_name, ', err:', e)
 
         return p
 
@@ -280,6 +281,8 @@ class Bayes_Model_Vision_Location(object):
     def prob_prior_act_by_prelist(self, pre_activity_list, target_act_name, duration = None):
         p = MIN_Prob
 
+        pre_act_list = pre_activity_list
+
         if len(pre_act_list) == 0:
             return HMM_START_MATRIX[target_act_name]
 
@@ -289,8 +292,6 @@ class Bayes_Model_Vision_Location(object):
 
             return p
         
-        pre_act_list = pre_activity_list
-
         res = {}
         act_type_list = ['M', 'A', 'N']
         
@@ -315,7 +316,7 @@ class Bayes_Model_Vision_Location(object):
         sd = sorted(res.items(), key=tools_ascc.sorter_take_count, reverse=True)
         print(sd)
 
-        for k in sd.keys():
+        for k, v in sd:
             for type in act_type_list:
                 activity_type = type
                 tmp_node = tools_ascc.Activity_Node_Observable(k, activity_type, 0)
@@ -460,6 +461,9 @@ class Bayes_Model_Motion(object):
     def prob_prior_act_by_prelist(self, pre_activity_list, target_act_name, duration = None):
         p = MIN_Prob
 
+        pre_act_list = pre_activity_list
+        print('motion pre_act_list:', pre_act_list)
+
         if len(pre_act_list) == 0:
             return HMM_START_MATRIX[target_act_name]
 
@@ -469,7 +473,7 @@ class Bayes_Model_Motion(object):
 
             return p
         
-        pre_act_list = pre_activity_list
+
 
         res = {}
         act_type_list = ['M', 'A', 'N']
@@ -486,7 +490,7 @@ class Bayes_Model_Motion(object):
                 test_lis.append(next_act)
                 prob = self.hmm_model.evaluate(test_lis)
 
-                print('test_lis:', test_lis)
+                print('motion test_lis:', test_lis)
                 print('prob:', prob)
                 res[next_act] = prob
 
@@ -495,7 +499,7 @@ class Bayes_Model_Motion(object):
         sd = sorted(res.items(), key=tools_ascc.sorter_take_count, reverse=True)
         print(sd)
 
-        for k in sd.keys():
+        for k, v in sd:
             for type in act_type_list:
                 activity_type = type
                 tmp_node = tools_ascc.Activity_Node_Observable(k, activity_type, 0)
@@ -641,6 +645,8 @@ class Bayes_Model_Audio(object):
     def prob_prior_act_by_prelist(self, pre_activity_list, target_act_name, duration = None):
         p = MIN_Prob
 
+        pre_act_list = pre_activity_list
+
         if len(pre_act_list) == 0:
             return HMM_START_MATRIX[target_act_name]
 
@@ -650,7 +656,7 @@ class Bayes_Model_Audio(object):
 
             return p
         
-        pre_act_list = pre_activity_list
+
 
         res = {}
         act_type_list = ['M', 'A', 'N']
@@ -667,8 +673,8 @@ class Bayes_Model_Audio(object):
                 test_lis.append(next_act)
                 prob = self.hmm_model.evaluate(test_lis)
 
-                print('test_lis:', test_lis)
-                print('prob:', prob)
+                # print('test_lis:', test_lis)
+                # print('prob:', prob)
                 res[next_act] = prob
 
         print('=========================================================')
@@ -676,7 +682,7 @@ class Bayes_Model_Audio(object):
         sd = sorted(res.items(), key=tools_ascc.sorter_take_count, reverse=True)
         print(sd)
 
-        for k in sd.keys():
+        for k, v in sd:
             for type in act_type_list:
                 activity_type = type
                 tmp_node = tools_ascc.Activity_Node_Observable(k, activity_type, 0)
@@ -696,6 +702,9 @@ class Bayes_Model_Audio(object):
         p = MIN_Prob
 
         for act in PROB_OF_ALL_ACTIVITIES.keys():
+            print('act: ', act, ' audio type:', audio_type)
+            print(self.prob_of_audio_type_under_act(audio_type, act))
+            print(self.prob_of_activity_in_dataset(act))
             p = p + self.prob_of_audio_type_under_act(audio_type, act) * self.prob_of_activity_in_dataset(act)
 
         return p
@@ -820,6 +829,9 @@ class Bayes_Model_Vision_Object(object):
     def prob_prior_act_by_prelist(self, pre_activity_list, target_act_name, duration = None):
         p = MIN_Prob
 
+        pre_act_list = pre_activity_list
+
+
         if len(pre_act_list) == 0:
             return HMM_START_MATRIX[target_act_name]
 
@@ -829,7 +841,6 @@ class Bayes_Model_Vision_Object(object):
 
             return p
         
-        pre_act_list = pre_activity_list
 
         res = {}
         act_type_list = ['M', 'A', 'N']
@@ -855,7 +866,7 @@ class Bayes_Model_Vision_Object(object):
         sd = sorted(res.items(), key=tools_ascc.sorter_take_count, reverse=True)
         print(sd)
 
-        for k in sd.keys():
+        for k, v in sd:
             for type in act_type_list:
                 activity_type = type
                 tmp_node = tools_ascc.Activity_Node_Observable(k, activity_type, 0)
@@ -871,7 +882,7 @@ class Bayes_Model_Vision_Object(object):
         return p
 
     # Total probability rule, 15 activities
-    def prob_of_location_under_all_acts(self, object):
+    def prob_of_object_under_all_acts(self, object):
         p = MIN_Prob
 
         for act in PROB_OF_ALL_ACTIVITIES.keys():
