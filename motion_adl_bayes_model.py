@@ -33,6 +33,8 @@ ACTIVITY_EVE_MEDS = 'Eve_Meds'
 ACTIVITY_MEDITATE = 'Meditate'
 ACTIVITY_DINING_RM_ACTIVITY = 'Dining_Rm_Activity'
 ACTIVITY_MASTER_BEDROOM = 'Master_Bedroom_Activity'
+ACTIVITY_SLEEP = 'Sleep'
+
 
 ACTIVITY_DICT = {
 ACTIVITY_BED_TO_TOILET : 'Bed_to_Toilet',

@@ -1195,6 +1195,14 @@ class EnvASCC():
             for key in motion_activity_dict.keys():
                 motion_time = datetime.strptime(key, DATE_HOUR_TIME_FORMAT)
 
+                # # 0, 1, 2, 3
+                # for tmp_t in range(4):
+                #     motion_time = motion_time + timedelta(seconds = tmp_t)
+
+                # todo: motion time: range [-3, 3]
+                # motion_time = datetime.strptime(key, DATE_HOUR_TIME_FORMAT) + 3
+                # motion_time = datetime.strptime(key, DATE_HOUR_TIME_FORMAT) -3 
+
                 # print((motion_time - new_time).seconds)
                 # print("motion_time:", motion_time)
                 # print("new_time:", new_time)

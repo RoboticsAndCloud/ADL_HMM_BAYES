@@ -4,12 +4,16 @@ Author: Frank
 Date: 07/10/2022
 """
 
-import motion_env_ascc
-import motion_adl_bayes_model
+from datetime import datetime
 import random
 
-import tools_ascc
 import hmm
+import motion_env_ascc
+import motion_adl_bayes_model
+import tools_ascc
+
+
+
 
 
 MILAN_BASE_DATE = '2009-10-16'
@@ -17,6 +21,9 @@ MILAN_BASE_DATE = '2009-10-16'
 MILAN_BASE_DATE_HOUR = '2009-10-16 06:00:00'
 
 TEST_BASE_DATE = '2009-12-11'
+DATE_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+HOUR_TIME_FORMAT = "%H:%M:%S"
+DAY_FORMAT_STR = '%Y-%m-%d'
 
 
 """
@@ -298,7 +305,7 @@ while(not env.done):
         cur_activity, cur_beginning_activity, cur_end_activity = \
             bayes_model_location.get_activity_from_dataset_by_time(cur_time_str)
             
-        if cur_activity == None or cur_activity == '':
+        if cur_activity == None or cur_activity == '' or cur_activity == 'Sleep':
             continue
 
         location = get_location_by_activity(cur_activity)
@@ -336,7 +343,7 @@ while(not env.done):
         cur_activity, cur_beginning_activity, cur_end_activity = \
             bayes_model_location.get_activity_from_dataset_by_time(cur_time_str)
 
-        if cur_activity == None or cur_activity == '':
+        if cur_activity == None or cur_activity == '' or cur_activity == 'Sleep':
             continue
         
         activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
@@ -380,7 +387,24 @@ while(not env.done):
             activity_begin_time = cur_time
             need_recollect_data = False
 
+        
+        if len(rank1_res_prob) % 1000 == 0:
+            print("===================================================")
+            # print out results
+            print('rank1:')
+            print(rank1_res_prob)
 
+            print('rank2:')
+            print(rank2_res_prob)
+
+            print('rank3:')
+            print(rank3_res_prob)
+
+            print('res_prob:')
+            print(res_prob)
+
+
+print("===================================================")
 # print out results
 print('rank1:')
 print(rank1_res_prob)
@@ -396,3 +420,54 @@ print(res_prob)
 
 
 
+print("===================================================")
+
+if env.done:
+    print("Activity_none_times:", env.activity_none_times)
+    print("Expected_activity_none_times:", env.expected_activity_none_times)
+    print("Hit times:", env.done_hit_event_times)
+    print("Miss times:", env.done_missed_event_times)
+    print("Random Miss times:", env.done_random_miss_event_times)
+    print("Middle times:", env.done_middle_event_times)
+    print("Penalty times:", env.done_penalty_times)
+    print("Uncertain times:", env.done_uncertain_times)
+    print("Total times:", env.done_totol_check_times)
+    print("Residual power:", env.done_residual_power)
+    print("Beginning event times:", env.done_beginning_event_times)
+    print("Endding event times:", env.done_end_event_times)
+    print("Middle event times:", env.done_middle_event_times)
+    print("Day End Running time:", env.done_running_time)
+    print("Reward:", env.done_reward)
+    print("Done status:", env.done)
+    print("Sensors Energy cost:", env.done_energy_cost)
+    print("Sensors Time cost:", env.done_time_cost)
+    print("Sensors Energy total  cost:", env.energy_cost)
+    print("Sensors Time total cost:", env.time_cost)
+    print("Total Time cost:", env.done_total_time_cost)
+    print("Motion_triggered_times:", env.motion_triggered_times)
+    print("Hit_activity_check_times", env.hit_activity_check_times)
+    end_time_of_wmu = datetime.strptime(env.done_running_time.strftime(DATE_TIME_FORMAT).split()[1], HOUR_TIME_FORMAT)
+    print("Duration of Day:", (end_time_of_wmu - env.day_begin).seconds/3600.0)
+
+end_time_of_wmu = datetime.strptime(env.done_running_time.strftime(DATE_TIME_FORMAT).split()[1], HOUR_TIME_FORMAT)
+print("Duration of Day:", (end_time_of_wmu - env.day_begin).seconds/3600.0)
+
+
+print("Display information:")
+env.display_action_counter()
+env.display_info()
+print("===================================================")
+
+print("Activity_none_times \t Expected_activity_none_times \t Hit times \t Miss times \
+    \t Random Miss times \t Penalty times \t Uncertain times \t Total times \
+    \t Residual power \t Beginning event times \t Endding event times \t Middle event times \
+    \t Day End Running time \t Done status \t Duration of Day \t DoneReward \t Reward  \
+    \t Sensors energy cost \t Sensors time cost \t total time cost \t Motion_triggered_times \t Hit_activity_check_times \t motion_activity_cnt \t")
+
+print(env.activity_none_times, '\t', env.expected_activity_none_times, '\t',env.done_hit_event_times, '\t', env.done_missed_event_times, \
+    '\t', env.done_random_miss_event_times, '\t', env.done_penalty_times, '\t', env.done_uncertain_times, '\t', env.done_totol_check_times, \
+    '\t', env.done_residual_power, '\t', env.done_beginning_event_times, '\t', env.done_end_event_times, '\t', env.done_middle_event_times, \
+    '\t', env.done_running_time, '\t', env.done, '\t', (end_time_of_wmu - env.day_begin).seconds/3600.0, '\t', 0, '\t', 0, \
+    '\t', env.done_energy_cost, '\t', env.done_time_cost, "\t", env.done_total_time_cost, "\t", env.motion_triggered_times, '\t', env.hit_activity_check_times, '\t',env.motion_activity_cnt)
+
+print("===================================================")
