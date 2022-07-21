@@ -313,8 +313,8 @@ while(not env.done):
         audio_type = get_audio_type_by_activity(cur_activity)
         motion_type = get_motion_type_by_activity(cur_activity)
 
-        if pre_activity != cur_activity:
-            activity_begin_time = cur_time
+        # if pre_activity != cur_activity:
+        #     activity_begin_time = cur_time
         
         activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
 

@@ -65,7 +65,7 @@ LOCATION_LOBBY = 'lobby'
 OTHER = 'other'
 
 P1_Location_Under_Act = {
-ACTIVITY_BED_TO_TOILET: {LOCATION_BATHROOM:1.0},
+ACTIVITY_BED_TO_TOILET: {LOCATION_BATHROOM:0.99},
 ACTIVITY_MORNING_MEDS : {LOCATION_KITCHEN: 0.6, LOCATION_BEDROOM: 0.4},
 ACTIVITY_WATCH_TV : {LOCATION_LIVINGROOM: 0.99},
 ACTIVITY_KITCHEN : {LOCATION_KITCHEN: 0.99},
@@ -96,8 +96,8 @@ ACTIVITY_KITCHEN : {MOTION_TYPE_SITTING:0.5, MOTION_TYPE_STANDING:0.3, MOTION_TY
 ACTIVITY_CHORES : {MOTION_TYPE_SITTING:0.0, MOTION_TYPE_STANDING:0.7, MOTION_TYPE_WALKING:0.3},
 ACTIVITY_LEAVE_HOME : {MOTION_TYPE_SITTING:0.0, MOTION_TYPE_STANDING:0.7, MOTION_TYPE_WALKING:0.3},
 ACTIVITY_READ : {MOTION_TYPE_SITTING:0.9, MOTION_TYPE_STANDING:0.1, MOTION_TYPE_WALKING:0.0},
-ACTIVITY_GUEST_BATHROOM : {MOTION_TYPE_SITTING:0.0, MOTION_TYPE_STANDING:0.8, MOTION_TYPE_WALKING:0.2},
-ACTIVITY_MASTER_BATHROOM : {MOTION_TYPE_SITTING:0.0, MOTION_TYPE_STANDING:0.8, MOTION_TYPE_WALKING:0.2},
+ACTIVITY_GUEST_BATHROOM : {MOTION_TYPE_SITTING:0.3, MOTION_TYPE_STANDING:0.6, MOTION_TYPE_WALKING:0.1},
+ACTIVITY_MASTER_BATHROOM : {MOTION_TYPE_SITTING:0.3, MOTION_TYPE_STANDING:0.6, MOTION_TYPE_WALKING:0.1},
 ACTIVITY_DESK_ACTIVITY : {MOTION_TYPE_SITTING:0.95, MOTION_TYPE_STANDING:0.05, MOTION_TYPE_WALKING:0.0},
 ACTIVITY_EVE_MEDS : {MOTION_TYPE_SITTING:0.8, MOTION_TYPE_STANDING:0.2, MOTION_TYPE_WALKING:0.0},
 ACTIVITY_MEDITATE : {MOTION_TYPE_SITTING:0.2, MOTION_TYPE_STANDING:0.8, MOTION_TYPE_WALKING:0.0},
@@ -223,7 +223,7 @@ YOLO_ACC_OBJECT = 0.9
 
 TOTAL_ACTIVITY_CNT = len(PROB_OF_ALL_ACTIVITIES)
 
-MIN_Prob = 1e-10
+MIN_Prob = 1e-40
 
 # CNN Confusion matrix
 
@@ -346,7 +346,7 @@ class Bayes_Model_Vision_Location(object):
                 target_act = target_node.activity_res_generation()
 
                 if target_act == tmp_act:
-                    p = sd[target_act]
+                    p = v
                     break
         
         return p
@@ -531,7 +531,7 @@ class Bayes_Model_Motion(object):
                 target_act = target_node.activity_res_generation()
 
                 if target_act == tmp_act:
-                    p = sd[target_act]
+                    p = v
                     break
         
         return p
@@ -714,7 +714,7 @@ class Bayes_Model_Audio(object):
                 target_act = target_node.activity_res_generation()
 
                 if target_act == tmp_act:
-                    p = sd[target_act]
+                    p = v
                     break
         
         return p
@@ -898,7 +898,7 @@ class Bayes_Model_Vision_Object(object):
                 target_act = target_node.activity_res_generation()
 
                 if target_act == tmp_act:
-                    p = sd[target_act]
+                    p = v
                     break
         
         return p
