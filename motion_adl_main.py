@@ -313,6 +313,11 @@ while(not env.done):
         audio_type = get_audio_type_by_activity(cur_activity)
         motion_type = get_motion_type_by_activity(cur_activity)
 
+        print('location:', location)
+        print('object:', object)
+        print('audio_type:', audio_type)
+        print('motion_type:', motion_type)
+
         # if pre_activity != cur_activity:
         #     activity_begin_time = cur_time
         
@@ -320,11 +325,17 @@ while(not env.done):
 
 
         for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
+            print("transition step act:", act)
             p1 = bayes_model_location.get_prob(pre_act_list, act, location, activity_duration)
             p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
             p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
             p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
             p = p1*p2*p3*p4
+
+            print('p1:', p1)
+            print('p2:', p2)
+            print('p3:', p3)
+            print('p4:', p4)
 
             res_prob[act].append(p) 
             heap_prob.append((act, p, cur_time_str))
@@ -353,11 +364,17 @@ while(not env.done):
         # prob_of_activity_by_duration = get_end_of_activity_prob_by_duration(activity_duration, cur_activity)
 
         location = get_location_by_activity(cur_activity)
+        object = get_object_by_activity(cur_activity)
         motion_type = get_motion_type_by_activity(cur_activity)
         audio_type = get_audio_type_by_activity(cur_activity)
 
-        for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
+        print('location:', location)
+        print('object:', object)
+        print('audio_type:', audio_type)
+        print('motion_type:', motion_type)
 
+        for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
+            print("motion step act:", act)
             p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
 
             if need_recollect_data:
@@ -367,9 +384,15 @@ while(not env.done):
 
             p = p2
 
+            # print('p1:', p1)
+            print('p2:', p2)
+            # print('p3:', p3)
+            # print('p4:', p4)
+
             res_prob[act].append(p) 
             heap_prob.append((act, p, cur_time_str))
 
+    print('pre_act_list:', pre_act_list)
     print('heap_prob:', heap_prob)
     top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
     print('top3_prob:', top3_prob)
@@ -458,8 +481,8 @@ print("Duration of Day:", (end_time_of_wmu - env.day_begin).seconds/3600.0)
 
 
 print("Display information:")
-env.display_action_counter()
-env.display_info()
+# env.display_action_counter()
+# env.display_info()
 print("===================================================")
 
 print("Activity_none_times \t Expected_activity_none_times \t Hit times \t Miss times \

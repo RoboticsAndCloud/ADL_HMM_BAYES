@@ -1755,7 +1755,14 @@ if __name__ == "__main__":
     ### test   2009-10-16 - 2010-01-06, totally 84, ignore 01-06
     base_date = '2009-12-11'
 
-    activity_date_dict, activity_begin_dict, activity_end_dict, activity_begin_list, activity_end_list = get_activity_date(base_date)
+    motion_dict = get_motion_activity(base_date)
+    print(len(motion_dict))
+    print(motion_dict)
+
+
+    # base_date = '2009-10-16'
+
+    # activity_date_dict, activity_begin_dict, activity_end_dict, activity_begin_list, activity_end_list = get_activity_date(base_date)
 
     # print("==============")
     # print(len(activity_date_dict))
@@ -1776,9 +1783,9 @@ if __name__ == "__main__":
 
     # print(activity_date_dict)
 
-    activity_str, beginning_activity, end_activity = get_activity(activity_date_dict, activity_begin_list, activity_end_list, '2009-12-11 08:46:39' )
+    # activity_str, beginning_activity, end_activity = get_activity(activity_date_dict, activity_begin_list, activity_end_list, '2009-12-11 08:46:39' )
 
 
-    print(activity_str, beginning_activity, end_activity)
+    # print(activity_str, beginning_activity, end_activity)
 
     # print(act, " begin:", activity_begin_dict[act], " end:", activity_end_dict[act])

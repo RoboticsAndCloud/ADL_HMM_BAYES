@@ -17,12 +17,12 @@ to collect and send data, 10 hours for standby, it may use extral 144 mAh for da
 7*124*600/3600 = 144.66666666666666
 """
 
-from pickle import FALSE
+# from pickle import FALSE
 import random
 import time
 from typing import Dict
 import numpy as np
-import tkinter as tk
+# import tkinter as tk
 from PIL import Image
 
 from datetime import datetime
