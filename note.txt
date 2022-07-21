@@ -168,3 +168,94 @@ acc: 0.96513470681458
 
 just statelist: 0.692551, dnn_acc=0.90
 just symblist: 0.516640, dnn_acc = 0.90
+
+
+
+##########################
+dnn_acc = 0.90
+acc: 0.7210776545166403
+
+dnn_acc = 0.99
+acc: 0.7242472266244057
+
+
+
+motion_activity_predict.py
+Epoch: 9999, Loss: 0.00025224
+
+0.510934393638171
+
+
+class Bayes_Model_Vision(object):
+    """
+    This class is an implementation of the Hidden Markov Model.
+ 
+    """
+
+    def __init__(self, act_name, location):
+        self.act_name = act_name
+        self.location = location
+
+
+    def get_prob(self):
+        """ Return the state set of this model. """
+        p = 0
+        p =  prob_of_location_under_act(self.location, self.act_name) * prob_prior_act(self.act_name) /(prob_of_location_under_all_acts(self.location))   * prob_of_location_vision(self.location)
+
+        return p
+
+
+motion can not work well
+
+pre_act_list: ['Kitchen_Activity', 'Leave_Home', 'Master_Bathroom', 'Read', 'Kitchen_Activity', 'Leave_Home', 'Kitchen_Activity', 'Guest_Bathroom']
+heap_prob: [('Bed_to_Toilet', 3.6262633569325023e-31, '2009-12-11 12:40:00'), ('Morning_Meds', 9.848534268256843e-30, '2009-12-11 12:40:00'), ('Watch_TV', 3.2691752467600713e-29, '2009-12-11 12:40:00'), ('Kitchen_Activity', 1.0286740030341833e-28, '2009-12-11 12:40:00'), ('Chores', 1.259259423750159e-33, '2009-12-11 12:40:00'), ('Leave_Home', 9.988064377370525e-33, '2009-12-11 12:40:00'), ('Read', 1.1890485263301798e-28, '2009-12-11 12:40:00'), ('Guest_Bathroom', 3.521521078189137e-05, '2009-12-11 12:40:00'), ('Master_Bathroom', 2.7076200068247586e-29, '2009-12-11 12:40:00'), ('Desk_Activity', 1.6889764276841856e-29, '2009-12-11 12:40:00'), ('Eve_Meds', 3.488516122452886e-30, '2009-12-11 12:40:00'), ('Meditate', 1.804635118884917e-30, '2009-12-11 12:40:00'), ('Dining_Rm_Activity', 4.6634824313797864e-30, '2009-12-11 12:40:00'), ('Master_Bedroom_Activity', 1.0701063572191231e-29, '2009-12-11 12:40:00')]
+top3_prob: [('Guest_Bathroom', 3.521521078189137e-05, '2009-12-11 12:40:00'), ('Read', 1.1890485263301798e-28, '2009-12-11 12:40:00'), ('Kitchen_Activity', 1.0286740030341833e-28, '2009-12-11 12:40:00')]
+Running time: 2009-12-11 12:40:00.823944 Action: 2
+Get current date_day_time: 2009-12-11 00:00:00  running day: 2009-12-11 00:00:00
+Env Running: 2009-12-11 12:40:03.823944
+activity: Read
+random_t: 0.9186043612451387
+object activity: Read
+{'book': 0.9, 'microwave': 0.1}
+random_t: 0.27549671633429385
+random_t: 0.5948893894933561
+location: livingroom
+object: book
+audio_type: quite
+
+motion_type: sitting
+
+
+####################################################################################3
+Env Running: 2009-12-11 12:19:33.823944
+activity: Read
+random_t: 0.8669588301630452
+object activity: Read
+{'book': 0.9, 'microwave': 0.1}
+random_t: 0.859791817853545
+random_t: 0.9731939774802738
+location: livingroom
+object: microwave
+audio_type: quite
+motion_type: standing
+
+
+Read
+
+p1: 5.034459409356303e-26
+p2: 1.559923692730153e-29
+p3: 1.3801479957042964e-28
+p4: 8.692339172634346e-29
+
+
+Guest_bathroom
+p1: 3.658496630906837e-45
+p2: 8.315848577085605e-05
+p3: 6.193161948103765e-05
+p4: 7.723046184584646e-44
+
+
+pre_act_list: ['Kitchen_Activity', 'Leave_Home', 'Master_Bathroom', 'Read', 'Kitchen_Activity', 'Leave_Home', 'Kitchen_Activity', 'Guest_Bathroom']
+heap_prob: [('Bed_to_Toilet', 1.3089301906631165e-200, '2009-12-11 12:19:33'), ('Morning_Meds', 8.214996549646328e-158, '2009-12-11 12:19:33'), ('Watch_TV', 7.053114762125887e-156, '2009-12-11 12:19:33'), ('Kitchen_Activity', 1.2357986040796772e-152, '2009-12-11 12:19:33'), ('Chores', 8.993769858789189e-119, '2009-12-11 12:19:33'), ('Leave_Home', 3.5596415168021724e-193, '2009-12-11 12:19:33'), ('Read', 9.421466779616554e-111, '2009-12-11 12:19:33'), ('Guest_Bathroom', 1.4551585011313218e-96, '2009-12-11 12:19:33'), ('Master_Bathroom', 5.085574137488312e-193, '2009-12-11 12:19:33'), ('Desk_Activity', 8.040135762714574e-157, '2009-12-11 12:19:33'), ('Eve_Meds', 1.2932542717274224e-159, '2009-12-11 12:19:33'), ('Meditate', 9.388879249870083e-157, '2009-12-11 12:19:33'), ('Dining_Rm_Activity', 3.0196274619950287e-198, '2009-12-11 12:19:33'), ('Master_Bedroom_Activity', 4.094594023486826e-195, '2009-12-11 12:19:33')]
+top3_prob: [('Guest_Bathroom', 1.4551585011313218e-96, '2009-12-11 12:19:33'), ('Read', 9.421466779616554e-111, '2009-12-11 12:19:33'), ('Chores', 8.993769858789189e-119, '2009-12-11 12:19:33')]
+

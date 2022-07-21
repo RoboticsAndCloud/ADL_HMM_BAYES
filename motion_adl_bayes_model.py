@@ -268,7 +268,8 @@ class Bayes_Model_Vision_Location(object):
         """ Return the state set of this model. """
         p = 0
         p =  self.prob_of_location_under_act(location, act_name) \
-             * self.prob_prior_act_by_prelist(pre_activity_list, act_name, act_duration) /(self.prob_of_location_under_all_acts(location)) * self.prob_of_location_using_vision(location, act_name)
+             * self.prob_prior_act_by_prelist(pre_activity_list, act_name, act_duration) /(self.prob_of_location_under_all_acts(location)) \
+                * self.prob_of_location_using_vision(location, act_name)
 
         return p
 
@@ -279,8 +280,10 @@ class Bayes_Model_Vision_Location(object):
         try:
             p = P1_Location_Under_Act[act_name][location]
         except Exception as e:
-            print('Got error from P1_Location_Under_Act, location, act_name:', location, ', ', act_name, ', err:', e)
-
+            pass
+            # print('Got error from P1_Location_Under_Act, location, act_name:', location, ', ', act_name, ', err:', e)
+        
+        print('prob_of_location_under_act: location, act_name, p:', location, ' ', act_name, ' ', p)
         return p
 
     # def prob_prior_act(self, pre_activity, act_name):
@@ -309,6 +312,8 @@ class Bayes_Model_Vision_Location(object):
 
             p = get_end_of_activity_prob_by_duration(duration, target_act_name)
 
+            print('prob_prior_act_by_prelist == target_act_name, duration, p', target_act_name, ' ', duration, ' ', p)
+
             return p
         
         res = {}
@@ -330,7 +335,7 @@ class Bayes_Model_Vision_Location(object):
                 print('prob:', prob)
                 res[next_act] = prob
 
-        print('=========================================================')
+        # print('=========================================================')
 
         sd = sorted(res.items(), key=tools_ascc.sorter_take_count, reverse=True)
         print(sd)
@@ -348,6 +353,9 @@ class Bayes_Model_Vision_Location(object):
                 if target_act == tmp_act:
                     p = v
                     break
+
+        print('prob_prior_act_by_prelist target_act_name, duration, p', target_act_name, ' ', duration, ' ', p)
+
         
         return p
 
@@ -358,6 +366,8 @@ class Bayes_Model_Vision_Location(object):
 
         for act in PROB_OF_ALL_ACTIVITIES.keys():
             p = p + self.prob_of_location_under_act(location, act) * self.prob_of_activity_in_dataset(act)
+
+        print('prob_of_location_under_all_acts, location, p:', location, ' ', p)
 
         return p
     
@@ -377,7 +387,7 @@ class Bayes_Model_Vision_Location(object):
         else:
             # find the probability of location from CNN recognition results
             pass
-
+        print('prob_of_location_using_vision:, location, act, p:', act, ' ', location, ' ', p)
         return p
 
     def prob_of_activity_in_dataset(self, act):
@@ -460,8 +470,10 @@ class Bayes_Model_Motion(object):
         try:
             p = P2_Motion_type_Under_Act[act_name][motion_type]
         except Exception as e:
-            print('Got error from P2_Motion_type_Under_Act, motion, act_name:', motion_type, ', ', act_name, ', err:', e)
+            pass
+            # print('Got error from P2_Motion_type_Under_Act, motion, act_name:', motion_type, ', ', act_name, ', err:', e)
 
+        print('prob_of_motion_type_under_act motion_type, act_name, p:', motion_type, ' ', act_name, ' ', p)
         return p
 
     def prob_prior_act(self, pre_activity, act_name):
@@ -469,7 +481,8 @@ class Bayes_Model_Motion(object):
         try:
             p = HMM_TRANS_MATRIX[pre_activity][act_name]
         except Exception as e:
-            print('Got error from HMM_TRANS_MATRIX, pre_activity, act_name:', pre_activity, ', ', act_name, ', err:', e)
+            pass
+            # print('Got error from HMM_TRANS_MATRIX, pre_activity, act_name:', pre_activity, ', ', act_name, ', err:', e)
 
         # during acitivty
         if pre_activity == act_name:
@@ -490,6 +503,7 @@ class Bayes_Model_Motion(object):
         if pre_act_list[-1] == target_act_name:
 
             p = get_end_of_activity_prob_by_duration(duration, target_act_name)
+            print('target_act_name, == duration, p:', target_act_name, ' ', duration, ' ', p)
 
             return p
         
@@ -511,11 +525,11 @@ class Bayes_Model_Motion(object):
                 test_lis.append(next_act)
                 prob = self.hmm_model.evaluate(test_lis)
 
-                print('motion test_lis:', test_lis)
-                print('prob:', prob)
+                # print('motion test_lis:', test_lis)
+                print('next_act, prob:', next_act, ' ', prob)
                 res[next_act] = prob
 
-        print('=========================================================')
+        # print('=========================================================')
 
         sd = sorted(res.items(), key=tools_ascc.sorter_take_count, reverse=True)
         print(sd)
@@ -534,6 +548,8 @@ class Bayes_Model_Motion(object):
                     p = v
                     break
         
+        print('prob_prior_act_by_prelist target_act_name, duration, p:', target_act_name, ' ', duration, ' ', p)
+
         return p
 
     # Total probability rule, 15 activities
@@ -542,6 +558,8 @@ class Bayes_Model_Motion(object):
 
         for act in PROB_OF_ALL_ACTIVITIES.keys():
             p = p + self.prob_of_motion_type_under_act(motion_type, act) * self.prob_of_activity_in_dataset(act)
+
+        print('prob_of_motion_type_under_all_acts motion_type, p:', motion_type, ' ', p)
 
         return p
     
@@ -561,6 +579,8 @@ class Bayes_Model_Motion(object):
         else:
             # find the probability of location from CNN recognition results
             pass
+
+        print('prob_of_motion_type_using_motion motion_type, act, p:', motion_type, ' ', act, ' ', p)
 
         return p
 
@@ -646,7 +666,10 @@ class Bayes_Model_Audio(object):
         try:
             p = P3_Audio_type_Under_Act[act_name][audio_type]
         except Exception as e:
-            print('Got error from P3_Audio_type_Under_Act, location, act_name:', audio_type, ', ', act_name, ', err:', e)
+            pass
+            # print('Got error from P3_Audio_type_Under_Act, location, act_name:', audio_type, ', ', act_name, ', err:', e)
+        
+        print('prob_of_audio_type_under_act audio_type, act_name, p:', audio_type, ' ', act_name, ' ', p)
 
         return p
 
@@ -655,7 +678,8 @@ class Bayes_Model_Audio(object):
         try:
             p = HMM_TRANS_MATRIX[pre_activity][act_name]
         except Exception as e:
-            print('Got error from HMM_TRANS_MATRIX, pre_activity, act_name:', pre_activity, ', ', act_name, ', err:', e)
+            pass
+            # print('Got error from HMM_TRANS_MATRIX, pre_activity, act_name:', pre_activity, ', ', act_name, ', err:', e)
 
         # during acitivty
         if pre_activity == act_name:
@@ -674,6 +698,7 @@ class Bayes_Model_Audio(object):
         if pre_act_list[-1] == target_act_name:
 
             p = get_end_of_activity_prob_by_duration(duration, target_act_name)
+            print('target_act_name, == duration, p:', target_act_name, ' ', duration, ' ', p)
 
             return p
         
@@ -698,7 +723,7 @@ class Bayes_Model_Audio(object):
                 # print('prob:', prob)
                 res[next_act] = prob
 
-        print('=========================================================')
+        # print('=========================================================')
 
         sd = sorted(res.items(), key=tools_ascc.sorter_take_count, reverse=True)
         print(sd)
@@ -717,6 +742,8 @@ class Bayes_Model_Audio(object):
                     p = v
                     break
         
+        print('prob_prior_act_by_prelist target_act_name, duration, p:', target_act_name, ' ', duration, ' ', p)
+
         return p
 
     # Total probability rule, 15 activities
@@ -728,6 +755,8 @@ class Bayes_Model_Audio(object):
             print(self.prob_of_audio_type_under_act(audio_type, act))
             print(self.prob_of_activity_in_dataset(act))
             p = p + self.prob_of_audio_type_under_act(audio_type, act) * self.prob_of_activity_in_dataset(act)
+
+        print('prob_of_audio_type_under_all_acts prob_of_motion_type_under_all_acts audio_type, p:', audio_type, ' ', p)
 
         return p
     
@@ -747,6 +776,8 @@ class Bayes_Model_Audio(object):
         else:
             # find the probability of location from CNN recognition results
             pass
+
+        print('prob_of_audio_type_using_audio audio_type, act, p:', audio_type, ' ', act, ' ', p)
 
         return p
 
@@ -830,8 +861,10 @@ class Bayes_Model_Vision_Object(object):
         try:
             p = P4_Object_Under_Act[act_name][object]
         except Exception as e:
-            print('Got error from P4_Object_Under_Act, object, act_name:', object, ', ', act_name, ', err:', e)
+            pass
+            # print('Got error from P4_Object_Under_Act, object, act_name:', object, ', ', act_name, ', err:', e)
 
+        print('prob_of_object_under_act, object, act_name, p:', object, ' ', act_name, ' ', p)
         return p
 
     def prob_prior_act(self, pre_activity, act_name):
@@ -839,7 +872,8 @@ class Bayes_Model_Vision_Object(object):
         try:
             p = HMM_TRANS_MATRIX[pre_activity][act_name] # todo: update a new method, using evaluate the sequenece, hmm model
         except Exception as e:
-            print('Got error from HMM_TRANS_MATRIX, pre_activity, act_name:', pre_activity, ', ', act_name, ', err:', e)
+            pass
+            # print('Got error from HMM_TRANS_MATRIX, pre_activity, act_name:', pre_activity, ', ', act_name, ', err:', e)
 
         # during acitivty
         if pre_activity == act_name:
@@ -859,6 +893,7 @@ class Bayes_Model_Vision_Object(object):
         if pre_act_list[-1] == target_act_name:
 
             p = get_end_of_activity_prob_by_duration(duration, target_act_name)
+            print('prob_prior_act_by_prelist ==target_act_name, duration, p:', target_act_name, ' ', duration, ' ', p)
 
             return p
         
@@ -882,7 +917,7 @@ class Bayes_Model_Vision_Object(object):
                 print('prob:', prob)
                 res[next_act] = prob
 
-        print('=========================================================')
+        # print('=========================================================')
 
         sd = sorted(res.items(), key=tools_ascc.sorter_take_count, reverse=True)
         print(sd)
@@ -900,7 +935,9 @@ class Bayes_Model_Vision_Object(object):
                 if target_act == tmp_act:
                     p = v
                     break
-        
+                
+        print('prob_prior_act_by_prelist target_act_name, duration, p:', target_act_name, ' ', duration, ' ', p)
+    
         return p
 
     # Total probability rule, 15 activities
@@ -910,6 +947,7 @@ class Bayes_Model_Vision_Object(object):
         for act in PROB_OF_ALL_ACTIVITIES.keys():
             p = p + self.prob_of_object_under_act(object, act) * self.prob_of_activity_in_dataset(act)
 
+        print('prob_of_object_under_all_acts objec, p:', object, ' ', p)
         return p
     
     # From CNN model, confusion matrix for simulation
@@ -929,6 +967,7 @@ class Bayes_Model_Vision_Object(object):
             # find the probability of location from CNN recognition results
             pass
 
+        print('prob_of_object_using_vision object, act, p:', object, ' ', act, ' ', p)
         return p
 
     def prob_of_activity_in_dataset(self, act):

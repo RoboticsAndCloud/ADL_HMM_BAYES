@@ -331,11 +331,14 @@ while(not env.done):
             p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
             p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
             p = p1*p2*p3*p4
-
+            
+            print("transition step act:", act)
             print('p1:', p1)
             print('p2:', p2)
             print('p3:', p3)
             print('p4:', p4)
+            print('p:', p)
+            print("======================================================")
 
             res_prob[act].append(p) 
             heap_prob.append((act, p, cur_time_str))
@@ -385,9 +388,11 @@ while(not env.done):
             p = p2
 
             # print('p1:', p1)
+            print("motion step act:", act)
             print('p2:', p2)
             # print('p3:', p3)
             # print('p4:', p4)
+            print("======================================================")
 
             res_prob[act].append(p) 
             heap_prob.append((act, p, cur_time_str))
