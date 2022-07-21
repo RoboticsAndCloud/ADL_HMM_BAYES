@@ -1193,11 +1193,11 @@ class EnvASCC():
             new_time = running_time + timedelta(seconds = i)
             
             for key in motion_activity_dict.keys():
-                motion_time = datetime.strptime(key, DATE_HOUR_TIME_FORMAT)
+                motion_time_t = datetime.strptime(key, DATE_HOUR_TIME_FORMAT)
 
                 # # 0, 1, 2, 3
-                # for tmp_t in range(4):
-                #     motion_time = motion_time + timedelta(seconds = tmp_t)
+                for tmp_t in range(4):
+                    motion_time = motion_time_t + timedelta(seconds = tmp_t)
 
                 # todo: motion time: range [-3, 3]
                 # motion_time = datetime.strptime(key, DATE_HOUR_TIME_FORMAT) + 3
@@ -1214,28 +1214,28 @@ class EnvASCC():
                 # print(target_motion_time.timestamp())
                 # exit(0)
 
-                if (motion_time.timestamp() - new_time.timestamp()) <= 0 \
-                    and (motion_time.timestamp() - running_time.timestamp()) >= 0:
-                    
-                    print("running time", self.running_time)
-                    print("motion_time:", motion_time)
-                    print("new_time:", new_time)
-                    print("motion_time > new_time, motion triggerred")
-                    time_cost = i
-                    print("time cost:", time_cost)
+                    if (motion_time.timestamp() - new_time.timestamp()) <= 0 \
+                        and (motion_time.timestamp() - running_time.timestamp()) >= 0:
+                        
+                        print("running time", self.running_time)
+                        print("motion_time:", motion_time)
+                        print("new_time:", new_time)
+                        print("motion_time > new_time, motion triggerred")
+                        time_cost = i
+                        print("time cost:", time_cost)
 
-                    # random_t = random.random()
-                    # print('random_t:', random_t)
-                    # if random_t > acc_ratio:
-                    #     print('transition motion acc ratio occurs:', random_t)
-                    #     self.running_time = self.get_current_running_time(time_cost)
+                        # random_t = random.random()
+                        # print('random_t:', random_t)
+                        # if random_t > acc_ratio:
+                        #     print('transition motion acc ratio occurs:', random_t)
+                        #     self.running_time = self.get_current_running_time(time_cost)
 
-                    #     continue
+                        #     continue
 
-                    if not self.done:
-                        self.motion_triggered_times = self.motion_triggered_times + 1
+                        if not self.done:
+                            self.motion_triggered_times = self.motion_triggered_times + 1
 
-                    return True, time_cost
+                        return True, time_cost
                 
 
         return False, time_cost

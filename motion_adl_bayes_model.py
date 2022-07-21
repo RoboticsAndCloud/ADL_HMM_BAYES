@@ -70,7 +70,7 @@ ACTIVITY_MORNING_MEDS : {LOCATION_KITCHEN: 0.6, LOCATION_BEDROOM: 0.4},
 ACTIVITY_WATCH_TV : {LOCATION_LIVINGROOM: 0.99},
 ACTIVITY_KITCHEN : {LOCATION_KITCHEN: 0.99},
 ACTIVITY_CHORES : {LOCATION_BATHROOM: 0.1, LOCATION_LIVINGROOM: 0.2, LOCATION_KITCHEN: 0.3, LOCATION_LOBBY: 0.1, LOCATION_BEDROOM: 0.2, LOCATION_DININGROOM:0.1},
-ACTIVITY_LEAVE_HOME : {LOCATION_DOOR: 0.8, LOCATION_KITCHEN: 0.1, LOCATION_LOBBY: 0.1},
+ACTIVITY_LEAVE_HOME : {LOCATION_DOOR: 0.9, LOCATION_LOBBY: 0.1},
 ACTIVITY_READ :{LOCATION_BEDROOM: 0.05, LOCATION_LIVINGROOM:0.95},
 ACTIVITY_GUEST_BATHROOM : {LOCATION_BATHROOM: 0.99},
 ACTIVITY_MASTER_BATHROOM : {LOCATION_BATHROOM: 0.99},
@@ -322,7 +322,7 @@ class Bayes_Model_Vision_Location(object):
         
                 next_act = node.activity_res_generation()
 
-                test_lis = pre_act_list
+                test_lis = copy.deepcopy(pre_act_list)
                 test_lis.append(next_act)
                 prob = self.hmm_model.evaluate(test_lis)
 
@@ -338,8 +338,9 @@ class Bayes_Model_Vision_Location(object):
         for k, v in sd:
             for type in act_type_list:
                 activity_type = type
-                tmp_node = tools_ascc.Activity_Node_Observable(k, activity_type, 0)
-                tmp_act = tmp_node.activity_res_generation()
+                # tmp_node = tools_ascc.Activity_Node_Observable(k, activity_type, 0)
+                # tmp_act = tmp_node.activity_res_generation()
+                tmp_act = k
 
                 target_node = tools_ascc.Activity_Node_Observable(target_act_name, activity_type, 0)
                 target_act = target_node.activity_res_generation()
@@ -506,7 +507,7 @@ class Bayes_Model_Motion(object):
         
                 next_act = node.activity_res_generation()
 
-                test_lis = pre_act_list
+                test_lis = copy.deepcopy(pre_act_list)
                 test_lis.append(next_act)
                 prob = self.hmm_model.evaluate(test_lis)
 
@@ -522,8 +523,9 @@ class Bayes_Model_Motion(object):
         for k, v in sd:
             for type in act_type_list:
                 activity_type = type
-                tmp_node = tools_ascc.Activity_Node_Observable(k, activity_type, 0)
-                tmp_act = tmp_node.activity_res_generation()
+                # tmp_node = tools_ascc.Activity_Node_Observable(k, activity_type, 0)
+                # tmp_act = tmp_node.activity_res_generation()
+                tmp_act = k
 
                 target_node = tools_ascc.Activity_Node_Observable(target_act_name, activity_type, 0)
                 target_act = target_node.activity_res_generation()
@@ -688,7 +690,7 @@ class Bayes_Model_Audio(object):
         
                 next_act = node.activity_res_generation()
 
-                test_lis = pre_act_list
+                test_lis = copy.deepcopy(pre_act_list)
                 test_lis.append(next_act)
                 prob = self.hmm_model.evaluate(test_lis)
 
@@ -704,8 +706,9 @@ class Bayes_Model_Audio(object):
         for k, v in sd:
             for type in act_type_list:
                 activity_type = type
-                tmp_node = tools_ascc.Activity_Node_Observable(k, activity_type, 0)
-                tmp_act = tmp_node.activity_res_generation()
+                # tmp_node = tools_ascc.Activity_Node_Observable(k, activity_type, 0)
+                # tmp_act = tmp_node.activity_res_generation()
+                tmp_act = k
 
                 target_node = tools_ascc.Activity_Node_Observable(target_act_name, activity_type, 0)
                 target_act = target_node.activity_res_generation()
@@ -871,7 +874,7 @@ class Bayes_Model_Vision_Object(object):
         
                 next_act = node.activity_res_generation()
 
-                test_lis = pre_act_list
+                test_lis = copy.deepcopy(pre_act_list)
                 test_lis.append(next_act)
                 prob = self.hmm_model.evaluate(test_lis)
 
@@ -887,8 +890,9 @@ class Bayes_Model_Vision_Object(object):
         for k, v in sd:
             for type in act_type_list:
                 activity_type = type
-                tmp_node = tools_ascc.Activity_Node_Observable(k, activity_type, 0)
-                tmp_act = tmp_node.activity_res_generation()
+                # tmp_node = tools_ascc.Activity_Node_Observable(k, activity_type, 0)
+                # tmp_act = tmp_node.activity_res_generation()
+                tmp_act = k
 
                 target_node = tools_ascc.Activity_Node_Observable(target_act_name, activity_type, 0)
                 target_act = target_node.activity_res_generation()

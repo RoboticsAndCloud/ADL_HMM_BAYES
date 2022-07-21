@@ -312,6 +312,9 @@ while(not env.done):
         object = get_object_by_activity(cur_activity)
         audio_type = get_audio_type_by_activity(cur_activity)
         motion_type = get_motion_type_by_activity(cur_activity)
+
+        if pre_activity != cur_activity:
+            activity_begin_time = cur_time
         
         activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
 
@@ -366,42 +369,43 @@ while(not env.done):
 
             res_prob[act].append(p) 
             heap_prob.append((act, p, cur_time_str))
-        print('heap_prob:', heap_prob)
-        top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
-        print('top3_prob:', top3_prob)
-        # TODO: normalization for the top3 prob
-        # if top3_prob[0] < threshold:
-        #     need_recollect_data = True
 
-        rank1_res_prob.append(top3_prob[0])
-        rank2_res_prob.append(top3_prob[1])
-        rank3_res_prob.append(top3_prob[2])
+    print('heap_prob:', heap_prob)
+    top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
+    print('top3_prob:', top3_prob)
+    # TODO: normalization for the top3 prob
+    # if top3_prob[0] < threshold:
+    #     need_recollect_data = True
 
-        # todo, if rank1 - rank2 < 0.001, p= p+ p*p_audio, to get a more accurate res
-        #        
-        cur_activity = top3_prob[0][0]
+    rank1_res_prob.append(top3_prob[0])
+    rank2_res_prob.append(top3_prob[1])
+    rank3_res_prob.append(top3_prob[2])
 
-        if pre_activity != cur_activity:
-            pre_activity = cur_activity
-            pre_act_list.append(pre_activity)
-            activity_begin_time = cur_time
-            need_recollect_data = False
+    # todo, if rank1 - rank2 < 0.001, p= p+ p*p_audio, to get a more accurate res
+    #        
+    cur_activity = top3_prob[0][0]
 
-        
-        if len(rank1_res_prob) % 1000 == 0:
-            print("===================================================")
-            # print out results
-            print('rank1:')
-            print(rank1_res_prob)
+    if pre_activity != cur_activity:
+        pre_activity = cur_activity
+        pre_act_list.append(pre_activity)
+        activity_begin_time = cur_time
+        need_recollect_data = False
 
-            print('rank2:')
-            print(rank2_res_prob)
+    
+    if len(rank1_res_prob) % 1000 == 0:
+        print("===================================================")
+        # print out results
+        print('rank1:')
+        print(rank1_res_prob)
 
-            print('rank3:')
-            print(rank3_res_prob)
+        print('rank2:')
+        print(rank2_res_prob)
 
-            print('res_prob:')
-            print(res_prob)
+        print('rank3:')
+        print(rank3_res_prob)
+
+        print('res_prob:')
+        print(res_prob)
 
 
 print("===================================================")
