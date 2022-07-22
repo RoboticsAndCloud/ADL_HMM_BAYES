@@ -172,6 +172,7 @@ ACTIVITY_MASTER_BEDROOM : {OBJECT_MEDICINE:0.2}
 
 }
 
+MIN_Prob = 1e-70
 
 act_duration_cnt_dict = tools_ascc.get_activity_duration_cnt_set()
 def get_end_of_activity_prob_by_duration(activity_duration, activity):
@@ -185,7 +186,7 @@ def get_end_of_activity_prob_by_duration(activity_duration, activity):
     prob = 1 - cnt * 1.0 /total_cnt
 
     if prob < 0.01:
-        prob = 0.01
+        prob = MIN_Prob
 
     return prob
 
@@ -223,7 +224,6 @@ YOLO_ACC_OBJECT = 0.9
 
 TOTAL_ACTIVITY_CNT = len(PROB_OF_ALL_ACTIVITIES)
 
-MIN_Prob = 1e-40
 
 # CNN Confusion matrix
 
