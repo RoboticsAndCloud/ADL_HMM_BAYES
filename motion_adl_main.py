@@ -81,10 +81,12 @@ def get_object_by_activity(activity):
     act_dict = motion_adl_bayes_model.P4_Object_Under_Act[activity]
     print(act_dict)
 
-    sd = sorted(act_dict.items(), reverse=True)
+    sd = sorted(act_dict.items(), key=sorter_take_count, reverse=True)
     res = sd[0][0]
 
     random_t = random.random()
+    print('get_object_by_activity random_t:', random_t)
+
     if random_t > sd[0][1] and (len(sd) > 1):
         index = random.randint(1, len(sd)-1)
         res = sd[index][0]
@@ -107,11 +109,11 @@ def get_location_by_activity(activity):
     print('activity:', activity)
     act_dict = motion_adl_bayes_model.P1_Location_Under_Act[activity]
 
-    sd = sorted(act_dict.items(), reverse=True)
+    sd = sorted(act_dict.items(), key=sorter_take_count, reverse=True)
     res = sd[0][0]
 
     random_t = random.random()
-    print('random_t:', random_t)
+    print('get_location_by_activity random_t:', random_t)
     if random_t > sd[0][1] and (len(sd) > 1):
         index = random.randint(1, len(sd)-1)
         res = sd[index][0]
@@ -124,11 +126,11 @@ def get_motion_type_by_activity(activity):
         # Mapping
     act_dict = motion_adl_bayes_model.P2_Motion_type_Under_Act[activity]
 
-    sd = sorted(act_dict.items(), reverse=True)
+    sd = sorted(act_dict.items(), key=sorter_take_count, reverse=True)
     res = sd[0][0]
 
     random_t = random.random()
-    print('random_t:', random_t)
+    print('get_motion_type_by_activity random_t:', random_t)
     if random_t > sd[0][1] and (len(sd) > 1):
         index = random.randint(1, len(sd)-1)
         res = sd[index][0]
@@ -153,11 +155,11 @@ def get_audio_type_by_activity(activity):
     # Mapping
     act_dict = motion_adl_bayes_model.P3_Audio_type_Under_Act[activity]
 
-    sd = sorted(act_dict.items(), reverse=True)
+    sd = sorted(act_dict.items(), key=sorter_take_count, reverse=True)
     res = sd[0][0]
 
     random_t = random.random()
-    print('random_t:', random_t)
+    print('get_audio_type_by_activity random_t:', random_t)
     if random_t > sd[0][1] and (len(sd) > 1):
         index = random.randint(1, len(sd)-1)
         res = sd[index][0]

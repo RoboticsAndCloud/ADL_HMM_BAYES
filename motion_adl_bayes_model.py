@@ -4,6 +4,7 @@ Author: Frank
 Date: 07/10/2022
 """
 
+import math
 import tools_ascc
 import copy
 from datetime import datetime
@@ -175,6 +176,9 @@ ACTIVITY_MASTER_BEDROOM : {OBJECT_MEDICINE:0.2}
 MIN_Prob = 1e-70
 
 act_duration_cnt_dict = tools_ascc.get_activity_duration_cnt_set()
+
+DURATION_PROB_ALPHA = 10
+
 def get_end_of_activity_prob_by_duration(activity_duration, activity):
     d_lis = act_duration_cnt_dict[activity]
     total_cnt = len(d_lis)
@@ -182,11 +186,13 @@ def get_end_of_activity_prob_by_duration(activity_duration, activity):
     for d in d_lis:
         if activity_duration >= d:
             cnt += 1
-    
+    if cnt == 0:
+        cnt = 1
+
     prob = 1 - cnt * 1.0 /total_cnt
 
-    if prob < 0.01:
-        prob = MIN_Prob
+    prob = prob * 10
+    prob = math.pow(10, int(prob)) * MIN_Prob
 
     return prob
 
@@ -726,6 +732,7 @@ class Bayes_Model_Audio(object):
         # print('=========================================================')
 
         sd = sorted(res.items(), key=tools_ascc.sorter_take_count, reverse=True)
+        print('prob_prior_act_by_prelist HMM res:')
         print(sd)
 
         for k, v in sd:
