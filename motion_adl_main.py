@@ -243,6 +243,8 @@ while(pre_activity == ''):
     heap_prob = []
 
     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
+        hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+
         p1 = bayes_model_location.get_prob(pre_act_list, act, location, 0)
         
         #  bayes_model_location.prob_of_location_under_act(location, act) \
@@ -252,7 +254,7 @@ while(pre_activity == ''):
         p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, 0)
         p4 = bayes_model_object.get_prob(pre_act_list, act, object, 0)
 
-        p = p1*p2*p3*p4
+        p = p1*p2*p3*p4 * hmm_prob
              
         res_prob[act].append(p)
         heap_prob.append((act, p, cur_time_str))
@@ -328,11 +330,14 @@ while(not env.done):
 
         for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
             print("transition step act:", act)
+            hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+
             p1 = bayes_model_location.get_prob(pre_act_list, act, location, activity_duration)
             p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
             p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
             p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
-            p = p1*p2*p3*p4
+
+            p = p1*p2*p3*p4 * hmm_prob
             
             print("transition step act:", act)
             print('p1:', p1)
@@ -380,14 +385,23 @@ while(not env.done):
 
         for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
             print("motion step act:", act)
+            hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+            hmm_prob2 = bayes_model_motion.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+            hmm_prob3 = bayes_model_audio.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+            hmm_prob4 = bayes_model_object.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+            print('hmm_prob:', hmm_prob)
+            print('hmm_prob2:', hmm_prob2)
+            print('hmm_prob3:', hmm_prob3)
+            print('hmm_prob4:', hmm_prob4)
+
             p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
 
             if need_recollect_data:
                 p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
                 # todo: audio_type: quiet, ignore this or not? reading? cooking?
-                p = p2 * p3
+                p = p2 * p3 * hmm_prob
 
-            p = p2
+            p = p2 * hmm_prob
 
             # print('p1:', p1)
             print("motion step act:", act)
@@ -440,16 +454,16 @@ while(not env.done):
 
 print("===================================================")
 # print out results
-print('rank1:')
+print('rank1:', len(rank1_res_prob))
 print(rank1_res_prob)
 
-print('rank2:')
+print('rank2:', len(rank2_res_prob))
 print(rank2_res_prob)
 
-print('rank3:')
+print('rank3:', len(rank3_res_prob))
 print(rank3_res_prob)
 
-print('res_prob:')
+print('res_prob:', len(res_prob))
 print(res_prob)
 
 

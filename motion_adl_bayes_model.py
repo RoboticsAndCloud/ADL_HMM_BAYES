@@ -173,7 +173,7 @@ ACTIVITY_MASTER_BEDROOM : {OBJECT_MEDICINE:0.2}
 
 }
 
-MIN_Prob = 1e-70
+MIN_Prob = 1e-100
 
 act_duration_cnt_dict = tools_ascc.get_activity_duration_cnt_set()
 
@@ -191,8 +191,12 @@ def get_end_of_activity_prob_by_duration(activity_duration, activity):
 
     prob = 1 - cnt * 1.0 /total_cnt
 
-    prob = prob * 10
-    prob = math.pow(10, int(prob)) * MIN_Prob
+    # prob = prob * 10
+    # # prob = math.pow(10, int(prob)) * MIN_Prob
+    # prob = prob * MIN_Prob
+    
+    if prob < 0.01:
+        prob = MIN_Prob
 
     return prob
 
@@ -270,10 +274,16 @@ class Bayes_Model_Vision_Location(object):
     def set_location(self, location):
         self.location = location
 
-    def get_prob(self, pre_activity_list, act_name, location, act_duration):
+    def get_prob(self, pre_activity_list, act_name, location, act_duration, mode = None):
         """ Return the state set of this model. """
         p = 0
+
         p =  self.prob_of_location_under_act(location, act_name) \
+             /(self.prob_of_location_under_all_acts(location)) \
+            * self.prob_of_location_using_vision(location, act_name)
+
+        if mode == 'HMM':
+            p =  self.prob_of_location_under_act(location, act_name) \
              * self.prob_prior_act_by_prelist(pre_activity_list, act_name, act_duration) /(self.prob_of_location_under_all_acts(location)) \
                 * self.prob_of_location_using_vision(location, act_name)
 
@@ -460,12 +470,18 @@ class Bayes_Model_Motion(object):
     def set_motion_type(self, motion_type):
         self.motion_type = motion_type
 
-    def get_prob(self, pre_activity, act_name, motion_type, activity_duration):
+    def get_prob(self, pre_activity, act_name, motion_type, activity_duration, mode = None):
         """ Return the state set of this model. """
         p = 0
         p =  self.prob_of_motion_type_under_act(motion_type, act_name) \
-             * self.prob_prior_act_by_prelist(pre_activity, act_name, activity_duration) /(self.prob_of_motion_type_under_all_acts(motion_type))\
+            /(self.prob_of_motion_type_under_all_acts(motion_type))\
                  * self.prob_of_motion_type_using_motion(motion_type, act_name)
+
+        if mode == 'HMM':
+            p =  self.prob_of_motion_type_under_act(motion_type, act_name) \
+                * self.prob_prior_act_by_prelist(pre_activity, act_name, activity_duration) /(self.prob_of_motion_type_under_all_acts(motion_type))\
+                    * self.prob_of_motion_type_using_motion(motion_type, act_name)
+
 
         return p
 
@@ -482,20 +498,20 @@ class Bayes_Model_Motion(object):
         print('prob_of_motion_type_under_act motion_type, act_name, p:', motion_type, ' ', act_name, ' ', p)
         return p
 
-    def prob_prior_act(self, pre_activity, act_name):
-        p = MIN_Prob
-        try:
-            p = HMM_TRANS_MATRIX[pre_activity][act_name]
-        except Exception as e:
-            pass
-            # print('Got error from HMM_TRANS_MATRIX, pre_activity, act_name:', pre_activity, ', ', act_name, ', err:', e)
+    # def prob_prior_act(self, pre_activity, act_name):
+    #     p = MIN_Prob
+    #     try:
+    #         p = HMM_TRANS_MATRIX[pre_activity][act_name]
+    #     except Exception as e:
+    #         pass
+    #         # print('Got error from HMM_TRANS_MATRIX, pre_activity, act_name:', pre_activity, ', ', act_name, ', err:', e)
 
-        # during acitivty
-        if pre_activity == act_name:
-            p = 1
-            pass
+    #     # during acitivty
+    #     if pre_activity == act_name:
+    #         p = 1
+    #         pass
 
-        return p
+    #     return p
 
     def prob_prior_act_by_prelist(self, pre_activity_list, target_act_name, duration = None):
         p = MIN_Prob
@@ -509,7 +525,7 @@ class Bayes_Model_Motion(object):
         if pre_act_list[-1] == target_act_name:
 
             p = get_end_of_activity_prob_by_duration(duration, target_act_name)
-            print('target_act_name, == duration, p:', target_act_name, ' ', duration, ' ', p)
+            print('prob_prior_act_by_prelist target_act_name, == duration, p:', target_act_name, ' ', duration, ' ', p)
 
             return p
         
@@ -656,12 +672,17 @@ class Bayes_Model_Audio(object):
     def set_audio_type(self, audio_type):
         self.audio_type = audio_type
 
-    def get_prob(self, pre_activity, act_name, audio_type, activity_duration):
+    def get_prob(self, pre_activity, act_name, audio_type, activity_duration, mode=None):
         """ Return the state set of this model. """
         p = 0
         p =  self.prob_of_audio_type_under_act(audio_type, act_name) \
-             * self.prob_prior_act_by_prelist(pre_activity, act_name, activity_duration) /(self.prob_of_audio_type_under_all_acts(audio_type))\
+             /(self.prob_of_audio_type_under_all_acts(audio_type))\
                  * self.prob_of_audio_type_using_audio(audio_type, act_name)
+
+        if mode == 'HMM':
+            p =  self.prob_of_audio_type_under_act(audio_type, act_name) \
+             * self.prob_prior_act_by_prelist(pre_activity, act_name, activity_duration) /(self.prob_of_audio_type_under_all_acts(audio_type))\
+                 * self.prob_of_audio_type_using_audio(audio_type, act_name)        
 
         return p
 
@@ -853,12 +874,16 @@ class Bayes_Model_Vision_Object(object):
     def set_object(self, object):
         self.object = object
 
-    def get_prob(self, pre_activity, act_name, object, activity_duration):
+    def get_prob(self, pre_activity, act_name, object, activity_duration, mode=None):
         """ Return the state set of this model. """
         p = 0
         p =  self.prob_of_object_under_act(object, act_name) \
-             * self.prob_prior_act_by_prelist(pre_activity, act_name, activity_duration) /(self.prob_of_object_under_all_acts(object)) * self.prob_of_object_using_vision(object, act_name)
+            /(self.prob_of_object_under_all_acts(object)) * self.prob_of_object_using_vision(object, act_name)
 
+        if mode == 'HMM':
+            p =  self.prob_of_object_under_act(object, act_name) \
+                * self.prob_prior_act_by_prelist(pre_activity, act_name, activity_duration) /(self.prob_of_object_under_all_acts(object)) * self.prob_of_object_using_vision(object, act_name)
+ 
         return p
 
 
