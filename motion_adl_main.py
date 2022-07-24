@@ -386,13 +386,13 @@ while(not env.done):
         for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
             print("motion step act:", act)
             hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
-            hmm_prob2 = bayes_model_motion.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
-            hmm_prob3 = bayes_model_audio.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
-            hmm_prob4 = bayes_model_object.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+            # hmm_prob2 = bayes_model_motion.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+            # hmm_prob3 = bayes_model_audio.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+            # hmm_prob4 = bayes_model_object.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
             print('hmm_prob:', hmm_prob)
-            print('hmm_prob2:', hmm_prob2)
-            print('hmm_prob3:', hmm_prob3)
-            print('hmm_prob4:', hmm_prob4)
+            # print('hmm_prob2:', hmm_prob2)
+            # print('hmm_prob3:', hmm_prob3)
+            # print('hmm_prob4:', hmm_prob4)
 
             p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
 
