@@ -1753,11 +1753,12 @@ if __name__ == "__main__":
 
     # exit(0)
     ### test   2009-10-16 - 2010-01-06, totally 84, ignore 01-06
-    base_date = '2009-12-11'
+    #base_date = '2009-12-11'
 
-    motion_dict = get_motion_activity(base_date)
-    print(len(motion_dict))
-    print(motion_dict)
+    #motion_dict = get_motion_activity(base_date)
+    #print(len(motion_dict))
+    #print(motion_dict)
+    print(get_activity_duration_cnt_set())
 
 
     # base_date = '2009-10-16'
