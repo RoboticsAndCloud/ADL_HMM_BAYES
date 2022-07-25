@@ -193,6 +193,8 @@ rank1_res_prob = []
 rank2_res_prob = []
 rank3_res_prob = []
 
+p_duration_lis =[]
+
 pre_act_list = []
 
 def get_pre_act_list():
@@ -265,6 +267,12 @@ while(pre_activity == ''):
     print('heap_prob:', heap_prob)
     top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
     print('top3_prob:', top3_prob)
+
+      
+    activity_detected = top3_prob[0][0]
+    p_activity_end = motion_adl_bayes_model.get_end_of_activity_prob_by_duration(activity_duration, activity_detected)
+
+    p_duration_lis.append(p_activity_end)
 
 
     rank1_res_prob.append(top3_prob[0])
@@ -418,9 +426,7 @@ while(not env.done):
                 print('p3:', p3)
                 print('p4:', p4)
 
-                need_recollect_data = False
-
-
+                
             print("motion step act:", act)
             print('p:', p)
             print("======================================================")
@@ -428,10 +434,15 @@ while(not env.done):
             res_prob[act].append(p) 
             heap_prob.append((act, p, cur_time_str))
 
+        need_recollect_data = False
+
         top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
         activity_detected = top3_prob[0][0]
+        p_activity_end = motion_adl_bayes_model.get_end_of_activity_prob_by_duration(activity_duration, activity_detected)
+
+        p_duration_lis.append(p_activity_end)
+
         if activity_detected == pre_activity:
-            p_activity_end = motion_adl_bayes_model.get_end_of_activity_prob_by_duration(activity_duration, activity_detected)
             print('p_activity_end:', p_activity_end)
             # todo if p_activity_end < 0.2, audio,vision+motion
             if (p_activity_end < 0.4) and (p_check_level == 4):
@@ -445,11 +456,14 @@ while(not env.done):
                 p_check_level = p_check_level -1
 
             if p_activity_end < 0.2:    
-                start_check_interval = start_check_interval + (start_check_interval_time - cur_time).seconds 
-                if (int(start_check_interval) % UNCERTAIN_CHECK_INTERVAL) == 0:
+                start_check_interval = start_check_interval + (cur_time - start_check_interval_time).seconds 
+                print('start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
+
+                if (int(start_check_interval) / UNCERTAIN_CHECK_INTERVAL) >= 1:
                     need_recollect_data = True
+                    print('start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
                     start_check_interval = 0
-                    print('start_check_interval:', start_check_interval)
+                    start_check_interval_time = cur_time
 
             #     need_recollect_data = True
             #     p_check_level = p_check_level -1
@@ -520,6 +534,11 @@ print(rank3_res_prob)
 
 print('res_prob:', len(res_prob))
 print(res_prob)
+
+print('p_duration_lis:', len(p_duration_lis))
+print(p_duration_lis)
+
+# todo: probability of each activities obtained from the p_duration, for example, cur_activity is 'Read', P_duration(Read) = 0.8, then p(rank2) + p(rank3) = 1-p(Read)=1- 0.8  = 0.2
 
 
 
