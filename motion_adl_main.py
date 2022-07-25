@@ -6,6 +6,7 @@ Date: 07/10/2022
 
 from datetime import datetime
 import random
+from tkinter.messagebox import NO
 
 import hmm
 import motion_env_ascc
@@ -24,6 +25,8 @@ TEST_BASE_DATE = '2009-12-11'
 DATE_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 HOUR_TIME_FORMAT = "%H:%M:%S"
 DAY_FORMAT_STR = '%Y-%m-%d'
+
+UNCERTAIN_CHECK_INTERVAL = 60 # Seconds
 
 
 """
@@ -278,6 +281,7 @@ while(pre_activity == ''):
 
 need_recollect_data = False
 p_check_level = 4
+start_check_interval = 0
 while(not env.done):
 
     # TODO:
@@ -360,6 +364,8 @@ while(not env.done):
         cur_time_str = cur_time.strftime(motion_env_ascc.DATE_HOUR_TIME_FORMAT)
         print('Env Running:', cur_time) 
 
+        
+
         bayes_model_location.set_time(cur_time_str)
         bayes_model_motion.set_time(cur_time_str)
         bayes_model_audio.set_time(cur_time_str)
@@ -412,6 +418,8 @@ while(not env.done):
                 print('p3:', p3)
                 print('p4:', p4)
 
+                need_recollect_data = False
+
 
             print("motion step act:", act)
             print('p:', p)
@@ -422,28 +430,39 @@ while(not env.done):
 
         top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
         activity_detected = top3_prob[0][0]
-        p_activity_end = motion_adl_bayes_model.get_end_of_activity_prob_by_duration(activity_duration, activity_detected)
-        print('p_activity_end:', p_activity_end)
-        # todo if p_activity_end < 0.2, audio,vision+motion
-        if (p_activity_end < 0.4) and (p_check_level == 4):
-            need_recollect_data = True
-            p_check_level = p_check_level -1
-        if (p_activity_end < 0.3) and (p_check_level == 3):
-            need_recollect_data = True
-            p_check_level = p_check_level -1
-        if (p_activity_end < 0.2) and (p_check_level == 2):
-            need_recollect_data = True
-            p_check_level = p_check_level -1
-        if (p_activity_end < 0.1) and (p_check_level == 1):
-            need_recollect_data = True
-            p_check_level = p_check_level -1
-        if (p_activity_end < 0.05) and (p_check_level == 0):
-            need_recollect_data = True
-            p_check_level = p_check_level -1
-        if (p_activity_end < 0.001):
-            need_recollect_data = True
-            p_check_level = p_check_level -1
-        print("need_recollect_data p_check_level:", need_recollect_data, ' ', p_check_level)
+        if activity_detected == pre_activity:
+            p_activity_end = motion_adl_bayes_model.get_end_of_activity_prob_by_duration(activity_duration, activity_detected)
+            print('p_activity_end:', p_activity_end)
+            # todo if p_activity_end < 0.2, audio,vision+motion
+            if (p_activity_end < 0.4) and (p_check_level == 4):
+                need_recollect_data = True
+                p_check_level = p_check_level -1
+            if (p_activity_end < 0.3) and (p_check_level == 3):
+                need_recollect_data = True
+                p_check_level = p_check_level -1
+            if (p_activity_end < 0.2) and (p_check_level == 2):
+                start_check_interval_time = cur_time
+                p_check_level = p_check_level -1
+
+            if p_activity_end < 0.2:    
+                start_check_interval = start_check_interval + (start_check_interval_time - cur_time).seconds 
+                if (int(start_check_interval) % UNCERTAIN_CHECK_INTERVAL) == 0:
+                    need_recollect_data = True
+                    start_check_interval = 0
+                    print('start_check_interval:', start_check_interval)
+
+            #     need_recollect_data = True
+            #     p_check_level = p_check_level -1
+            # if (p_activity_end < 0.1) and (p_check_level == 1):
+            #     need_recollect_data = True
+            #     p_check_level = p_check_level -1
+            # if (p_activity_end < 0.05) and (p_check_level == 0):
+            #     need_recollect_data = True
+            #     p_check_level = p_check_level -1
+            # if (p_activity_end < 0.01):
+            #     need_recollect_data = True
+            #     p_check_level = p_check_level -1
+            print("need_recollect_data p_check_level:", need_recollect_data, ' ', p_check_level)
 
 
     print('pre_act_list:', pre_act_list)
@@ -468,6 +487,8 @@ while(not env.done):
         activity_begin_time = cur_time
         need_recollect_data = False
         p_check_level = 4
+        start_check_interval_time = None
+        start_check_interval = 0
 
     
     if len(rank1_res_prob) % 1000 == 0:
