@@ -277,6 +277,7 @@ while(pre_activity == ''):
     # TODO how to get the accuracy
 
 need_recollect_data = False
+p_check_level = 4
 while(not env.done):
 
     # TODO:
@@ -284,7 +285,7 @@ while(not env.done):
     # if p of previous detection is smaller than threshodl, env.step(motion_env_ascc.FUSION_ACTION)
 
     if need_recollect_data:
-        audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.AUDIO_ACTION)  
+        audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.FUSION_ACTION)  
     else:
         # INTERVAL_FOR_COLLECTING_DATA
         audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.MOTION_ACTION)  
@@ -395,23 +396,55 @@ while(not env.done):
             # print('hmm_prob4:', hmm_prob4)
 
             p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
-
-            if need_recollect_data:
-                p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
-                # todo: audio_type: quiet, ignore this or not? reading? cooking?
-                p = p2 * p3 * hmm_prob
-
             p = p2 * hmm_prob
 
-            # print('p1:', p1)
+            if need_recollect_data:
+                p1 = bayes_model_location.get_prob(pre_act_list, act, location, activity_duration)
+                p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
+                p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
+                p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
+
+                p = p1*p2*p3*p4 * hmm_prob
+                
+                print("need_recollect_data step act:", act)
+                print('p1:', p1)
+                print('p2:', p2)
+                print('p3:', p3)
+                print('p4:', p4)
+
+
             print("motion step act:", act)
-            print('p2:', p2)
-            # print('p3:', p3)
-            # print('p4:', p4)
+            print('p:', p)
             print("======================================================")
 
             res_prob[act].append(p) 
             heap_prob.append((act, p, cur_time_str))
+
+        top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
+        activity_detected = top3_prob[0][0]
+        p_activity_end = motion_adl_bayes_model.get_end_of_activity_prob_by_duration(activity_duration, activity_detected)
+        print('p_activity_end:', p_activity_end)
+        # todo if p_activity_end < 0.2, audio,vision+motion
+        if (p_activity_end < 0.4) and (p_check_level == 4):
+            need_recollect_data = True
+            p_check_level = p_check_level -1
+        if (p_activity_end < 0.3) and (p_check_level == 3):
+            need_recollect_data = True
+            p_check_level = p_check_level -1
+        if (p_activity_end < 0.2) and (p_check_level == 2):
+            need_recollect_data = True
+            p_check_level = p_check_level -1
+        if (p_activity_end < 0.1) and (p_check_level == 1):
+            need_recollect_data = True
+            p_check_level = p_check_level -1
+        if (p_activity_end < 0.05) and (p_check_level == 0):
+            need_recollect_data = True
+            p_check_level = p_check_level -1
+        if (p_activity_end < 0.001):
+            need_recollect_data = True
+            p_check_level = p_check_level -1
+        print("need_recollect_data p_check_level:", need_recollect_data, ' ', p_check_level)
+
 
     print('pre_act_list:', pre_act_list)
     print('heap_prob:', heap_prob)
@@ -434,6 +467,7 @@ while(not env.done):
         pre_act_list.append(pre_activity)
         activity_begin_time = cur_time
         need_recollect_data = False
+        p_check_level = 4
 
     
     if len(rank1_res_prob) % 1000 == 0:
