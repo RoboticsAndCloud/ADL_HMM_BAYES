@@ -193,6 +193,10 @@ rank1_res_prob = []
 rank2_res_prob = []
 rank3_res_prob = []
 
+rank1_res_prob_norm = []
+rank2_res_prob_norm = []
+rank3_res_prob_norm = []
+
 p_duration_lis =[]
 
 pre_act_list = []
@@ -278,6 +282,15 @@ while(pre_activity == ''):
     rank1_res_prob.append(top3_prob[0])
     rank2_res_prob.append(top3_prob[1])
     rank3_res_prob.append(top3_prob[2])
+
+    rank1_res_prob_norm.append(p_activity_end)
+    p_rank2 = (1-p_activity_end) * (rank2_res_prob[-1][1] + 0.001)/(rank2_res_prob[-1][1]+ 0.001+rank3_res_prob[-1][1]+ 0.001)
+    rank2_res_prob_norm.append(p_rank2)
+    p_rank3 = (1-p_activity_end) * (rank3_res_prob[-1][1] + 0.001)/(rank2_res_prob[-1][1]+ 0.001+rank3_res_prob[-1][1]+ 0.001)
+    rank3_res_prob_norm.append(p_rank3)
+    print('rank1_res_prob_norm:', rank1_res_prob_norm)
+    print('rank2_res_prob_norm:', rank2_res_prob_norm)
+    print('rank3_res_prob_norm:', rank3_res_prob_norm)
 
     pre_activity = top3_prob[0][0]
     cur_activity = top3_prob[0][0]
@@ -446,9 +459,11 @@ while(not env.done):
             print('p_activity_end:', p_activity_end)
             # todo if p_activity_end < 0.2, audio,vision+motion
             if (p_activity_end < 0.4) and (p_check_level == 4):
+                start_check_interval_time = cur_time
                 need_recollect_data = True
                 p_check_level = p_check_level -1
             if (p_activity_end < 0.3) and (p_check_level == 3):
+                start_check_interval_time = cur_time
                 need_recollect_data = True
                 p_check_level = p_check_level -1
             if (p_activity_end < 0.2) and (p_check_level == 2):
@@ -456,12 +471,12 @@ while(not env.done):
                 p_check_level = p_check_level -1
 
             if p_activity_end < 0.2:    
-                start_check_interval = start_check_interval + (cur_time - start_check_interval_time).seconds 
+                start_check_interval = (cur_time - start_check_interval_time).seconds 
                 print('start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
 
                 if (int(start_check_interval) / UNCERTAIN_CHECK_INTERVAL) >= 1:
                     need_recollect_data = True
-                    print('start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
+                    print('reset start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
                     start_check_interval = 0
                     start_check_interval_time = cur_time
 
@@ -490,6 +505,12 @@ while(not env.done):
     rank1_res_prob.append(top3_prob[0])
     rank2_res_prob.append(top3_prob[1])
     rank3_res_prob.append(top3_prob[2])
+
+    rank1_res_prob_norm.append(p_activity_end)
+    p_rank2 = (1-p_activity_end) * (rank2_res_prob[-1][1] + 0.001)/(rank2_res_prob[-1][1]+ 0.001+rank3_res_prob[-1][1]+ 0.001)
+    rank2_res_prob_norm.append(p_rank2)
+    p_rank3 = (1-p_activity_end) * (rank3_res_prob[-1][1] + 0.001)/(rank2_res_prob[-1][1]+ 0.001+rank3_res_prob[-1][1]+ 0.001)
+    rank3_res_prob_norm.append(p_rank3)
 
     # todo, if rank1 - rank2 < 0.001, p= p+ p*p_audio, to get a more accurate res
     #        
@@ -537,6 +558,10 @@ print(res_prob)
 
 print('p_duration_lis:', len(p_duration_lis))
 print(p_duration_lis)
+
+print('rank1_res_prob_norm:', rank1_res_prob_norm)
+print('rank2_res_prob_norm:', rank2_res_prob_norm)
+print('rank3_res_prob_norm:', rank3_res_prob_norm)
 
 # todo: probability of each activities obtained from the p_duration, for example, cur_activity is 'Read', P_duration(Read) = 0.8, then p(rank2) + p(rank3) = 1-p(Read)=1- 0.8  = 0.2
 
