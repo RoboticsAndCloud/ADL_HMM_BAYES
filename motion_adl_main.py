@@ -284,9 +284,9 @@ while(pre_activity == ''):
     rank3_res_prob.append(top3_prob[2])
 
     rank1_res_prob_norm.append(p_activity_end)
-    p_rank2 = (1-p_activity_end) * (rank2_res_prob[-1][1] + 0.001)/(rank2_res_prob[-1][1]+ 0.001+rank3_res_prob[-1][1]+ 0.001)
+    p_rank2 = (1-p_activity_end) * (rank2_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
     rank2_res_prob_norm.append(p_rank2)
-    p_rank3 = (1-p_activity_end) * (rank3_res_prob[-1][1] + 0.001)/(rank2_res_prob[-1][1]+ 0.001+rank3_res_prob[-1][1]+ 0.001)
+    p_rank3 = (1-p_activity_end) * (rank3_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
     rank3_res_prob_norm.append(p_rank3)
     print('rank1_res_prob_norm:', rank1_res_prob_norm)
     print('rank2_res_prob_norm:', rank2_res_prob_norm)
@@ -507,9 +507,9 @@ while(not env.done):
     rank3_res_prob.append(top3_prob[2])
 
     rank1_res_prob_norm.append(p_activity_end)
-    p_rank2 = (1-p_activity_end) * (rank2_res_prob[-1][1] + 0.001)/(rank2_res_prob[-1][1]+ 0.001+rank3_res_prob[-1][1]+ 0.001)
+    p_rank2 = (1-p_activity_end) * (rank2_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
     rank2_res_prob_norm.append(p_rank2)
-    p_rank3 = (1-p_activity_end) * (rank3_res_prob[-1][1] + 0.001)/(rank2_res_prob[-1][1]+ 0.001+rank3_res_prob[-1][1]+ 0.001)
+    p_rank3 = (1-p_activity_end) * (rank3_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
     rank3_res_prob_norm.append(p_rank3)
 
     # todo, if rank1 - rank2 < 0.001, p= p+ p*p_audio, to get a more accurate res
