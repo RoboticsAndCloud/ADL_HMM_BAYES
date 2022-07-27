@@ -553,6 +553,11 @@ class EnvASCC():
 
         interval = ACTION_INTERVAL_DICT[action]
 
+        ###############################change here ###########################
+
+
+        # interval = interval - 3 + 60*2 # 30 seconds, 1 min
+
         pre_interval = interval
 
         pre_action = action
