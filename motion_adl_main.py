@@ -197,6 +197,10 @@ rank1_res_prob_norm = []
 rank2_res_prob_norm = []
 rank3_res_prob_norm = []
 
+p_sitting_prob = []
+p_standing_prob = []
+p_walking_prob = []
+
 p_duration_lis =[]
 
 pre_act_list = []
@@ -251,6 +255,8 @@ while(pre_activity == ''):
     
     heap_prob = []
 
+    p2_res_dict = {}
+
     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
         hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
 
@@ -267,6 +273,8 @@ while(pre_activity == ''):
              
         res_prob[act].append(p)
         heap_prob.append((act, p, cur_time_str))
+
+        p2_res_dict[act] = p2
         
     print('heap_prob:', heap_prob)
     top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
@@ -274,6 +282,18 @@ while(pre_activity == ''):
 
       
     activity_detected = top3_prob[0][0]
+    
+    # p_sitting_prob.append(0)
+    # p_standing_prob.append(0)
+    # p_walking_prob.append(0)
+    # if motion_type == motion_adl_bayes_model.MOTION_TYPE_SITTING:
+    #     p_sitting_prob[len(p_sitting_prob)-1] = p2
+    # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_STANDING:
+    #     p_standing_prob[len(p_standing_prob)-1] = p2
+    # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_WALKING:
+    #     p_walking_prob[len(p_walking_prob)-1] = p2
+
+    
     p_activity_end = motion_adl_bayes_model.get_end_of_activity_prob_by_duration(activity_duration, activity_detected)
 
     p_duration_lis.append(p_activity_end)
@@ -291,6 +311,8 @@ while(pre_activity == ''):
     print('rank1_res_prob_norm:', rank1_res_prob_norm)
     print('rank2_res_prob_norm:', rank2_res_prob_norm)
     print('rank3_res_prob_norm:', rank3_res_prob_norm)
+
+
 
     pre_activity = top3_prob[0][0]
     cur_activity = top3_prob[0][0]
@@ -411,16 +433,24 @@ while(not env.done):
         print('audio_type:', audio_type)
         print('motion_type:', motion_type)
 
+        # # TODO: get the probability of motion type from motion_type = get_motion_type_by_activity(cur_activity)
+        # p_sitting_prob.append(0)
+        # p_standing_prob.append(0)
+        # p_walking_prob.append(0)
+        
+        # if motion_type == motion_adl_bayes_model.MOTION_TYPE_SITTING:
+        #     p_sitting_prob[len(p_sitting_prob)-1] = p2
+        # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_STANDING:
+        #     p_standing_prob[len(p_standing_prob)-1] = p2
+        # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_WALKING:
+        #     p_walking_prob[len(p_walking_prob)-1] = p2
+
+
         for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
             print("motion step act:", act)
             hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
-            # hmm_prob2 = bayes_model_motion.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
-            # hmm_prob3 = bayes_model_audio.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
-            # hmm_prob4 = bayes_model_object.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+
             print('hmm_prob:', hmm_prob)
-            # print('hmm_prob2:', hmm_prob2)
-            # print('hmm_prob3:', hmm_prob3)
-            # print('hmm_prob4:', hmm_prob4)
 
             p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
             p = p2 * hmm_prob
@@ -451,6 +481,19 @@ while(not env.done):
 
         top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
         activity_detected = top3_prob[0][0]
+
+        # # TODO: get the probability of motion type from motion_type = get_motion_type_by_activity(cur_activity)
+        # p_sitting_prob.append(0)
+        # p_standing_prob.append(0)
+        # p_walking_prob.append(0)
+        
+        # if motion_type == motion_adl_bayes_model.MOTION_TYPE_SITTING:
+        #     p_sitting_prob[len(p_sitting_prob)-1] = p2
+        # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_STANDING:
+        #     p_standing_prob[len(p_standing_prob)-1] = p2
+        # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_WALKING:
+        #     p_walking_prob[len(p_walking_prob)-1] = p2
+
         p_activity_end = motion_adl_bayes_model.get_end_of_activity_prob_by_duration(activity_duration, activity_detected)
 
         p_duration_lis.append(p_activity_end)
@@ -562,6 +605,16 @@ print(p_duration_lis)
 print('rank1_res_prob_norm:', rank1_res_prob_norm)
 print('rank2_res_prob_norm:', rank2_res_prob_norm)
 print('rank3_res_prob_norm:', rank3_res_prob_norm)
+
+# # motion probabilities during activities
+# print('p_sitting_prob:', len(p_sitting_prob))
+# print(p_sitting_prob)
+
+# print('p_standing_prob:', len(p_standing_prob))
+# print(p_standing_prob)
+
+# print('p_walking_prob:', len(p_walking_prob))
+# print(p_walking_prob)
 
 # todo: probability of each activities obtained from the p_duration, for example, cur_activity is 'Read', P_duration(Read) = 0.8, then p(rank2) + p(rank3) = 1-p(Read)=1- 0.8  = 0.2
 
