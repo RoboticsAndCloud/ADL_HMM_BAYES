@@ -123,6 +123,34 @@ def get_location_by_activity(activity):
 
     return res
 
+def get_location_by_cnn(time_str):
+    """
+    # Location
+    LOCATION_READINGROOM = 'readingroom'
+    LOCATION_BATHROOM = 'bathroom'
+    LOCATION_BEDROOM = 'bedroom'
+    LOCATION_LIVINGROOM = 'livingroom'
+    LOCATION_KITCHEN = 'Kitchen'
+    LOCATION_DININGROOM = 'diningroom'
+    LOCATION_DOOR = 'door'
+    LOCATION_LOBBY = 'lobby'
+    """
+    # Mapping
+    print('activity:', activity)
+    act_dict = motion_adl_bayes_model.P1_Location_Under_Act[activity]
+
+    sd = sorted(act_dict.items(), key=sorter_take_count, reverse=True)
+    res = sd[0][0]
+
+    random_t = random.random()
+    print('get_location_by_activity random_t:', random_t)
+    if random_t > sd[0][1] and (len(sd) > 1):
+        index = random.randint(1, len(sd)-1)
+        res = sd[index][0]
+
+    return res
+
+
 def get_motion_type_by_activity(activity):
     # motion type: sitting, standing, walking, random by the probs
 
@@ -217,6 +245,7 @@ while(pre_activity == ''):
     # open camera
 
     audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.VISION_ACTION)  # motion_env_ascc.FUSION_ACTION?
+    # TODO get data from real environment (pre-recorded data from ASCCLab)
 
     # env.running_time
     # test_time_str = '2009-12-11 12:58:33'
@@ -233,6 +262,9 @@ while(pre_activity == ''):
 
     cur_activity, cur_beginning_activity, cur_end_activity = \
         bayes_model_location.get_activity_from_dataset_by_time(cur_time_str)
+
+    res_activity_list, beginning_activity, end_activity = tools_ascc.get_activity_by_dnn(self.activity_date_dict, self.activity_begin_list,
+                                                                      self.activity_end_list, sensor_run_time, action_str)
 
     print('cur_time:', cur_time, ' cur_activity:', cur_activity)
     # exit(0)
