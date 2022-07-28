@@ -152,12 +152,14 @@ import os
 import re
 import time
 
+import constants
+
 import numpy as np
 
 
 from matplotlib import image
 
-DEBUG = False
+DEBUG = True
 
 ASCC_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/notice.txt'
 ASCC_DATA_RES_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/recognition_result.txt'
@@ -231,6 +233,22 @@ ACTIVITY_MAPPING = {
     'eve_med': ['Eve_Meds'],
     'leaving_home': ['Leave_Home'],
     'meditate': ['Meditate']
+}
+
+
+ACTIVITY_LOCATION_MAPPING = {
+    'bathroom': constants.LOCATION_BATHROOM,
+    'bedroom' : constants.LOCATION_BEDROOM,
+    'morning_med': constants.LOCATION_KITCHEN,
+    'reading': constants.LOCATION_READINGROOM,
+    'kitchen': constants.ACTIVITY_KITCHEN,
+    'livingroom': constants.LOCATION_LIVINGROOM,
+    'chores': ['Chores'],
+    'desk_activity': constants.LOCATION_LIVINGROOM,
+    'dining_room_activity': constants.LOCATION_DININGROOM,
+    'eve_med': constants.ACTIVITY_KITCHEN,
+    'leaving_home': constants.LOCATION_DOOR,
+    'meditate': constants.LOCATION_BEDROOM
 }
 
 
@@ -658,23 +676,22 @@ def get_activity_by_vision_dnn(time_str, action='vision'):
 
     res_list = res_str.split('\t')
     res_dict = {}
+
+    max_location_prob = -1
+    res_location = ''
     for key in res_list:
-        res_dict[key] = res_dict.get(key, 0) + 1
-    
-    # sd = sorted(res_dict.items(), reverse=False)
-    sd = sorted(res_dict.items(), key=sorter_take_count, reverse=True)
+        location = key.split('(')[0]
+        prob = key.split('(')[1].split(')')[0]
 
-    print(res_dict.items())
+        if float(prob) > max_location_prob:
+            res_location = location
+            max_location_prob = float(prob)
 
+        res_dict[location] = res_dict.get(key, 0) + 1
 
-    for k,v in sd:
-        print('key:', k, ' v:', v)
-        res = k
-        break
-
-    res_activity_list = ACTIVITY_MAPPING[res]
+    res = ACTIVITY_LOCATION_MAPPING[res_location]
     #print('res_activity_list:', res_activity_list)
-    return res_activity_list
+    return res, max_location_prob
 
 
 

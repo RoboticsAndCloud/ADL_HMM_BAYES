@@ -1,7 +1,7 @@
-
+# run test code
 source  ~/LF_Workspace/venv3.7_energy/bin/activate
-#source  ~/LF_Workspace/venv3.6_energy/bin/activate
 
+python ascc_room_activity_test.py
 
 37s 14s/step - loss: 0.0103 - accuracy: 1.0000 - val_loss: 0.0386 - val_accuracy: 0.9940
 
@@ -9,7 +9,7 @@ source  ~/LF_Workspace/venv3.7_energy/bin/activate
 
 room_classifier.py
 
-python room_test.py
+
 
 #########################################
 source  ~/LF_Workspace/venv3.7_energy/bin/activate

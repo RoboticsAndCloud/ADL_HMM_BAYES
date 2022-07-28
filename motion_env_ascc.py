@@ -1167,6 +1167,82 @@ class EnvASCC():
         # RL use this data to predict next activity
         return 2.2
 
+    # TODO: Implement the cnn model for motion-based activitiy recognition,  short walk, long walk, sitting, standing
+    def check_motion_action_by_cnn(self, action, interval):
+        # base_date = '2009-10-16'
+
+        base_date = self.running_day
+
+        motion_activity_dict = self.get_motion_activity(base_date)
+        #print(motion_activity_dict)
+        #motion_activity_dict = sorted(motion_activity_dict.items())
+
+        
+
+        running_time = self.running_time
+
+        time_cost = ACTION_INTERVAL_DICT[action]
+
+        motion_trigger_action = MOTION_TRIGGERRED_ACTION
+        sensors_power_consumption, sensors_time_cost = self.sensors_energy_time_cost(action)
+
+        acc_ratio = 0.80
+       
+
+
+
+    
+        # '2009-10-16 08:42:01': 1, '2009-10-16 08:43:59': 1,
+        for i in range(interval):
+            new_time = running_time + timedelta(seconds = i)
+            
+            for key in motion_activity_dict.keys():
+                motion_time_t = datetime.strptime(key, DATE_HOUR_TIME_FORMAT)
+
+                # # 0, 1, 2, 3
+                for tmp_t in range(4):
+                    motion_time = motion_time_t + timedelta(seconds = tmp_t)
+
+                # todo: motion time: range [-3, 3]
+                # motion_time = datetime.strptime(key, DATE_HOUR_TIME_FORMAT) + 3
+                # motion_time = datetime.strptime(key, DATE_HOUR_TIME_FORMAT) -3 
+
+                # print((motion_time - new_time).seconds)
+                # print("motion_time:", motion_time)
+                # print("new_time:", new_time)
+
+                
+                # final_time = running_time
+                # day_time_running = datetime.strptime("08:00:00", HOUR_TIME_FORMAT)
+                # target_motion_time = day_time_running.replace(hour = final_time.hour, minute = final_time.minute, second = final_time.second)
+                # print(target_motion_time.timestamp())
+                # exit(0)
+
+                    if (motion_time.timestamp() - new_time.timestamp()) <= 0 \
+                        and (motion_time.timestamp() - running_time.timestamp()) >= 0:
+                        
+                        print("running time", self.running_time)
+                        print("motion_time:", motion_time)
+                        print("new_time:", new_time)
+                        print("motion_time > new_time, motion triggerred")
+                        time_cost = i
+                        print("time cost:", time_cost)
+
+                        # random_t = random.random()
+                        # print('random_t:', random_t)
+                        # if random_t > acc_ratio:
+                        #     print('transition motion acc ratio occurs:', random_t)
+                        #     self.running_time = self.get_current_running_time(time_cost)
+
+                        #     continue
+
+                        if not self.done:
+                            self.motion_triggered_times = self.motion_triggered_times + 1
+
+                        return True, time_cost
+                
+
+        return False, time_cost
 
 
     def check_motion_action(self, action, interval):
@@ -1187,7 +1263,7 @@ class EnvASCC():
         motion_trigger_action = MOTION_TRIGGERRED_ACTION
         sensors_power_consumption, sensors_time_cost = self.sensors_energy_time_cost(action)
 
-        acc_ratio = 0.85
+        acc_ratio = 0.80
        
 
 

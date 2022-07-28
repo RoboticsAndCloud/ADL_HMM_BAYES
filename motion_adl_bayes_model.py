@@ -274,6 +274,9 @@ class Bayes_Model_Vision_Location(object):
     def set_location(self, location):
         self.location = location
 
+    def set_location_prob(self, prob):
+        self.location_prob = prob
+
     def get_prob(self, pre_activity_list, act_name, location, act_duration, mode = None):
         """ Return the state set of this model. """
         p = 0
@@ -402,7 +405,20 @@ class Bayes_Model_Vision_Location(object):
 
         else:
             # find the probability of location from CNN recognition results
+            # vision_res_activity_list = tools_ascc.get_activity_by_vision_dnn(time_str, action='vision')
+            # location = ''
+            # prob = 0
+            # if len(vision_res_activity_list) > 0:
+            #     res = vision_res_activity_list[0]
+            #     # kitchen(0.99791986)     kitchen(0.9997546)      kitchen(0.99589807)     kitchen(0.99955696)     kitchen(0.92794806)     
+            #     # kitchen(0.9657237)      kitchen(0.99801105)     kitchen(0.99981874)   kitchen(0.99988997)      kitchen(0.97507715)
+            #     location = res.split('(')[0]
+            #     prob = res.split('(')[1].split(')')[0]
+
+            p = self.location_prob
+
             pass
+
         print('prob_of_location_using_vision:, location, act, p:', act, ' ', location, ' ', p)
         return p
 

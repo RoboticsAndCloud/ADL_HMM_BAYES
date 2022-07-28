@@ -123,6 +123,30 @@ def get_location_by_activity(activity):
 
     return res
 
+
+# get location by CNN model
+def get_location_by_activity_cnn(time_str):
+    """
+    # Location
+    LOCATION_READINGROOM = 'readingroom'
+    LOCATION_BATHROOM = 'bathroom'
+    LOCATION_BEDROOM = 'bedroom'
+    LOCATION_LIVINGROOM = 'livingroom'
+    LOCATION_KITCHEN = 'Kitchen'
+    LOCATION_DININGROOM = 'diningroom'
+    LOCATION_DOOR = 'door'
+    LOCATION_LOBBY = 'lobby'
+    """
+    # Mapping
+    print('get_location_by_activity_CNN time_str:', time_str)
+
+    # should be act : probability
+    # /home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/src/
+    # ascc_room_activity_test.py
+    location, prob = tools_ascc.get_activity_by_vision_dnn(time_str, action='vision')
+
+    return location, prob
+
 def get_motion_type_by_activity(activity):
     # motion type: sitting, standing, walking, random by the probs
 
@@ -175,7 +199,7 @@ env.reset()
 
 hmm_model = get_hmm_model()
 
-bayes_model_location = motion_adl_bayes_model.Bayes_Model_Vision_Location(hmm_model=hmm_model, simulation=True)
+bayes_model_location = motion_adl_bayes_model.Bayes_Model_Vision_Location(hmm_model=hmm_model, simulation=False)
 bayes_model_motion = motion_adl_bayes_model.Bayes_Model_Motion(hmm_model=hmm_model, simulation=True)
 bayes_model_audio = motion_adl_bayes_model.Bayes_Model_Audio(hmm_model=hmm_model, simulation=True)
 bayes_model_object = motion_adl_bayes_model.Bayes_Model_Vision_Object(hmm_model=hmm_model, simulation=True)
@@ -231,10 +255,10 @@ while(pre_activity == ''):
 
     # todo change to str
 
-    cur_activity, cur_beginning_activity, cur_end_activity = \
-        bayes_model_location.get_activity_from_dataset_by_time(cur_time_str)
+    # cur_activity, cur_beginning_activity, cur_end_activity = \
+    #     bayes_model_location.get_activity_from_dataset_by_time(cur_time_str)
 
-    print('cur_time:', cur_time, ' cur_activity:', cur_activity)
+    # print('cur_time:', cur_time, ' cur_activity:', cur_activity)
     # exit(0)
 
     """
@@ -242,16 +266,30 @@ while(pre_activity == ''):
     2009-12-11 08:42:04.000066	M028	ON
     2009-12-11 08:42:06.000089	M020	ON
     """
-    if cur_activity == None or cur_activity == '':
-        continue
+    # if cur_activity == None or cur_activity == '':
+    #     continue
 
 
     # detect activity, cur_activity, pre_activity
     # Bayes model
-    location = get_location_by_activity(cur_activity)
-    object = get_object_by_activity(cur_activity)
-    audio_type = get_audio_type_by_activity(cur_activity)
-    motion_type = get_motion_type_by_activity(cur_activity)
+    # location = get_location_by_activity(cur_activity)
+    # object = get_object_by_activity(cur_activity)
+    # audio_type = get_audio_type_by_activity(cur_activity)
+    # motion_type = get_motion_type_by_activity(cur_activity)
+
+    location, location_prob = get_location_by_activity_cnn(cur_time_str)
+    bayes_model_location.set_location_prob(location_prob)
+
+    # object, object_prob = get_object_by_activity(cur_time_str)
+    # bayes_model_object.set_location_prob(object_prob)
+
+    # audio_type, audio_type_prob = get_audio_type_by_activity(cur_time_str)
+    # bayes_model_audio.set_location_prob(audio_type_prob)
+
+    # motion_type, motion_type_prob = get_motion_type_by_activity(cur_time_str)
+    # bayes_model_motion.set_location_prob(motion_type_prob)
+
+
     
     heap_prob = []
 

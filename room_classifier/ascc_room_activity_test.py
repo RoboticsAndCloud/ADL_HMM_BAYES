@@ -99,10 +99,11 @@ def predict(file, model, to_class):
     x = img_to_array(im)
     x = np.expand_dims(x, axis=0)
     x = preprocess_input(x)
-    tmp  = model.predict(x)
-    #print('tmp:', tmp)
+    prob  = model.predict(x)
+    print('prob:', prob)
     index = model.predict(x).argmax()
-    return to_class[index]
+    res_prob = prob[0][index]
+    return to_class[index], res_prob
     
 
 # DIR = "./"
@@ -160,11 +161,11 @@ def test():
     for num,img in enumerate(images):
             file = img
             # print('file:', file)
-            label = predict(file, ml, class_names)
+            label, prob = predict(file, ml, class_names)
 
             plt.subplot(rows,cols,num+1)
-            plt.title("Pred: "+label)
-            print("Pred: "+label)
+            plt.title("Pred: "+label + '(' + str(prob) + ')')
+            print("Pred: "+label + '(' + str(prob) + ')')
             plt.axis('off')
             img = Image.open(img).convert('RGB')
             plt.imshow(img)
@@ -235,22 +236,22 @@ def run():
         res = []
 
         for num,img in enumerate(images):
-                file = img
-                # print('file:', file)
-                label = predict(file, ml, class_names)
+            file = img
+            # print('file:', file)
+            label, prob = predict(file, ml, class_names)
 
-                plt.subplot(rows,cols,num+1)
-                plt.title("Pred: "+label)
-                print("Pred: "+label)
+            # plt.subplot(rows,cols,num+1)
+            # plt.title("Pred: "+label + '(' + str(prob) + ')')
+            print("Pred: "+label + '(' + str(prob) + ')')
 
-                logging.info('cur test_dir:%s', test_dir)
-                logging.info('Pred:%s', label)
+            logging.info('cur test_dir:%s', test_dir)
+            logging.info('Pred:%s', label + '(' + str(prob) + ')')
 
-                res.append(label)
-                plt.axis('off')
-               # img = Image.open(img).convert('RGB')
-               # plt.imshow(img)
-               # plt.savefig("test_res.png")
+            res.append(label + '(' + str(prob) + ')')
+            # plt.axis('off')
+            # img = Image.open(img).convert('RGB')
+            # plt.imshow(img)
+            # plt.savefig("test_res.png")
         
         write_res_into_file(ASCC_DATA_RES_FILE, res)            
 
