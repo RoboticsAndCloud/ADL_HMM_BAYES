@@ -411,6 +411,7 @@ while(not env.done):
         for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
             print("transition step act:", act)
             hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+            print('hmm_prob:', hmm_prob)
 
             p1 = bayes_model_location.get_prob(pre_act_list, act, location, activity_duration)
             p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
