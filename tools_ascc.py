@@ -604,18 +604,20 @@ def get_activity_by_audio_dnn(time_str, action='vision'):
     # get the results
     res_str = read_res_from_file(ASCC_AUDIO_DATA_RES_FILE)
 
-    """
-    class_names=['bathroom','bedroom', 'morning_med', 'reading', 'kitchen','livingroom', 'chores', 'desk_activity', 'dining_room_activity',
-                 'eve_med', 'leaving_home', 'meditate']
-    """
     
     print('Audio Recognition res:', res_str)
 
     res_list = res_str.split('\t')
 
-    res_activity_list = ACTIVITY_AUDIO_MAPPING[res_str]
+    auido_type = res_str.split('(')[0]
+    prob = res_str.split('(')[1].split(')')[0]
+
+    res = auido_type
+
+
+    # res = ACTIVITY_LOCATION_MAPPING[res_location]
     #print('res_activity_list:', res_activity_list)
-    return res_activity_list
+    return res, prob
 
 
 def get_exist_image_dir(time_str, action='vision'):

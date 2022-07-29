@@ -1,0 +1,25 @@
+source ~/LF_Workspace/venv3.6_energy/bin/activate
+
+sudo apt install portaudio19-dev
+
+https://github.com/tensorflow/tensorflow/issues/31350
+tf.contrib doesn't exist in 2.0.
+
+
+import tensorflow
+print(tensorflow.__version__)
+
+
+#####################################
+source ~/LF_Workspace/venv3.7_energy/bin/activate
+
+pip install librosa
+
+python ascc_extraction_2.py
+
+python train.py
+
+
+python ascc_room_sound_activity_test.py
+
+

@@ -687,6 +687,9 @@ class Bayes_Model_Audio(object):
 
     def set_audio_type(self, audio_type):
         self.audio_type = audio_type
+    
+    def set_audio_type_prob(self, prob):
+        self.audio_type_prob = prob
 
     def get_prob(self, pre_activity, act_name, audio_type, activity_duration, mode=None):
         """ Return the state set of this model. """
@@ -819,6 +822,7 @@ class Bayes_Model_Audio(object):
 
         else:
             # find the probability of location from CNN recognition results
+            p = self.audio_type_prob
             pass
 
         print('prob_of_audio_type_using_audio audio_type, act, p:', audio_type, ' ', act, ' ', p)

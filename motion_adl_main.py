@@ -6,7 +6,7 @@ Date: 07/10/2022
 
 from datetime import datetime
 import random
-from tkinter.messagebox import NO
+#from tkinter.messagebox import NO
 
 import hmm
 import motion_env_ascc
@@ -138,12 +138,12 @@ def get_location_by_activity_cnn(time_str):
     LOCATION_LOBBY = 'lobby'
     """
     # Mapping
-    print('get_location_by_activity_CNN time_str:', time_str)
 
     # should be act : probability
     # /home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/src/
     # ascc_room_activity_test.py
     location, prob = tools_ascc.get_activity_by_vision_dnn(time_str, action='vision')
+    print('get_location_by_activity_CNN time_str:', time_str, ' location:', location, ' prob:', prob)
 
     return location, prob
 
@@ -193,6 +193,32 @@ def get_audio_type_by_activity(activity):
     
     return res
 
+def get_audio_type_by_activity_cnn(time_str):
+    # audio type:
+    # door_open_closed
+    # drinking
+    # eating
+    # flush_toilet
+    # keyboard
+    # microwave
+    # pouring_water_into_glass
+    # quiet
+    # toothbrushing
+    # tv_news
+    # vacuum
+    # washing_hand
+
+    # Mapping
+    # should be act : probability
+    # /home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/src/
+    # ascc_room_activity_test.py
+    audio_type, prob = tools_ascc.get_activity_by_audio_dnn(time_str, action='vision')
+
+    print('get_audio_type_by_activity_cnn time_str:', time_str, ' audio_type:', audio_type, ' prob:', prob)
+
+    return audio_type, prob
+    
+
 
 env = motion_env_ascc.EnvASCC(TEST_BASE_DATE + ' 00:00:00')
 env.reset()
@@ -201,7 +227,7 @@ hmm_model = get_hmm_model()
 
 bayes_model_location = motion_adl_bayes_model.Bayes_Model_Vision_Location(hmm_model=hmm_model, simulation=False)
 bayes_model_motion = motion_adl_bayes_model.Bayes_Model_Motion(hmm_model=hmm_model, simulation=True)
-bayes_model_audio = motion_adl_bayes_model.Bayes_Model_Audio(hmm_model=hmm_model, simulation=True)
+bayes_model_audio = motion_adl_bayes_model.Bayes_Model_Audio(hmm_model=hmm_model, simulation=False)
 bayes_model_object = motion_adl_bayes_model.Bayes_Model_Vision_Object(hmm_model=hmm_model, simulation=True)
 
 
@@ -283,8 +309,9 @@ while(pre_activity == ''):
     # object, object_prob = get_object_by_activity(cur_time_str)
     # bayes_model_object.set_location_prob(object_prob)
 
-    # audio_type, audio_type_prob = get_audio_type_by_activity(cur_time_str)
-    # bayes_model_audio.set_location_prob(audio_type_prob)
+    audio_type, audio_type_prob = get_audio_type_by_activity_cnn(cur_time_str)
+    bayes_model_audio.set_audio_type_prob(audio_type_prob)
+    exit(0)
 
     # motion_type, motion_type_prob = get_motion_type_by_activity(cur_time_str)
     # bayes_model_motion.set_location_prob(motion_type_prob)
