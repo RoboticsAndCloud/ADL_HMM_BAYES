@@ -20,6 +20,8 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 
+import seaborn as sns
+
 pd.read_csv('WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt')
 
 
@@ -169,6 +171,13 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, rando
 X_train = X_train.reshape(425, 80, 3, 1)
 X_test = X_test.reshape(107, 80, 3, 1)
 
+print('x_train shape:', X_train[0].shape)
+print('X_test shape:', X_test[0].shape)
+print('X_test len:', len(X_test))
+tmp_xtest = X_test[0:10]
+tmp_ytest = y_test[0:10]
+exit(0)
+
 # CNN model
 model = Sequential()
 model.add(Conv2D(16, (2, 2), activation = 'relu', input_shape = X_train[0].shape))
@@ -220,11 +229,34 @@ from sklearn.metrics import confusion_matrix
 
 # y_pred = model.predict_classes(X_test)
 
+print('X_test:', X_test)
+
 predict_x=model.predict(X_test) 
 y_pred=np.argmax(predict_x,axis=1)
 
+plt.figure()
 mat = confusion_matrix(y_test, y_pred)
-plot_confusion_matrix(conf_mat=mat, class_names=label.classes_, show_normed=True, figsize=(7,7))
+cm = plot_confusion_matrix(conf_mat=mat, class_names=label.classes_, show_normed=True, figsize=(7,7))
+plt.show()
+plt.savefig("cm.png")
+
+# # confusion matrix
+# LABELS = label.classes_
+
+# plt.figure(figsize=(6, 4))
+# sns.heatmap(mat,
+#             cmap='coolwarm',
+#             linecolor='white',
+#             linewidths=1,
+#             xticklabels=LABELS,
+#             yticklabels=LABELS,
+#             annot=True,
+#             fmt='d')
+# plt.title('Confusion Matrix')
+# plt.ylabel('True Label')
+# plt.xlabel('Predicted Label')
+# plt.show()
+# plt.savefig("confusion_matrix.png")
 
 MODEL_SAVED_PATH = 'moition-saved-model'
 # model.save_weights('model.h5')
