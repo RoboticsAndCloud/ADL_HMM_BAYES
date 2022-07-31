@@ -174,8 +174,10 @@ X_test = X_test.reshape(107, 80, 3, 1)
 print('x_train shape:', X_train[0].shape)
 print('X_test shape:', X_test[0].shape)
 print('X_test len:', len(X_test))
-tmp_xtest = X_test[0:10]
-tmp_ytest = y_test[0:10]
+tmp_xtest = X_test[0:1]
+tmp_ytest = y_test[0:1]
+print('tmp_xtest:', tmp_xtest)
+print('tmp_ytest:', tmp_ytest)
 exit(0)
 
 # CNN model
@@ -229,7 +231,7 @@ from sklearn.metrics import confusion_matrix
 
 # y_pred = model.predict_classes(X_test)
 
-print('X_test:', X_test)
+# print('X_test:', X_test)
 
 predict_x=model.predict(X_test) 
 y_pred=np.argmax(predict_x,axis=1)
@@ -258,7 +260,7 @@ plt.savefig("cm.png")
 # plt.show()
 # plt.savefig("confusion_matrix.png")
 
-MODEL_SAVED_PATH = 'moition-saved-model'
+MODEL_SAVED_PATH = 'motion-saved-model'
 # model.save_weights('model.h5')
 model.save(MODEL_SAVED_PATH)
 
