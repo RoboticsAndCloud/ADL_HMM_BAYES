@@ -25,17 +25,11 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 
 import seaborn as sns
 
-
-
-def sorter_take_count(elem):
-    # print('elem:', elem)
-    return elem[1]
-
 # pd.read_csv('WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt')
 # file = open('WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt')
 
-# DATA_SET_FILE = 'WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt'
-DATA_SET_FILE = 'ascc_dataset/ascc_v1_raw.txt'
+DATA_SET_FILE = 'WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt'
+# DATA_SET_FILE = 'ascc_dataset/ascc_v1_raw.txt'
 pd.read_csv(DATA_SET_FILE)
 file = open(DATA_SET_FILE)
 
@@ -78,8 +72,7 @@ data['z'] = data['z'].astype('float')
 
 data.info()
 
-# sample rate
-Fs = 90
+Fs = 20
 
 activities = data['activity'].value_counts().index
 print('activities:', activities)
@@ -98,7 +91,7 @@ def plot_activity(activity, data):
     
 
 def plot_axis(ax, x, y, title):
-    ax.plot(x, y, 'r')
+    ax.plot(x, y, 'g')
     ax.set_title(title)
     ax.xaxis.set_visible(False)
     ax.set_ylim([min(y) - np.std(y), max(y) + np.std(y)])
@@ -107,22 +100,15 @@ def plot_axis(ax, x, y, title):
 
 for activity in activities:
     data_for_plot = data[(data['activity'] == activity)][:Fs*10]
-    print('data_for_plot', data_for_plot)
     plot_activity(activity, data_for_plot)
-
-
 
 df = data.drop(['user', 'time'], axis = 1).copy()
 print('df.head:', df.head())
 
 print('counts:', df['activity'].value_counts())
-sd = sorted(df['activity'].value_counts().items(), key=sorter_take_count, reverse=False)
-print('sd:', sd)
 
-
-
-min_count = sd[0][1] #15606 # ASCC dataset
-# min_count = 3555 # for WISDM dataset
+# min_count = 15606
+min_count = 3555 # for WISDM dataset
 
 Walking = df[df['activity']=='Walking'].head(min_count).copy()
 Jogging = df[df['activity']=='Jogging'].head(min_count).copy()
@@ -158,8 +144,8 @@ scaled_X['label'] = y.values
 # scaled_X
 
 import scipy.stats as stats
-Fs = 100
-frame_size = Fs*3 # 80
+Fs = 20
+frame_size = Fs*4 # 80
 hop_size = Fs*2 # 40
 
 def get_frames(df, frame_size, hop_size):
@@ -195,8 +181,8 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, rando
 print('X_train.shape:', X_train.shape)
 print('X_test.shape:', X_test.shape)
 
-X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2], 1)
-X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
+X_train = X_train.reshape(X_train.shape[0], 80, 3, 1)
+X_test = X_test.reshape(X_test.shape[0], 80, 3, 1)
 
 print('x_train shape:', X_train[0].shape)
 print('X_test shape:', X_test[0].shape)

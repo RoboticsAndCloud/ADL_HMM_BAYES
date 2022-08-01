@@ -458,7 +458,7 @@ def test():
    [ 4.24202730e-02],
    [ 4.75569499e-01]]]]
 
-    print('len:', len(X_test))   
+    print('len:', len(X_test[0]))   
     predict_x=model.predict(X_test) 
     y_pred=np.argmax(predict_x,axis=1)
     print('pred:', y_pred)
