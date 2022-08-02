@@ -5,6 +5,9 @@ from keras.models import Model
 from keras.applications.xception import Xception, preprocess_input, decode_predictions
 import os
 import time
+import pandas as pd
+
+
 
 import log
 import logging
@@ -139,7 +142,8 @@ def test():
     class_names=['bathroom','bedroom', 'morning_med', 'reading', 'kitchen','livingroom', 'chores', 'desk_activity', 'dining_room_activity',
                  'eve_med', 'leaving_home', 'meditate']
 
-    X_test = [[[[ 5.03429609e-04],
+    X_test = [[
+  [[ 5.03429609e-04],
    [ 1.00909774e+00],
    [-1.28581971e+00],],
   [[ 4.07010313e-02],
@@ -480,6 +484,17 @@ def write_res_into_file(file_name, res_list):
     
     return True
 
+def write_res_into_file_converter(file_name, res_list):
+    with open(file_name, 'w') as f:
+        for v in res_list:
+            f.write(str(v))
+            f.write('\n')
+        f.close()
+
+    print('write_res_into_file, len:', len(res_list))
+    
+    return True
+
 def run():
     # execute this when you want to load the model
     from keras.models import load_model
@@ -549,13 +564,210 @@ def run():
         write_res_into_file(ASCC_DATA_RES_FILE, res)            
 
 
+MOTION_FOLDER_TEST = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/motion/test/'
+MOTION_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/motion/'
+
+MOTION_TXT = 'motion.txt'
+
+TARGET_FILE = './ascc_v1_test_raw.txt'
+
+def convert(act, time, motion_file, target, user='ascc'):
+    t_str_list = []
+    cur_time = time
+    with open(motion_file, 'r') as f:
+        for index, line in enumerate(f):
+            # print("Line {}: {}".format(index, line.strip()))
+
+            s_str = str(line.strip())
+            xyz_arr = s_str.split('\t')
+
+            x = xyz_arr[0]
+            y = xyz_arr[1]
+            z = xyz_arr[2]
+
+            cur_time = cur_time + 1
+
+            t_str = str(user) + ',' + str(act) + ',' + str(cur_time) + ',' + str(x) + ',' + str(y) + ',' + str(z)
+
+            t_str_list.append(t_str)
+
+        f.close()
+    print('act:', act)
+    print('time:', cur_time)
+    print('motion_file:', motion_file)
+    print('target:', target)
+    print('user:', user)
+    print('len(t_str_list:', len(t_str_list))
+
+    write_res_into_file_converter(target, t_str_list)
+
+    return len(t_str_list)
+
+
+"""file_dict_test = {
+    'Sitting': ['20220729102338'],
+    'Standing': ['20220729103312'],
+    'Walking': ['20220729105500'],
+    'Jogging': ['20220729111901'],
+    'Laying': ['20220729104633'],
+    'Squating': ['20220729110944']
+}"""
+
+def get_activity_by_motion_dnn(time_str, action='moiton'):
+
+
+    date_format_str = '%Y-%m-%d %H:%M:%S'
+    print("get_activity time_str:", time_str)
+    d_act = time_str
+
+    # image_dir_name = get_exist_image_dir(time_str, action)
+    motion_file = MOTION_FOLDER_TEST + d_act + '/' + MOTION_TXT
+
+    act = 'Sitting'
+    time = time_str  # 12585782270000
+    motion_file = motion_file
+    target = TARGET_FILE
+    user = 'ascc'
+
+    c_len = convert(act, int(time), motion_file, target, user)
+    print('convert len:', c_len)
+
+    t_data_list = []
+    t_arr = []
+
+    Fs = 95
+    frame_size = Fs*3 # 80
+    hop_size = Fs*2 # 40
+
+    # x_train shape: (300, 3, 1)
+    shape_len = frame_size
+    #shape_len = 80
+
+    N_FEATURES = 3
+    # frame_size = frame_size
+
+
+    columns = ['x', 'y', 'z']
+    # data = pd.DataFrame(data = processedList, columns = columns)
+    # data.head()
+
+    # data.shape
+
+    # data.info()
+
+
+    # data.isnull().sum()
+
+    # data['activity'].value_counts()
+
+    # data['x'] = data['x'].astype('float')
+    # data['y'] = data['y'].astype('float')
+    # data['z'] = data['z'].astype('float')
+
+    processedList = []
+
+    with open(motion_file, 'r') as f:
+        for index, line in enumerate(f):
+            # print("Line {}: {}".format(index, line.strip()))
+
+            s_str = str(line.strip())
+            xyz_arr = s_str.split('\t')
+
+            x = float(xyz_arr[0])
+            y = float(xyz_arr[1])
+            z = float(xyz_arr[2])
+
+            
+
+            t_arr = []
+
+            t_arr.append(x)
+            t_arr.append(y)
+            t_arr.append(z)
+
+            t_data_list.append(t_arr)
+
+            # processedList = t_data_list
+            # data = pd.DataFrame(data = processedList, columns = columns)
+            # data['x'] = data['x'].astype('float')
+            # data['y'] = data['y'].astype('float')
+            # data['z'] = data['z'].astype('float')
+
+            # print(data)
+
+
+        f.close()
+
+    print('len t_data_list:', len(t_data_list))
+
+    n = shape_len
+    chunks = [t_data_list[i:i+n] for i in range(0, len(t_data_list), n)]
+
+    # execute this when you want to load the model
+    from keras.models import load_model
+    MODEL_SAVED_PATH = 'motion-saved-model'
+
+    model = load_model(MODEL_SAVED_PATH)
+
+
+    for i in range(len(chunks)):
+        if len(chunks[i]) != shape_len:
+            continue
+
+        frames = []
+        frames_xyz = chunks[i]
+        frames.append(frames_xyz)
+
+        frames = np.asarray(frames).reshape(-1, frame_size, N_FEATURES)
+
+        X_test = []
+        X_test.append(frames)
+
+        X_test = np.asarray(X_test).reshape(-1, frame_size, N_FEATURES)
+        print('X_test shape:', X_test.shape)
+        X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
+        
+
+        print('i:',i )
+        # print('len:', len(X_test[0]))
+        print('X_test:', X_test)
+        predict_x=model.predict(X_test)
+        y_pred=np.argmax(predict_x,axis=1)
+        print('pred:', y_pred)
+        # assert(y_pred == 4)
+
+
+'''
+    'Sitting': ['20220729102338'],
+    'Standing': ['20220729103312'],
+    'Walking': ['20220729105500'],
+    'Jogging': ['20220729111901'],
+    'Laying': ['20220729104633'],
+    'Squating': ['20220729110944']
+
+    walking: 5
+stand: 4
+Squating:3
+Sitting:2
+Laying:1
+Jogging:0
+'''
 if __name__ == "__main__":
     print('Test running:===========================================================\n')
 
     log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
     logging.info("Hello World!!!")
-    test()
+    #test()
     # run()
+    
+    # get_activity_by_motion_dnn('20220729104053', 'test' ) # 5 wrong
+
+    # get_activity_by_motion_dnn('20220729102338', 'Sitting' ) # 4, 0 wrong
+    # get_activity_by_motion_dnn('20220729103312', 'Stand' ) # 4, wrong
+    get_activity_by_motion_dnn('20220729105500', 'walking') # 0, w
+    # get_activity_by_motion_dnn('20220729111901', 'jogging') # 4, w
+    # get_activity_by_motion_dnn('20220729104633', 'Laying') # 2, wrong
+    # get_activity_by_motion_dnn('20220729110944', 'Squating') # 0 wrong
 
 
 

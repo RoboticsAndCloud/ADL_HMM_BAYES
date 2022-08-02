@@ -79,7 +79,7 @@ data['z'] = data['z'].astype('float')
 data.info()
 
 # sample rate
-Fs = 90
+Fs = 95
 
 activities = data['activity'].value_counts().index
 print('activities:', activities)
@@ -137,17 +137,21 @@ balanced_data = balanced_data.append([Walking, Jogging, Laying, Squating, Sittin
 
 balanced_data['activity'].value_counts()
 
+print('balanced_data:', balanced_data)
 print(balanced_data.head())
 
 from sklearn.preprocessing import LabelEncoder
 
 label = LabelEncoder()
 balanced_data['label'] = label.fit_transform(balanced_data['activity'])
-balanced_data.head()
+print('head:',balanced_data.head())
+print('================ label mapping')
+print(balanced_data.values.tolist())
 
 print('label:',label.classes_)
 X = balanced_data[['x', 'y', 'z']]
 y = balanced_data['label']
+#print('label y:', y)
 
 scaler = StandardScaler()
 X = scaler.fit_transform(X)
@@ -158,7 +162,7 @@ scaled_X['label'] = y.values
 # scaled_X
 
 import scipy.stats as stats
-Fs = 100
+
 frame_size = Fs*3 # 80
 hop_size = Fs*2 # 40
 
@@ -175,11 +179,24 @@ def get_frames(df, frame_size, hop_size):
         
         # Retrieve the most often used label in this segment
         label = stats.mode(df['label'][i: i + frame_size])[0][0]
-        frames.append([x, y, z])
+
+        frames_xyz = []
+        for tmp_i in range(frame_size):
+            frames_xyz.append([x[tmp_i], y[tmp_i], z[tmp_i]])
+        frames.append(frames_xyz)
+
+        # frames.append([x, y, z])
+        # print('x:',len(x))
+        # print('frames:', frames)
+        # frames = np.asarray(frames).reshape(-1, frame_size, N_FEATURES)
+        # print('reshape=======================')
+        # print(frames)
+        # exit(0)
         labels.append(label)
 
     # Bring the segments into a better shape
     frames = np.asarray(frames).reshape(-1, frame_size, N_FEATURES)
+    print('frame shape:', frames.shape)
     labels = np.asarray(labels)
 
     return frames, labels
@@ -195,14 +212,15 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, rando
 print('X_train.shape:', X_train.shape)
 print('X_test.shape:', X_test.shape)
 
+
 X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2], 1)
 X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
 
 print('x_train shape:', X_train[0].shape)
 print('X_test shape:', X_test[0].shape)
 print('X_test len:', len(X_test))
-tmp_xtest = X_test[0:1]
-tmp_ytest = y_test[0:1]
+tmp_xtest = X_test[0]
+tmp_ytest = y_test[0]
 print('tmp_xtest:', tmp_xtest)
 print('tmp_ytest:', tmp_ytest)
 # exit(0)
@@ -224,7 +242,9 @@ model.add(Dense(6, activation='softmax'))
 
 model.compile(optimizer=Adam(learning_rate = 0.001), loss = 'sparse_categorical_crossentropy', metrics = ['accuracy'])
 
-history = model.fit(X_train, y_train, epochs = 10, validation_data= (X_test, y_test), verbose=1)
+epochs = 20
+
+history = model.fit(X_train, y_train, epochs = epochs, validation_data= (X_test, y_test), verbose=1)
 
 def plot_learningCurve(history, epochs):
   # Plot training & validation accuracy values
@@ -250,7 +270,7 @@ def plot_learningCurve(history, epochs):
   plt.show()
   plt.savefig("loss.png")
 
-plot_learningCurve(history, 10)
+plot_learningCurve(history, epochs)
 
 # confusion matrix
 from mlxtend.plotting import plot_confusion_matrix
