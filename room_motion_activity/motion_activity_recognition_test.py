@@ -7,6 +7,10 @@ import os
 import time
 import pandas as pd
 
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+
+import scipy.stats as stats
 
 
 import log
@@ -613,6 +617,167 @@ def convert(act, time, motion_file, target, user='ascc'):
     'Squating': ['20220729110944']
 }"""
 
+
+def sorter_take_count(elem):
+    # print('elem:', elem)
+    return elem[1]
+
+def get_frames(df, frame_size, hop_size):
+
+    N_FEATURES = 3
+
+    frames = []
+    labels = []
+    for i in range(0, len(df) - frame_size, hop_size):
+        x = df['x'].values[i: i + frame_size]
+        y = df['y'].values[i: i + frame_size]
+        z = df['z'].values[i: i + frame_size]
+        
+        # Retrieve the most often used label in this segment
+        label = stats.mode(df['label'][i: i + frame_size])[0][0]
+
+        frames_xyz = []
+        for tmp_i in range(frame_size):
+            frames_xyz.append([x[tmp_i], y[tmp_i], z[tmp_i]])
+        frames.append(frames_xyz)
+
+        # frames.append([x, y, z])
+        # print('x:',len(x))
+        # print('frames:', frames)
+        # frames = np.asarray(frames).reshape(-1, frame_size, N_FEATURES)
+        # print('reshape=======================')
+        # print(frames)
+        # exit(0)
+        labels.append(label)
+
+    # Bring the segments into a better shape
+    frames = np.asarray(frames).reshape(-1, frame_size, N_FEATURES)
+    print('frame shape:', frames.shape)
+    labels = np.asarray(labels)
+
+    return frames, labels
+
+
+def get_data_from_motion_file(motion_file):
+
+    # DATA_SET_FILE = 'ascc_dataset/ascc_v1_raw.txt'
+    DATA_SET_FILE = motion_file
+    pd.read_csv(DATA_SET_FILE)
+    file = open(DATA_SET_FILE)
+
+    lines = file.readlines()
+
+    processedList = []
+
+    for i, line in enumerate(lines):
+        try:
+            line = line.split(',')
+            last = line[5].split(';')[0]
+            last = last.strip()
+            if last == '':
+                break;
+            temp = [line[0], line[1], line[2], line[3], line[4], last]
+            processedList.append(temp)
+        except:
+            print('Error at line number: ', i)
+
+
+    print('len processedList:', len(processedList))
+
+    columns = ['user', 'activity', 'time', 'x', 'y', 'z']
+    data = pd.DataFrame(data = processedList, columns = columns)
+    # data.head()
+
+    # data.shape
+
+    # data.info()
+
+
+    data.isnull().sum()
+
+    data['activity'].value_counts()
+
+    data['x'] = data['x'].astype('float')
+    data['y'] = data['y'].astype('float')
+    data['z'] = data['z'].astype('float')
+
+
+    data.info()
+
+    # sample rate
+    Fs = 95
+
+    activities = data['activity'].value_counts().index
+    print('activities:', activities)
+
+
+    df = data.drop(['user', 'time'], axis = 1).copy()
+    print('df.head:', df.head())
+
+    print('counts:', df['activity'].value_counts())
+    sd = sorted(df['activity'].value_counts().items(), key=sorter_take_count, reverse=False)
+    print('sd:', sd)
+
+
+
+    min_count = sd[0][1] #15606 # ASCC dataset
+    # min_count = 3555 # for WISDM dataset
+
+    Walking = df[df['activity']=='Walking'].head(min_count).copy()
+    Jogging = df[df['activity']=='Jogging'].head(min_count).copy()
+    Laying = df[df['activity']=='Laying'].head(min_count).copy()
+    Squating = df[df['activity']=='Squating'].head(min_count).copy()
+    Sitting = df[df['activity']=='Sitting'].head(min_count).copy()
+    Standing = df[df['activity']=='Standing'].copy()
+
+    balanced_data = pd.DataFrame()
+    balanced_data = balanced_data.append([Walking, Jogging, Laying, Squating, Sitting, Standing])
+    # balanced_data.shape
+
+    balanced_data['activity'].value_counts()
+
+    print('balanced_data:', balanced_data)
+    print(balanced_data.head())
+
+    from sklearn.preprocessing import LabelEncoder
+
+    label = LabelEncoder()
+    balanced_data['label'] = label.fit_transform(balanced_data['activity'])
+    print('head:',balanced_data.head())
+    print('================ label mapping')
+    print(balanced_data.values.tolist())
+
+    print('label:',label.classes_)
+    X = balanced_data[['x', 'y', 'z']]
+    y = balanced_data['label']
+    #print('label y:', y)
+
+    scaler = StandardScaler()
+    X = scaler.fit_transform(X)
+
+    scaled_X = pd.DataFrame(data = X, columns = ['x', 'y', 'z'])
+    scaled_X['label'] = y.values
+
+    # scaled_X
+
+    import scipy.stats as stats
+
+    frame_size = Fs*3 # 80
+    hop_size = Fs*2 # 40
+
+
+
+    X, y = get_frames(scaled_X, frame_size, hop_size)
+    print('X:', X.shape)
+    print('y:', y.shape)
+
+    # X.shape: (520, 285, 3)  
+    # y.shape: (520,)
+
+    return X, y
+
+
+
 def get_activity_by_motion_dnn(time_str, action='moiton'):
 
 
@@ -631,6 +796,36 @@ def get_activity_by_motion_dnn(time_str, action='moiton'):
 
     c_len = convert(act, int(time), motion_file, target, user)
     print('convert len:', c_len)
+
+    X, y = get_data_from_motion_file(target)
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0, stratify = y)
+
+
+    # X_train.shape, X_test.shape
+    print('X_train.shape:', X_train.shape)
+    print('X_test.shape:', X_test.shape)
+    # X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
+    X_test = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2], 1)
+
+    # execute this when you want to load the model
+    from keras.models import load_model
+    MODEL_SAVED_PATH = 'motion-saved-model'
+
+    model = load_model(MODEL_SAVED_PATH)
+
+    model.summary()
+
+    predict_x=model.predict(X_test)
+    y_pred=np.argmax(predict_x,axis=1)
+
+    print('y_pred len:', len(y_pred))
+    print('y_pred:', y_pred)
+
+
+    exit(0)
+
+
 
     t_data_list = []
     t_arr = []
@@ -760,14 +955,14 @@ if __name__ == "__main__":
     #test()
     # run()
     
-    # get_activity_by_motion_dnn('20220729104053', 'test' ) # 5 wrong
+    # get_activity_by_motion_dnn('20220729103103', 'test' ) # 5 wrong
 
     # get_activity_by_motion_dnn('20220729102338', 'Sitting' ) # 4, 0 wrong
-    # get_activity_by_motion_dnn('20220729103312', 'Stand' ) # 4, wrong
-    get_activity_by_motion_dnn('20220729105500', 'walking') # 0, w
-    # get_activity_by_motion_dnn('20220729111901', 'jogging') # 4, w
-    # get_activity_by_motion_dnn('20220729104633', 'Laying') # 2, wrong
-    # get_activity_by_motion_dnn('20220729110944', 'Squating') # 0 wrong
+    # get_activity_by_motion_dnn('20220729103312', 'Stand' ) # 4, g
+    # get_activity_by_motion_dnn('20220729105500', 'walking') # 0, w
+    # get_activity_by_motion_dnn('20220729111901', 'jogging') # 0, g
+    get_activity_by_motion_dnn('20220729104633', 'Laying') # 0,4, wrong
+    # get_activity_by_motion_dnn('20220729110944', 'Squating') # 0.4 wrong
 
 
 

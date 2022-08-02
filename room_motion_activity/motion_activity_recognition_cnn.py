@@ -203,6 +203,10 @@ def get_frames(df, frame_size, hop_size):
 
 X, y = get_frames(scaled_X, frame_size, hop_size)
 
+print('X.shape:', X.shape)
+print('y.shape:', y.shape)
+# exit(0)
+
 # X.shape, y.shape
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0, stratify = y)
@@ -282,6 +286,7 @@ from sklearn.metrics import confusion_matrix
 
 predict_x=model.predict(X_test) 
 y_pred=np.argmax(predict_x,axis=1)
+print('y_pred:', y_pred)
 
 plt.figure()
 mat = confusion_matrix(y_test, y_pred)
