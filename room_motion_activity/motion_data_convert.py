@@ -31,9 +31,13 @@ Sitting = df[df['activity']=='Sitting'].head(3555).copy()
 Standing = df[df['activity']=='Standing'].copy()
 
 
+Run: python motion_data_convert.py
+Res: ./ascc_dataset/ascc_v1_raw.txt
+
+
 """
 # cat standing.txt | grep motion.txt
-file_dict = {
+file_dict_0729 = {
     'Sitting': ['20220729101522', '20220729101732', '20220729101937', '20220729102128'],
     'Standing': ['20220729102533', '20220729102707', '20220729102820', '20220729103103'],
     'Walking': ['20220729104834', '20220729104948', '20220729105116', '20220729105254'],
@@ -43,6 +47,18 @@ file_dict = {
 
 }
 
+# 0802
+# cat sitting.txt |grep motion.t | awk -F '/' '{print $7}'
+file_dict_0802 = {
+    'Sitting': ['20220802153639','20220802153834', '20220802154011', '20220802154120', '20220802154247', '20220802154353', '20220802154525'],
+    'Standing': ['20220802154807', '20220802155005', '20220802155122', '20220802155239', '20220802155401', '20220802155508', '20220802155625'],
+    'Walking': ['20220802162705', '20220802162828', '20220802162942', '20220802163115', '20220802163230', '20220802163402', '20220802163531'],
+    'Jogging': ['20220802163842', '20220802163958', '20220802164113', '20220802164235', '20220802164401', '20220802164520', '20220802164632'],
+    'Laying': ['20220802160005', '20220802160304', '20220802160552', '20220802160728', '20220802160847', '20220802161000', '20220802161124'],
+    'Squating': ['20220802161625', '20220802161738', '20220802161847', '20220802162016', '20220802162128', '20220802162243', '20220802162359']
+}
+
+file_dict = file_dict_0802
 
 file_dict_test = {
     'Sitting': ['20220729102338'],
@@ -55,7 +71,7 @@ file_dict_test = {
 
 
 
-MOTION_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/motion/'
+MOTION_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/motion_0802/'
 MOTION_FOLDER_TEST = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/motion/test/'
 
 MOTION_TXT = 'motion.txt'

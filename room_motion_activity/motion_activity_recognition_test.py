@@ -569,6 +569,7 @@ def run():
 
 
 MOTION_FOLDER_TEST = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/motion/test/'
+MOTION_FOLDER_0802 = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/motion_0802/'
 MOTION_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/motion/'
 
 MOTION_TXT = 'motion.txt'
@@ -705,7 +706,7 @@ def get_data_from_motion_file(motion_file):
     data.info()
 
     # sample rate
-    Fs = 95
+    Fs = 90
 
     activities = data['activity'].value_counts().index
     print('activities:', activities)
@@ -762,7 +763,7 @@ def get_data_from_motion_file(motion_file):
 
     import scipy.stats as stats
 
-    frame_size = Fs*3 # 80
+    frame_size = Fs*2 # 80
     hop_size = Fs*2 # 40
 
 
@@ -955,15 +956,22 @@ if __name__ == "__main__":
     #test()
     # run()
     
-    # get_activity_by_motion_dnn('20220729103103', 'test' ) # 5 wrong
+    # get_activity_by_motion_dnn('20220802153639', 'test' ) # 5 wrong
 
     # get_activity_by_motion_dnn('20220729102338', 'Sitting' ) # 4, 0 wrong
     # get_activity_by_motion_dnn('20220729103312', 'Stand' ) # 4, g
     # get_activity_by_motion_dnn('20220729105500', 'walking') # 0, w
     # get_activity_by_motion_dnn('20220729111901', 'jogging') # 0, g
-    get_activity_by_motion_dnn('20220729104633', 'Laying') # 0,4, wrong
+    # get_activity_by_motion_dnn('20220729104633', 'Laying') # 0,4, wrong
     # get_activity_by_motion_dnn('20220729110944', 'Squating') # 0.4 wrong
 
+    # 0802
+    get_activity_by_motion_dnn('20220802154633', 'Sitting' ) # 4, 0 wrong
+    # get_activity_by_motion_dnn('20220729103312', 'Stand' ) # 4, g
+    # get_activity_by_motion_dnn('20220729105500', 'walking') # 0, w
+    # get_activity_by_motion_dnn('20220729111901', 'jogging') # 0, g
+    # get_activity_by_motion_dnn('20220729104633', 'Laying') # 0,4, wrong
+    # get_activity_by_motion_dnn('20220729110944', 'Squating') # 0.4 wrong
 
 
 

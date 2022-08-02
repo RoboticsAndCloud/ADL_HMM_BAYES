@@ -79,7 +79,7 @@ data['z'] = data['z'].astype('float')
 data.info()
 
 # sample rate
-Fs = 95
+Fs = 90
 
 activities = data['activity'].value_counts().index
 print('activities:', activities)
@@ -163,7 +163,7 @@ scaled_X['label'] = y.values
 
 import scipy.stats as stats
 
-frame_size = Fs*3 # 80
+frame_size = Fs*2 # 80
 hop_size = Fs*2 # 40
 
 def get_frames(df, frame_size, hop_size):
@@ -246,7 +246,7 @@ model.add(Dense(6, activation='softmax'))
 
 model.compile(optimizer=Adam(learning_rate = 0.001), loss = 'sparse_categorical_crossentropy', metrics = ['accuracy'])
 
-epochs = 20
+epochs = 15
 
 history = model.fit(X_train, y_train, epochs = epochs, validation_data= (X_test, y_test), verbose=1)
 

@@ -313,7 +313,7 @@ def motion_data_saver():
         print("Accelerometer: x:", x, " y:", y, " z:", z, " Mag:", acc)
         acc = round(acc, 4)
         # due to the accelerometer 100, need to sleep and wait
-        #time.sleep(1.0/(ACC_RATE + 20))
+        time.sleep(1.0/(ACC_RATE + 20))
         
     print('Len motion data:', len(motion_list))
     
