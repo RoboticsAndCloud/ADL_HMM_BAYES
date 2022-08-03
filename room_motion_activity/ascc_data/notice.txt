@@ -1,0 +1,1 @@
+/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/motion/test/20220802163654/

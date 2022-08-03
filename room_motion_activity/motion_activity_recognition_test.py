@@ -21,10 +21,22 @@ IMG_WIDTH, IMG_HEIGHT = 299, 299 # set this according to keras documentation, ea
 BATCH_SIZE = 200 # decrease this if your computer explodes
 TEST_DIR = './test'
 
-ASCC_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/notice.txt'
-ASCC_DATA_RES_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/recognition_result.txt'
+ASCC_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/ascc_data/notice.txt'
+ASCC_DATA_RES_FILE = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/ascc_data/recognition_result.txt'
 
 DATA_SET_FILE = 'ascc_dataset/ascc_v1_raw.txt'
+
+MOTION_ACTIVITY_MAPPING = {
+    0: 'jogging',
+    1: 'laying',
+    2: 'sitting',
+    3: 'squating',
+    4: 'standing',
+    5: 'walking'
+}
+
+# sample rate
+Fs = 90
 
 def create_generators(train_data_dir, validation_data_dir):
     # Read Data and Augment it: Make sure to select augmentations that are appropriate to your images.
@@ -903,16 +915,10 @@ def write_res_into_file_converter(file_name, res_list):
 def run():
     # execute this when you want to load the model
     from keras.models import load_model
-    MODEL_SAVED_PATH = 'saved-model'
+    MODEL_SAVED_PATH = 'motion-saved-model'
 
     ml = load_model(MODEL_SAVED_PATH)
-    # bathroom: 0, bedroom:1, kitchen:2, livingroom:3
-    # Chores:4, Desk_activity:5, Dining_room_activity:6, Eve_Med:7, Leaving_home: 8, Meditate:9, Morning_Med:10, Reading: 11
     
-    # !!!Notice: the list of class_names should correspond to the list of the result of 'ls ./labelled', like '0  1  10  11  2  3  4  5  6  7  8  9'
-    class_names=['bathroom','bedroom', 'morning_med', 'reading', 'kitchen','livingroom', 'chores', 'desk_activity', 'dining_room_activity',
-                 'eve_med', 'leaving_home', 'meditate']
-
     import sys, random
     from pathlib import Path
     from PIL import Image
@@ -933,39 +939,24 @@ def run():
 
         pre_test_dir = test_dir
 
-        files=Path(test_dir).resolve().glob('*.*')
-
-        test_sample= get_file_count_of_dir(test_dir) 
-        #test_sample= 5
-
-        images=random.sample(list(files), test_sample)
-
-        # Configure plots
-        # fig = plt.figure(figsize=(9,9))
-        # rows,cols = 3,3
-        fig = plt.figure(figsize=(36,36))
-        rows, cols = 6, 7
+        motion_file = test_dir + '/' + MOTION_TXT
 
         res = []
 
-        for num,img in enumerate(images):
-            file = img
-            # print('file:', file)
-            label, prob = predict(file, ml, class_names)
+        pred_list, prob_list = get_activity_prediction(str(motion_file), act = 'Sitting', time_str = '0')
 
-            # plt.subplot(rows,cols,num+1)
-            # plt.title("Pred: "+label + '(' + str(prob) + ')')
+        for i in range(len(pred_list)):
+
+            label = MOTION_ACTIVITY_MAPPING[pred_list[i]]
+            prob = prob_list[i]
+
             print("Pred: "+label + '(' + str(prob) + ')')
 
             logging.info('cur test_dir:%s', test_dir)
             logging.info('Pred:%s', label + '(' + str(prob) + ')')
 
             res.append(label + '(' + str(prob) + ')')
-            # plt.axis('off')
-            # img = Image.open(img).convert('RGB')
-            # plt.imshow(img)
-            # plt.savefig("test_res.png")
-        
+
         write_res_into_file(ASCC_DATA_RES_FILE, res)            
 
 
@@ -1082,7 +1073,7 @@ def get_data_scaler():
             print('Error at line number: ', i)
 
 
-    print('len processedList:', len(processedList))
+    # print('len processedList:', len(processedList))
 
     columns = ['user', 'activity', 'time', 'x', 'y', 'z']
     data = pd.DataFrame(data = processedList, columns = columns)
@@ -1102,21 +1093,19 @@ def get_data_scaler():
     data['z'] = data['z'].astype('float')
 
 
-    data.info()
+    # data.info()
 
-    # sample rate
-    Fs = 90
 
     activities = data['activity'].value_counts().index
-    print('activities:', activities)
+    # print('activities:', activities)
 
 
     df = data.drop(['user', 'time'], axis = 1).copy()
-    print('df.head:', df.head())
+    # print('df.head:', df.head())
 
-    print('counts:', df['activity'].value_counts())
+    # print('counts:', df['activity'].value_counts())
     sd = sorted(df['activity'].value_counts().items(), key=sorter_take_count, reverse=False)
-    print('sd:', sd)
+    # print('sd:', sd)
 
 
 
@@ -1134,20 +1123,20 @@ def get_data_scaler():
     balanced_data = balanced_data.append([Walking, Jogging, Laying, Squating, Sitting, Standing])
     # balanced_data.shape
 
-    balanced_data['activity'].value_counts()
+    # balanced_data['activity'].value_counts()
 
-    print('balanced_data:', balanced_data)
-    print(balanced_data.head())
+    # print('balanced_data:', balanced_data)
+    # print(balanced_data.head())
 
     from sklearn.preprocessing import LabelEncoder
 
     label = LabelEncoder()
     balanced_data['label'] = label.fit_transform(balanced_data['activity'])
-    print('head:',balanced_data.head())
-    print('================ label mapping')
+    # print('head:',balanced_data.head())
+    # print('================ label mapping')
     #print(balanced_data.values.tolist())
 
-    print('label:',label.classes_)
+    # print('label:',label.classes_)
     X = balanced_data[['x', 'y', 'z']]
     y = balanced_data['label']
     #print('X before:', X)
@@ -1184,41 +1173,36 @@ def get_data_from_motion_file(motion_file):
             print('Error at line number: ', i)
 
 
-    print('len processedList:', len(processedList))
+    # print('len processedList:', len(processedList))
 
     columns = ['user', 'activity', 'time', 'x', 'y', 'z']
     data = pd.DataFrame(data = processedList, columns = columns)
     # data.head()
-
     # data.shape
-
     # data.info()
 
 
     data.isnull().sum()
-
     data['activity'].value_counts()
-
     data['x'] = data['x'].astype('float')
     data['y'] = data['y'].astype('float')
     data['z'] = data['z'].astype('float')
 
 
-    data.info()
+    # data.info()
 
-    # sample rate
-    Fs = 90
+
 
     activities = data['activity'].value_counts().index
-    print('activities:', activities)
+    # print('activities:', activities)
 
 
     df = data.drop(['user', 'time'], axis = 1).copy()
-    print('df.head:', df.head())
+    # print('df.head:', df.head())
 
-    print('counts:', df['activity'].value_counts())
+    # print('counts:', df['activity'].value_counts())
     sd = sorted(df['activity'].value_counts().items(), key=sorter_take_count, reverse=False)
-    print('sd:', sd)
+    # print('sd:', sd)
 
 
 
@@ -1238,25 +1222,24 @@ def get_data_from_motion_file(motion_file):
 
     balanced_data['activity'].value_counts()
 
-    print('balanced_data:', balanced_data)
-    print(balanced_data.head())
+    # print('balanced_data:', balanced_data)
+    # print(balanced_data.head())
 
     from sklearn.preprocessing import LabelEncoder
 
     label = LabelEncoder()
     balanced_data['label'] = label.fit_transform(balanced_data['activity'])
-    print('head:',balanced_data.head())
-    print('================ label mapping')
+    # print('head:',balanced_data.head())
+    # print('================ label mapping')
     #print(balanced_data.values.tolist())
 
-    print('label:',label.classes_)
+    # print('label:',label.classes_)
     X = balanced_data[['x', 'y', 'z']]
     y = balanced_data['label']
-    print('X before:', X)
 
     #scaler = StandardScaler()
     scaler = get_data_scaler()
-    print('scaler: mean, var', scaler.mean_, ' ', scaler.var_)
+    # print('scaler: mean, var', scaler.mean_, ' ', scaler.var_)
     X = scaler.transform(X)
 
 
@@ -1273,8 +1256,8 @@ def get_data_from_motion_file(motion_file):
 
 
     X, y = get_frames(scaled_X, frame_size, hop_size)
-    print('X:', X.shape)
-    print('y:', y.shape)
+    # print('X:', X.shape)
+    # print('y:', y.shape)
 
     # X.shape: (520, 285, 3)  
     # y.shape: (520,)
@@ -1285,22 +1268,22 @@ def get_data_from_motion_file(motion_file):
 
 def get_activity_by_motion_dnn(time_str, action='moiton'):
 
-
-    date_format_str = '%Y-%m-%d %H:%M:%S'
     print("get_activity time_str:", time_str)
     d_act = time_str
-
-    # image_dir_name = get_exist_image_dir(time_str, action)
+        # image_dir_name = get_exist_image_dir(time_str, action)
     motion_file = MOTION_FOLDER_TEST + d_act + '/' + MOTION_TXT
+    get_activity_prediction(motion_file)
 
-    act = 'Walking'
+def get_activity_prediction(motion_file, act = 'Sitting', time_str = '0'):
+
+    act = act
     time = time_str  # 12585782270000
     motion_file = motion_file
     target = TARGET_FILE
     user = 'ascc'
 
     c_len = convert(act, int(time), motion_file, target, user)
-    print('convert len:', c_len)
+    # print('convert len:', c_len)
 
     X, y = get_data_from_motion_file(target)
 
@@ -1309,19 +1292,19 @@ def get_activity_by_motion_dnn(time_str, action='moiton'):
     X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2], 1)
     X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
 
-    print('x_train shape:', X_train[0].shape)
-    print('X_test shape:', X_test[0].shape)
-    print('X_test len:', len(X_test))
-    tmp_xtest = X_test[0]
-    tmp_ytest = y_test[0]
+    # print('x_train shape:', X_train[0].shape)
+    # print('X_test shape:', X_test[0].shape)
+    # print('X_test len:', len(X_test))
+    # tmp_xtest = X_test[0]
+    # tmp_ytest = y_test[0]
     #print('tmp_xtest:', tmp_xtest)
     #print('tmp_ytest:', tmp_ytest)
     
 
 
     # X_train.shape, X_test.shape
-    print('X_train.shape:', X_train.shape)
-    print('X_test.shape:', X_test.shape)
+    # print('X_train.shape:', X_train.shape)
+    # print('X_test.shape:', X_test.shape)
     # X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
     #X_test = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2], 1)
 
@@ -1331,53 +1314,42 @@ def get_activity_by_motion_dnn(time_str, action='moiton'):
 
     model = load_model(MODEL_SAVED_PATH)
 
-    model.summary()
+    # model.summary()
 
     #print('====X_test :', X_test)
     predict_x=model.predict(X_test)
     y_pred=np.argmax(predict_x,axis=1)
 
-    print('y_pred len:', len(y_pred))
+    prob =  []
+
+    for i in range(len(predict_x)):
+        prob.append(predict_x[i][y_pred[i]])
+    
+    print('y_pred len:', len(y_pred), 'len(prob):', len(prob))
     print('y_pred:', y_pred)
+    print('prob:', prob)
+
+    return y_pred, prob
 
 
-    exit(0)
+# get data from motion_file
+def get_activity_by_motion_dnn_back(time_str, action='moiton'):
 
+    d_act = time_str
 
+    # # image_dir_name = get_exist_image_dir(time_str, action)
+    motion_file = MOTION_FOLDER_TEST + d_act + '/' + MOTION_TXT
 
     t_data_list = []
     t_arr = []
 
-    Fs = 95
-    frame_size = Fs*3 # 80
+    frame_size = Fs*2 # 80
     hop_size = Fs*2 # 40
 
     # x_train shape: (300, 3, 1)
     shape_len = frame_size
-    #shape_len = 80
-
     N_FEATURES = 3
-    # frame_size = frame_size
 
-
-    columns = ['x', 'y', 'z']
-    # data = pd.DataFrame(data = processedList, columns = columns)
-    # data.head()
-
-    # data.shape
-
-    # data.info()
-
-
-    # data.isnull().sum()
-
-    # data['activity'].value_counts()
-
-    # data['x'] = data['x'].astype('float')
-    # data['y'] = data['y'].astype('float')
-    # data['z'] = data['z'].astype('float')
-
-    processedList = []
 
     with open(motion_file, 'r') as f:
         for index, line in enumerate(f):
@@ -1400,15 +1372,6 @@ def get_activity_by_motion_dnn(time_str, action='moiton'):
 
             t_data_list.append(t_arr)
 
-            # processedList = t_data_list
-            # data = pd.DataFrame(data = processedList, columns = columns)
-            # data['x'] = data['x'].astype('float')
-            # data['y'] = data['y'].astype('float')
-            # data['z'] = data['z'].astype('float')
-
-            # print(data)
-
-
         f.close()
 
     print('len t_data_list:', len(t_data_list))
@@ -1421,73 +1384,69 @@ def get_activity_by_motion_dnn(time_str, action='moiton'):
     MODEL_SAVED_PATH = 'motion-saved-model'
 
     model = load_model(MODEL_SAVED_PATH)
-
+    scaler = get_data_scaler()
+    print('scaler: mean, var', scaler.mean_, ' ', scaler.var_)
 
     for i in range(len(chunks)):
         if len(chunks[i]) != shape_len:
             continue
 
         frames = []
-        frames_xyz = chunks[i]
-        frames.append(frames_xyz)
 
+        frames_xyz = chunks[i]
+
+        frames_xyz = scaler.transform(frames_xyz)
+
+        frames.append(frames_xyz)
         frames = np.asarray(frames).reshape(-1, frame_size, N_FEATURES)
 
         X_test = []
         X_test.append(frames)
 
         X_test = np.asarray(X_test).reshape(-1, frame_size, N_FEATURES)
-        print('X_test shape:', X_test.shape)
+        # print('X_test shape:', X_test.shape)
         X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
         
 
         print('i:',i )
         # print('len:', len(X_test[0]))
-        print('X_test:', X_test)
+        # print('X_test:', X_test)
         predict_x=model.predict(X_test)
         y_pred=np.argmax(predict_x,axis=1)
         print('pred:', y_pred)
         # assert(y_pred == 4)
 
 
-'''
-    'Sitting': ['20220729102338'],
-    'Standing': ['20220729103312'],
-    'Walking': ['20220729105500'],
-    'Jogging': ['20220729111901'],
-    'Laying': ['20220729104633'],
-    'Squating': ['20220729110944']
-
-    walking: 5
-stand: 4
-Squating:3
-Sitting:2
-Laying:1
-Jogging:0
-'''
-if __name__ == "__main__":
-    print('Test running:===========================================================\n')
-
-    log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
-    logging.info("Hello World!!!")
-    #test()
-    # run()
-    
+def test_dnn():
 
     #get_activity_by_motion_dnn('20220729102338', 'Sitting' ) # 2, g
     #get_activity_by_motion_dnn('20220729103312', 'Stand' ) # 2, 3 4(10), bad
     #get_activity_by_motion_dnn('20220729105500', 'walking') # 5 g
     #get_activity_by_motion_dnn('20220729111901', 'jogging') # 0, g
     #get_activity_by_motion_dnn('20220729104633', 'Laying') # 1, g
-    #get_activity_by_motion_dnn('20220729110944', 'Squating') # 3 good
+    # get_activity_by_motion_dnn('20220729110944', 'Squating') # 3 good
 
     # 0802
-    #get_activity_by_motion_dnn('20220802154633', 'Sitting' ) # 4, w
-    #get_activity_by_motion_dnn('20220802155756', 'Stand' ) # 4, g
+    # get_activity_by_motion_dnn('20220802154633', 'Sitting' ) # 4, w
+    get_activity_by_motion_dnn('20220802155756', 'Stand' ) # 4, g
     #get_activity_by_motion_dnn('20220802163654', 'walking') # 5, g
     #get_activity_by_motion_dnn('20220802164744', 'jogging') # 0, g
     #get_activity_by_motion_dnn('20220802161356', 'Laying') # 1, g
-    #get_activity_by_motion_dnn('20220802162515', 'Squating') # 2,3 w
+    # get_activity_by_motion_dnn('20220802162515', 'Squating') # 2,3 w
+
+    return 0
+
+if __name__ == "__main__":
+    print('Test running:===========================================================\n')
+
+    log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
+    logging.info("Hello World!!!")
+    #test()
+    # test_dnn()
+    run()
+    
+
+
 
 
 
