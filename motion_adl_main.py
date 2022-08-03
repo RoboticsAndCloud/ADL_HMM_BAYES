@@ -5,6 +5,7 @@ Date: 07/10/2022
 """
 
 from datetime import datetime
+from pickle import TRUE
 import random
 #from tkinter.messagebox import NO
 
@@ -170,7 +171,13 @@ def get_motion_type_by_activity_cnn(time_str):
     # should be act : probability
     # /home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/src/
     # ascc_room_activity_test.py
-    motion_type, prob = tools_ascc.get_activity_by_motion_dnn(time_str, action='vision')
+    motion_type_list, prob_list = tools_ascc.get_activity_by_motion_dnn(time_str, action='vision')
+    motion_type = ''
+    prob = -1
+    if len(motion_type_list) > 0:
+        motion_type = motion_type_list[-1]
+        prob = float(prob_list[-1])
+
 
     print('get_motion_type_by_activity_cnn time_str:', time_str, ' motion_type:', motion_type, ' prob:', prob)
 
@@ -282,7 +289,7 @@ for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
 while(pre_activity == ''):
     # open camera
 
-    audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.VISION_ACTION)  # motion_env_ascc.FUSION_ACTION?
+    audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.FUSION_ACTION)  # motion_env_ascc.FUSION_ACTION?
 
     # env.running_time
     # test_time_str = '2009-12-11 12:58:33'
@@ -336,10 +343,6 @@ while(pre_activity == ''):
     audio_type_res.append([audio_type, audio_type_prob])
     motion_type_res.append([motion_type, motion_type_prob])
 
-    exit(0)
-
-
-
     
     heap_prob = []
 
@@ -355,7 +358,9 @@ while(pre_activity == ''):
         
         p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, 0)
         p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, 0)
-        p4 = bayes_model_object.get_prob(pre_act_list, act, object, 0)
+        # p4 = bayes_model_object.get_prob(pre_act_list, act, object, 0)
+
+        p4 = 1
 
         p = p1*p2*p3*p4 * hmm_prob
              
@@ -419,210 +424,237 @@ while(not env.done):
     # p = rank1_res_prob[-1]
     # if p of previous detection is smaller than threshodl, env.step(motion_env_ascc.FUSION_ACTION)
 
+    location = ''
+    object = ''
+    motion_type = ''
+    audio_type = ''
+
     if need_recollect_data:
         audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.FUSION_ACTION)  
+        location, location_prob = get_location_by_activity_cnn(cur_time_str)
+        bayes_model_location.set_location_prob(location_prob)
+
+        # object, object_prob = get_object_by_activity(cur_time_str)
+        # bayes_model_object.set_location_prob(object_prob)
+
+        audio_type, audio_type_prob = get_audio_type_by_activity_cnn(cur_time_str)
+        bayes_model_audio.set_audio_type_prob(audio_type_prob)
+
+        motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
+        bayes_model_motion.set_motion_type_prob(motion_type_prob)
+        # bayes_model_motion.set_motion_type(motion_type)
+
+        location_res.append([location, location_prob])
+        audio_type_res.append([audio_type, audio_type_prob])
+        # motion_type_res.append([motion_type, motion_type_prob])
+
     else:
         # INTERVAL_FOR_COLLECTING_DATA
-        audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.MOTION_ACTION)  
+        # audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.MOTION_ACTION)  
 
-    # detect motion
-    #if transition_motion:
-        # open all sensors
-        # new activity
-        # Bayes model prob
+        # detect transition: the end of walk activity
+        motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
+        bayes_model_motion.set_motion_type_prob(motion_type_prob)
+
+        location_res.append(['', ''])
+        audio_type_res.append(['', ''])
+        # motion_type_res.append([motion_type, motion_type_prob])
+
+
 
     heap_prob = []
-    if transition_motion:
-        cur_time = env.get_running_time()
-        cur_time_str = cur_time.strftime(motion_env_ascc.DATE_HOUR_TIME_FORMAT)
-        print('Env Running:', cur_time) 
+    # if transition_motion:
+    #     cur_time = env.get_running_time()
+    #     cur_time_str = cur_time.strftime(motion_env_ascc.DATE_HOUR_TIME_FORMAT)
+    #     print('Env Running:', cur_time) 
         
-        bayes_model_location.set_time(cur_time_str)
-        bayes_model_motion.set_time(cur_time_str)
-        bayes_model_audio.set_time(cur_time_str)
-        bayes_model_object.set_time(cur_time_str)
+    #     bayes_model_location.set_time(cur_time_str)
+    #     bayes_model_motion.set_time(cur_time_str)
+    #     bayes_model_audio.set_time(cur_time_str)
+    #     bayes_model_object.set_time(cur_time_str)
 
-        cur_activity, cur_beginning_activity, cur_end_activity = \
-            bayes_model_location.get_activity_from_dataset_by_time(cur_time_str)
+    #     cur_activity, cur_beginning_activity, cur_end_activity = \
+    #         bayes_model_location.get_activity_from_dataset_by_time(cur_time_str)
             
-        if cur_activity == None or cur_activity == '' or cur_activity == 'Sleep':
-            continue
+    #     if cur_activity == None or cur_activity == '' or cur_activity == 'Sleep':
+    #         continue
 
-        location = get_location_by_activity(cur_activity)
-        object = get_object_by_activity(cur_activity)
-        audio_type = get_audio_type_by_activity(cur_activity)
-        motion_type = get_motion_type_by_activity(cur_activity)
+    #     location = get_location_by_activity(cur_activity)
+    #     object = get_object_by_activity(cur_activity)
+    #     audio_type = get_audio_type_by_activity(cur_activity)
+    #     motion_type = get_motion_type_by_activity(cur_activity)
 
-        print('location:', location)
-        print('object:', object)
-        print('audio_type:', audio_type)
-        print('motion_type:', motion_type)
+    #     print('location:', location)
+    #     print('object:', object)
+    #     print('audio_type:', audio_type)
+    #     print('motion_type:', motion_type)
 
-        # if pre_activity != cur_activity:
-        #     activity_begin_time = cur_time
+    #     # if pre_activity != cur_activity:
+    #     #     activity_begin_time = cur_time
         
-        activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
+    #     activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
 
 
-        for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
-            print("transition step act:", act)
-            hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+    #     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
+    #         print("transition step act:", act)
+    #         hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
 
+    #         p1 = bayes_model_location.get_prob(pre_act_list, act, location, activity_duration)
+    #         p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
+    #         p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
+    #         p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
+
+    #         p = p1*p2*p3*p4 * hmm_prob
+            
+    #         print("transition step act:", act)
+    #         print('p1:', p1)
+    #         print('p2:', p2)
+    #         print('p3:', p3)
+    #         print('p4:', p4)
+    #         print('p:', p)
+    #         print("======================================================")
+
+    #         res_prob[act].append(p) 
+    #         heap_prob.append((act, p, cur_time_str))
+
+    # else:
+    #     # motion data  or audio data
+    #     # new activity
+    #     # Bayes model prob    
+
+    cur_time = env.get_running_time()
+    cur_time_str = cur_time.strftime(motion_env_ascc.DATE_HOUR_TIME_FORMAT)
+    print('Env Running:', cur_time) 
+
+    
+
+    bayes_model_location.set_time(cur_time_str)
+    bayes_model_motion.set_time(cur_time_str)
+    bayes_model_audio.set_time(cur_time_str)
+    # bayes_model_object.set_time(cur_time_str)
+
+    # cur_activity, cur_beginning_activity, cur_end_activity = \
+    #     bayes_model_location.get_activity_from_dataset_by_time(cur_time_str)
+
+    # if cur_activity == None or cur_activity == '' or cur_activity == 'Sleep':
+    #     continue
+    
+    activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
+    # prob_of_activity_by_duration = get_end_of_activity_prob_by_duration(activity_duration, cur_activity)
+
+    # location = get_location_by_activity(cur_activity)
+    # object = get_object_by_activity(cur_activity)
+    # motion_type = get_motion_type_by_activity(cur_activity)
+    # audio_type = get_audio_type_by_activity(cur_activity)
+
+    print('location:', location)
+    # print('object:', object)
+    print('audio_type:', audio_type)
+    print('motion_type:', motion_type)
+
+    # # TODO: get the probability of motion type from motion_type = get_motion_type_by_activity(cur_activity)
+    # p_sitting_prob.append(0)
+    # p_standing_prob.append(0)
+    # p_walking_prob.append(0)
+    
+    # if motion_type == motion_adl_bayes_model.MOTION_TYPE_SITTING:
+    #     p_sitting_prob[len(p_sitting_prob)-1] = p2
+    # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_STANDING:
+    #     p_standing_prob[len(p_standing_prob)-1] = p2
+    # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_WALKING:
+    #     p_walking_prob[len(p_walking_prob)-1] = p2
+
+
+    for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
+        print("motion step act:", act)
+        hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+
+        print('hmm_prob:', hmm_prob)
+
+        p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
+        p = p2 * hmm_prob
+
+        if need_recollect_data:
             p1 = bayes_model_location.get_prob(pre_act_list, act, location, activity_duration)
             p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
             p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
-            p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
+            # p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
+            p4 = 1
 
             p = p1*p2*p3*p4 * hmm_prob
             
-            print("transition step act:", act)
+            print("need_recollect_data step act:", act)
             print('p1:', p1)
             print('p2:', p2)
             print('p3:', p3)
             print('p4:', p4)
-            print('p:', p)
-            print("======================================================")
 
-            res_prob[act].append(p) 
-            heap_prob.append((act, p, cur_time_str))
+            
+        print("motion step act:", act)
+        print('p:', p)
+        print("======================================================")
 
-    else:
-        # motion data  or audio data
-        # new activity
-        # Bayes model prob    
+        res_prob[act].append(p) 
+        heap_prob.append((act, p, cur_time_str))
 
-        cur_time = env.get_running_time()
-        cur_time_str = cur_time.strftime(motion_env_ascc.DATE_HOUR_TIME_FORMAT)
-        print('Env Running:', cur_time) 
+    need_recollect_data = False
 
-        
+    top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
+    activity_detected = top3_prob[0][0]
 
-        bayes_model_location.set_time(cur_time_str)
-        bayes_model_motion.set_time(cur_time_str)
-        bayes_model_audio.set_time(cur_time_str)
-        bayes_model_object.set_time(cur_time_str)
+    # # TODO: get the probability of motion type from motion_type = get_motion_type_by_activity(cur_activity)
+    # p_sitting_prob.append(0)
+    # p_standing_prob.append(0)
+    # p_walking_prob.append(0)
+    
+    # if motion_type == motion_adl_bayes_model.MOTION_TYPE_SITTING:
+    #     p_sitting_prob[len(p_sitting_prob)-1] = p2
+    # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_STANDING:
+    #     p_standing_prob[len(p_standing_prob)-1] = p2
+    # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_WALKING:
+    #     p_walking_prob[len(p_walking_prob)-1] = p2
 
-        cur_activity, cur_beginning_activity, cur_end_activity = \
-            bayes_model_location.get_activity_from_dataset_by_time(cur_time_str)
+    p_activity_end = motion_adl_bayes_model.get_end_of_activity_prob_by_duration(activity_duration, activity_detected)
 
-        if cur_activity == None or cur_activity == '' or cur_activity == 'Sleep':
-            continue
-        
-        activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
-        # prob_of_activity_by_duration = get_end_of_activity_prob_by_duration(activity_duration, cur_activity)
+    p_duration_lis.append(p_activity_end)
 
-        location = get_location_by_activity(cur_activity)
-        object = get_object_by_activity(cur_activity)
-        motion_type = get_motion_type_by_activity(cur_activity)
-        audio_type = get_audio_type_by_activity(cur_activity)
+    if activity_detected == pre_activity:
+        print('p_activity_end:', p_activity_end)
+        # todo if p_activity_end < 0.2, audio,vision+motion
+        if (p_activity_end < 0.4) and (p_check_level == 4):
+            start_check_interval_time = cur_time
+            need_recollect_data = True
+            p_check_level = p_check_level -1
+        if (p_activity_end < 0.3) and (p_check_level == 3):
+            start_check_interval_time = cur_time
+            need_recollect_data = True
+            p_check_level = p_check_level -1
+        if (p_activity_end < 0.2) and (p_check_level == 2):
+            start_check_interval_time = cur_time
+            p_check_level = p_check_level -1
 
-        print('location:', location)
-        print('object:', object)
-        print('audio_type:', audio_type)
-        print('motion_type:', motion_type)
+        if p_activity_end < 0.2:    
+            start_check_interval = (cur_time - start_check_interval_time).seconds 
+            print('start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
 
-        # # TODO: get the probability of motion type from motion_type = get_motion_type_by_activity(cur_activity)
-        # p_sitting_prob.append(0)
-        # p_standing_prob.append(0)
-        # p_walking_prob.append(0)
-        
-        # if motion_type == motion_adl_bayes_model.MOTION_TYPE_SITTING:
-        #     p_sitting_prob[len(p_sitting_prob)-1] = p2
-        # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_STANDING:
-        #     p_standing_prob[len(p_standing_prob)-1] = p2
-        # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_WALKING:
-        #     p_walking_prob[len(p_walking_prob)-1] = p2
-
-
-        for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
-            print("motion step act:", act)
-            hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
-
-            print('hmm_prob:', hmm_prob)
-
-            p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
-            p = p2 * hmm_prob
-
-            if need_recollect_data:
-                p1 = bayes_model_location.get_prob(pre_act_list, act, location, activity_duration)
-                p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
-                p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
-                p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
-
-                p = p1*p2*p3*p4 * hmm_prob
-                
-                print("need_recollect_data step act:", act)
-                print('p1:', p1)
-                print('p2:', p2)
-                print('p3:', p3)
-                print('p4:', p4)
-
-                
-            print("motion step act:", act)
-            print('p:', p)
-            print("======================================================")
-
-            res_prob[act].append(p) 
-            heap_prob.append((act, p, cur_time_str))
-
-        need_recollect_data = False
-
-        top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
-        activity_detected = top3_prob[0][0]
-
-        # # TODO: get the probability of motion type from motion_type = get_motion_type_by_activity(cur_activity)
-        # p_sitting_prob.append(0)
-        # p_standing_prob.append(0)
-        # p_walking_prob.append(0)
-        
-        # if motion_type == motion_adl_bayes_model.MOTION_TYPE_SITTING:
-        #     p_sitting_prob[len(p_sitting_prob)-1] = p2
-        # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_STANDING:
-        #     p_standing_prob[len(p_standing_prob)-1] = p2
-        # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_WALKING:
-        #     p_walking_prob[len(p_walking_prob)-1] = p2
-
-        p_activity_end = motion_adl_bayes_model.get_end_of_activity_prob_by_duration(activity_duration, activity_detected)
-
-        p_duration_lis.append(p_activity_end)
-
-        if activity_detected == pre_activity:
-            print('p_activity_end:', p_activity_end)
-            # todo if p_activity_end < 0.2, audio,vision+motion
-            if (p_activity_end < 0.4) and (p_check_level == 4):
-                start_check_interval_time = cur_time
+            if (int(start_check_interval) / UNCERTAIN_CHECK_INTERVAL) >= 1:
                 need_recollect_data = True
-                p_check_level = p_check_level -1
-            if (p_activity_end < 0.3) and (p_check_level == 3):
+                print('reset start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
+                start_check_interval = 0
                 start_check_interval_time = cur_time
-                need_recollect_data = True
-                p_check_level = p_check_level -1
-            if (p_activity_end < 0.2) and (p_check_level == 2):
-                start_check_interval_time = cur_time
-                p_check_level = p_check_level -1
 
-            if p_activity_end < 0.2:    
-                start_check_interval = (cur_time - start_check_interval_time).seconds 
-                print('start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
-
-                if (int(start_check_interval) / UNCERTAIN_CHECK_INTERVAL) >= 1:
-                    need_recollect_data = True
-                    print('reset start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
-                    start_check_interval = 0
-                    start_check_interval_time = cur_time
-
-            #     need_recollect_data = True
-            #     p_check_level = p_check_level -1
-            # if (p_activity_end < 0.1) and (p_check_level == 1):
-            #     need_recollect_data = True
-            #     p_check_level = p_check_level -1
-            # if (p_activity_end < 0.05) and (p_check_level == 0):
-            #     need_recollect_data = True
-            #     p_check_level = p_check_level -1
-            # if (p_activity_end < 0.01):
-            #     need_recollect_data = True
-            #     p_check_level = p_check_level -1
-            print("need_recollect_data p_check_level:", need_recollect_data, ' ', p_check_level)
+        #     need_recollect_data = True
+        #     p_check_level = p_check_level -1
+        # if (p_activity_end < 0.1) and (p_check_level == 1):
+        #     need_recollect_data = True
+        #     p_check_level = p_check_level -1
+        # if (p_activity_end < 0.05) and (p_check_level == 0):
+        #     need_recollect_data = True
+        #     p_check_level = p_check_level -1
+        # if (p_activity_end < 0.01):
+        #     need_recollect_data = True
+        #     p_check_level = p_check_level -1
+        print("need_recollect_data p_check_level:", need_recollect_data, ' ', p_check_level)
 
 
     print('pre_act_list:', pre_act_list)
@@ -672,6 +704,17 @@ while(not env.done):
         print('res_prob:')
         print(res_prob)
 
+    print('last motion type:', motion_type_res[-1], ' cur motion_type:', motion_type)
+    if motion_type_res[-1] == motion_adl_bayes_model.MOTION_TYPE_WALKING and motion_type != motion_adl_bayes_model.MOTION_TYPE_WALKING:
+        transition_motion = TRUE
+        need_recollect_data = True
+
+    location_res.append([location, location_prob])
+    audio_type_res.append([audio_type, audio_type_prob])
+    motion_type_res.append([motion_type, motion_type_prob])
+
+# while not env.done
+
 
 print("===================================================")
 # print out results
@@ -693,6 +736,10 @@ print(p_duration_lis)
 print('rank1_res_prob_norm:', rank1_res_prob_norm)
 print('rank2_res_prob_norm:', rank2_res_prob_norm)
 print('rank3_res_prob_norm:', rank3_res_prob_norm)
+
+print('location_res:', location_res)
+print('audio_type_res:', audio_type_res)
+print('motion_type_res:', motion_type_res)
 
 # # motion probabilities during activities
 # print('p_sitting_prob:', len(p_sitting_prob))
