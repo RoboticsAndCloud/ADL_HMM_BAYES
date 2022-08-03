@@ -486,6 +486,9 @@ class Bayes_Model_Motion(object):
     def set_motion_type(self, motion_type):
         self.motion_type = motion_type
 
+    def set_motion_type_prob(self, prob):
+        self.motion_type_prob = prob
+
     def get_prob(self, pre_activity, act_name, motion_type, activity_duration, mode = None):
         """ Return the state set of this model. """
         p = 0

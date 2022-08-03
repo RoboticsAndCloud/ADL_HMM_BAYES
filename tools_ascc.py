@@ -169,6 +169,9 @@ ASCC_DATASET_DATE_HOUR_TIME_FORMAT_DIR = '%Y-%m-%d-%H-%M-%S'
 ASCC_AUDIO_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/ascc_data/notice.txt'
 ASCC_AUDIO_DATA_RES_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/ascc_data/recognition_result.txt'
 
+ASCC_MOTION_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/ascc_data/notice.txt'
+ASCC_MOTION_DATA_RES_FILE = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/ascc_data/recognition_result.txt'
+
 MILAN_BASE_DATE = '2009-10-16'
 DATASET_TRAIN_DAYS = 82 # includes the days without acitivity data, totally 82 days
 
@@ -580,6 +583,80 @@ def convert_time_to_real(c_time):
 
     return ascc_time_str
 
+
+def get_exist_motion_dir(motion_dir_name):
+    motion_dir = motion_dir_name
+    
+    time_str = motion_dir.split('/')[-2]
+    d_act = datetime.strptime(time_str, ASCC_DATASET_DATE_HOUR_TIME_FORMAT_DIR)
+
+    for i in range( 60 ):
+        new_time = d_act - timedelta(seconds = i)
+        ascc_dir_time = convert_time_to_real(new_time)
+        new_motion_dir_name = ASCC_DATA_SET_DIR + '/' + 'Motion/' + ascc_dir_time + '/'
+
+        if os.path.exists(new_motion_dir_name) == True:
+            print('tools_ascc new_motion_dir_name:', new_motion_dir_name)
+
+            return new_motion_dir_name
+
+
+    return ''
+
+def get_activity_by_motion_dnn(time_str, action='vision'):
+    
+    date_format_str = '%Y-%m-%d %H:%M:%S'
+    if DEBUG:
+        print("get_activity time_str:", time_str)
+    d_act = datetime.strptime(time_str, date_format_str)
+
+    image_dir_name = get_exist_image_dir(time_str, action)
+    if image_dir_name == '':
+        return ['None']
+    print('===:', image_dir_name)
+
+    motion_dir_name = image_dir_name.replace('Image', 'Motion')
+    # /home/ascc/LF_Workspace/ReinforcementLearning/ASCC_Energy_Consumption/ASCC-RL-Algorithms_New_Reward_Test_Part/ascc_activity_real_data_0309//Image/2009-12-11-08-45-15/
+
+    # check motion dir
+
+    motion_dir_name = get_exist_motion_dir(motion_dir_name)
+    if motion_dir_name == '':
+        return [], []
+    
+
+    write_notice_into_file(ASCC_MOTION_DATA_NOTICE_FILE, motion_dir_name)
+
+    # wait for the result, 2-5 seconds, todo: test how long should wait, how to improve the speed
+    time.sleep(1)
+
+    # get the results
+    res_str = read_res_from_file(ASCC_MOTION_DATA_RES_FILE)
+
+    
+    print('Motion Recognition res:', res_str)
+
+
+    res_list = res_str.split('\t')
+
+    motion_type_res = []
+    motion_type_prob_res = []
+    for key in res_list:
+        motion_type = key.split('(')[0]
+        prob = key.split('(')[1].split(')')[0]
+        motion_type_res.append(motion_type)
+        motion_type_prob_res.append(prob)
+
+
+    # motion_type = res_str.split('(')[0]
+    # prob = res_str.split('(')[1].split(')')[0]
+
+    # res = motion_type
+
+
+    # res = ACTIVITY_LOCATION_MAPPING[res_location]
+    #print('res_activity_list:', res_activity_list)
+    return motion_type_res, motion_type_prob_res
 
 def get_activity_by_audio_dnn(time_str, action='vision'):
     

@@ -164,6 +164,18 @@ def get_motion_type_by_activity(activity):
 
     return res
 
+def get_motion_type_by_activity_cnn(time_str):
+
+    # Mapping
+    # should be act : probability
+    # /home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/src/
+    # ascc_room_activity_test.py
+    motion_type, prob = tools_ascc.get_activity_by_motion_dnn(time_str, action='vision')
+
+    print('get_motion_type_by_activity_cnn time_str:', time_str, ' motion_type:', motion_type, ' prob:', prob)
+
+    return motion_type, prob
+
 def get_audio_type_by_activity(activity):
     # audio type:
     # door_open_closed
@@ -255,6 +267,10 @@ p_duration_lis =[]
 
 pre_act_list = []
 
+location_res = []
+audio_type_res = []
+motion_type_res = []
+
 def get_pre_act_list():
 
     return []
@@ -311,10 +327,17 @@ while(pre_activity == ''):
 
     audio_type, audio_type_prob = get_audio_type_by_activity_cnn(cur_time_str)
     bayes_model_audio.set_audio_type_prob(audio_type_prob)
+
+    motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
+    bayes_model_motion.set_motion_type_prob(motion_type_prob)
+    # bayes_model_motion.set_motion_type(motion_type)
+
+    location_res.append([location, location_prob])
+    audio_type_res.append([audio_type, audio_type_prob])
+    motion_type_res.append([motion_type, motion_type_prob])
+
     exit(0)
 
-    # motion_type, motion_type_prob = get_motion_type_by_activity(cur_time_str)
-    # bayes_model_motion.set_location_prob(motion_type_prob)
 
 
     

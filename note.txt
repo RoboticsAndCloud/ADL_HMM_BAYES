@@ -259,3 +259,91 @@ pre_act_list: ['Kitchen_Activity', 'Leave_Home', 'Master_Bathroom', 'Read', 'Kit
 heap_prob: [('Bed_to_Toilet', 1.3089301906631165e-200, '2009-12-11 12:19:33'), ('Morning_Meds', 8.214996549646328e-158, '2009-12-11 12:19:33'), ('Watch_TV', 7.053114762125887e-156, '2009-12-11 12:19:33'), ('Kitchen_Activity', 1.2357986040796772e-152, '2009-12-11 12:19:33'), ('Chores', 8.993769858789189e-119, '2009-12-11 12:19:33'), ('Leave_Home', 3.5596415168021724e-193, '2009-12-11 12:19:33'), ('Read', 9.421466779616554e-111, '2009-12-11 12:19:33'), ('Guest_Bathroom', 1.4551585011313218e-96, '2009-12-11 12:19:33'), ('Master_Bathroom', 5.085574137488312e-193, '2009-12-11 12:19:33'), ('Desk_Activity', 8.040135762714574e-157, '2009-12-11 12:19:33'), ('Eve_Meds', 1.2932542717274224e-159, '2009-12-11 12:19:33'), ('Meditate', 9.388879249870083e-157, '2009-12-11 12:19:33'), ('Dining_Rm_Activity', 3.0196274619950287e-198, '2009-12-11 12:19:33'), ('Master_Bedroom_Activity', 4.094594023486826e-195, '2009-12-11 12:19:33')]
 top3_prob: [('Guest_Bathroom', 1.4551585011313218e-96, '2009-12-11 12:19:33'), ('Read', 9.421466779616554e-111, '2009-12-11 12:19:33'), ('Chores', 8.993769858789189e-119, '2009-12-11 12:19:33')]
 
+
+
+
+transition step act: Master_Bedroom_Activity
+p1: 5.487744946360257e-74
+p2: 0.0002078962144271402
+p3: 0.0018393690985868184
+p4: 8.430500796913012e-73
+p: 1.7691422719908899e-152
+
+read
+transition step act: Read
+p1: 2.4366988278817195e-54
+p2: 7.55009411059386e-58
+p3: 6.679972426008599e-57
+p4: 2.755507940939126e-56
+p: 3.3863399654101797e-223
+
+
+pre_act_list: ['Kitchen_Activity', 'Leave_Home', 'Master_Bathroom', 'Read', 'Kit
+chen_Activity', 'Leave_Home', 'Kitchen_Activity', 'Guest_Bathroom', 'Read', 'Kit
+chen_Activity', 'Guest_Bathroom', 'Master_Bedroom_Activity', 'Master_Bathroom', 
+'Master_Bedroom_Activity', 'Leave_Home', 'Master_Bedroom_Activity', 'Read', 'Mas
+ter_Bedroom_Activity', 'Kitchen_Activity', 'Master_Bedroom_Activity', 'Read', 'D
+esk_Activity', 'Guest_Bathroom', 'Kitchen_Activity', 'Watch_TV', 'Read', 'Kitche
+n_Activity']
+
+
+
+
+read -> desk_activity
+p_activity_end: 0.8900343642611683
+need_recollect_data p_check_level: False   4
+
+read activity may be longer, so sensors will not be triggerred
+
+motion:
+50  42213
+
+
+Env Running: 2009-12-11 15:51:27.709256
+activity: Read
+get_location_by_activity random_t: 0.7566409426769388
+object activity: Read
+{'book': 0.9, 'microwave': 0.1}
+get_object_by_activity random_t: 0.09190549079299781
+get_motion_type_by_activity random_t: 0.994256773969078
+get_audio_type_by_activity random_t: 0.8658146728623773
+location: livingroom
+object: book
+audio_type: quite
+motion_type: standing
+
+
+
+location: livingroom
+object: book
+audio_type: quite
+motion_type: sitting
+
+
+
+read
+2.6366028770567015e-83
+Desk
+3.548005992361036e-84
+
+
+
+### how to test in real env
+Env requirements: source  ~/LF_Workspace/venv3.7_energy/bin/activate
+
+1. Launch room recognition cnn algorithm
+cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_classifier
+python ascc_room_activity_test.py
+
+2. Launch room sound recognition cnn algorithm 
+cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_sound
+python ascc_room_sound_activity_test.py 
+
+3. Launch motion recognition cnn algorithm
+cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity
+
+python ascc_room_motion_activity_test.py 
+
+4. Launch motion adl main 
+cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES
+python motion_adl_main.py
