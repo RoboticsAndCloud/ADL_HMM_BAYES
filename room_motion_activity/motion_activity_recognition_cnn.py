@@ -210,7 +210,7 @@ print('y.shape:', y.shape)
 
 # X.shape, y.shape
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.35, random_state = 0, stratify = y)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state = 0, stratify = y)
 
 
 # X_train.shape, X_test.shape
@@ -244,9 +244,9 @@ model.add(Dropout(0.6))
 
 model.add(Dense(6, activation='softmax'))
 
-model.compile(optimizer=Adam(learning_rate = 0.0001), loss = 'sparse_categorical_crossentropy', metrics = ['accuracy'])
+model.compile(optimizer=Adam(learning_rate = 0.00001), loss = 'sparse_categorical_crossentropy', metrics = ['accuracy'])
 
-epochs = 100
+epochs = 700
 
 history = model.fit(X_train, y_train, epochs = epochs, validation_data= (X_test, y_test), verbose=1)
 
@@ -286,8 +286,8 @@ from sklearn.metrics import confusion_matrix
 
 predict_x=model.predict(X_test) 
 y_pred=np.argmax(predict_x,axis=1)
-print('y_pred len:', len(y_pred))
-print('y_pred:', y_pred)
+#print('y_pred len:', len(y_pred))
+#print('y_pred:', y_pred)
 
 plt.figure()
 mat = confusion_matrix(y_test, y_pred)

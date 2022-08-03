@@ -1473,10 +1473,9 @@ if __name__ == "__main__":
     #test()
     # run()
     
-    # get_activity_by_motion_dnn('20220802153639', 'test' ) # 5 wrong
 
     #get_activity_by_motion_dnn('20220729102338', 'Sitting' ) # 2, g
-    #get_activity_by_motion_dnn('20220729103312', 'Stand' ) # 2, 3 4, bad
+    #get_activity_by_motion_dnn('20220729103312', 'Stand' ) # 2, 3 4(10), bad
     #get_activity_by_motion_dnn('20220729105500', 'walking') # 5 g
     #get_activity_by_motion_dnn('20220729111901', 'jogging') # 0, g
     #get_activity_by_motion_dnn('20220729104633', 'Laying') # 1, g
@@ -1488,7 +1487,7 @@ if __name__ == "__main__":
     #get_activity_by_motion_dnn('20220802163654', 'walking') # 5, g
     #get_activity_by_motion_dnn('20220802164744', 'jogging') # 0, g
     #get_activity_by_motion_dnn('20220802161356', 'Laying') # 1, g
-    #get_activity_by_motion_dnn('20220802162515', 'Squating') # 2 g
+    #get_activity_by_motion_dnn('20220802162515', 'Squating') # 2,3 w
 
 
 
