@@ -146,7 +146,7 @@ label = LabelEncoder()
 balanced_data['label'] = label.fit_transform(balanced_data['activity'])
 print('head:',balanced_data.head())
 print('================ label mapping')
-print(balanced_data.values.tolist())
+#print(balanced_data.values.tolist())
 
 print('label:',label.classes_)
 X = balanced_data[['x', 'y', 'z']]
@@ -155,6 +155,7 @@ y = balanced_data['label']
 
 scaler = StandardScaler()
 X = scaler.fit_transform(X)
+print('scaler: mean, var', scaler.mean_, ' ', scaler.var_)
 
 scaled_X = pd.DataFrame(data = X, columns = ['x', 'y', 'z'])
 scaled_X['label'] = y.values
@@ -209,7 +210,7 @@ print('y.shape:', y.shape)
 
 # X.shape, y.shape
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0, stratify = y)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.35, random_state = 0, stratify = y)
 
 
 # X_train.shape, X_test.shape
@@ -227,7 +228,6 @@ tmp_xtest = X_test[0]
 tmp_ytest = y_test[0]
 print('tmp_xtest:', tmp_xtest)
 print('tmp_ytest:', tmp_ytest)
-# exit(0)
 
 # CNN model
 model = Sequential()
@@ -240,13 +240,13 @@ model.add(Dropout(0.2))
 model.add(Flatten())
 
 model.add(Dense(64, activation = 'relu'))
-model.add(Dropout(0.5))
+model.add(Dropout(0.6))
 
 model.add(Dense(6, activation='softmax'))
 
-model.compile(optimizer=Adam(learning_rate = 0.001), loss = 'sparse_categorical_crossentropy', metrics = ['accuracy'])
+model.compile(optimizer=Adam(learning_rate = 0.0001), loss = 'sparse_categorical_crossentropy', metrics = ['accuracy'])
 
-epochs = 15
+epochs = 100
 
 history = model.fit(X_train, y_train, epochs = epochs, validation_data= (X_test, y_test), verbose=1)
 
@@ -286,6 +286,7 @@ from sklearn.metrics import confusion_matrix
 
 predict_x=model.predict(X_test) 
 y_pred=np.argmax(predict_x,axis=1)
+print('y_pred len:', len(y_pred))
 print('y_pred:', y_pred)
 
 plt.figure()
