@@ -612,7 +612,7 @@ def get_activity_by_motion_dnn(time_str, action='vision'):
 
     image_dir_name = get_exist_image_dir(time_str, action)
     if image_dir_name == '':
-        return ['None']
+        return [], []
     print('===:', image_dir_name)
 
     motion_dir_name = image_dir_name.replace('Image', 'Motion')
