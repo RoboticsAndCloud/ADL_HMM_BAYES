@@ -1421,23 +1421,36 @@ def get_activity_by_motion_dnn_back(time_str, action='moiton'):
         print('pred:', y_pred)
         # assert(y_pred == 4)
 
-
+'''
+MOTION_ACTIVITY_MAPPING = {
+    0: 'jogging',
+    1: 'laying',
+    2: 'sitting',
+    3: 'squating',
+    4: 'standing',
+    5: 'walking'
+}
+'''
 def test_dnn():
 
-    #get_activity_by_motion_dnn('20220729102338', 'Sitting' ) # 2, g
-    #get_activity_by_motion_dnn('20220729103312', 'Stand' ) # 2, 3 4(10), bad
-    #get_activity_by_motion_dnn('20220729105500', 'walking') # 5 g
-    #get_activity_by_motion_dnn('20220729111901', 'jogging') # 0, g
-    #get_activity_by_motion_dnn('20220729104633', 'Laying') # 1, g
+    # get_activity_by_motion_dnn('20220729102338', 'Sitting' ) # 2, g
+    # get_activity_by_motion_dnn('20220729103312', 'Stand' ) # 2, 3(8) 4(13), bad
+    # get_activity_by_motion_dnn('20220729105500', 'walking') # 5 g
+    # get_activity_by_motion_dnn('20220729111901', 'jogging') # 0, g
+    # get_activity_by_motion_dnn('20220729104633', 'Laying') # 1, g
     # get_activity_by_motion_dnn('20220729110944', 'Squating') # 3 good
 
     # 0802
-    # get_activity_by_motion_dnn('20220802154633', 'Sitting' ) # 4, w
-    get_activity_by_motion_dnn('20220802155756', 'Stand' ) # 4, g
-    #get_activity_by_motion_dnn('20220802163654', 'walking') # 5, g
+    # get_activity_by_motion_dnn('20220804150956', 'Sitting' ) # 4(7), 2(21), w
+    # get_activity_by_motion_dnn('20220802155756', 'Stand' ) # 4, g
+    # get_activity_by_motion_dnn('20220802163654', 'walking') # 5, g
     #get_activity_by_motion_dnn('20220802164744', 'jogging') # 0, g
     #get_activity_by_motion_dnn('20220802161356', 'Laying') # 1, g
-    # get_activity_by_motion_dnn('20220802162515', 'Squating') # 2,3 w
+    # get_activity_by_motion_dnn('20220804153242', 'Squating') # 3 g
+
+    # get_activity_by_motion_dnn('20220804151607', 'Sit_Stand_Walk_in_kitchen')
+
+    
 
     return 0
 

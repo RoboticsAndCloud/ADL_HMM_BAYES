@@ -210,7 +210,7 @@ print('y.shape:', y.shape)
 
 # X.shape, y.shape
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state = 0, stratify = y)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0, stratify = y)
 
 
 # X_train.shape, X_test.shape
@@ -246,7 +246,7 @@ model.add(Dense(6, activation='softmax'))
 
 model.compile(optimizer=Adam(learning_rate = 0.00001), loss = 'sparse_categorical_crossentropy', metrics = ['accuracy'])
 
-epochs = 700
+epochs = 500
 
 history = model.fit(X_train, y_train, epochs = epochs, validation_data= (X_test, y_test), verbose=1)
 
