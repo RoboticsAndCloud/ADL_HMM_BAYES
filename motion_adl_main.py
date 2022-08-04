@@ -146,7 +146,7 @@ def get_location_by_activity_cnn(time_str):
     location, prob = tools_ascc.get_activity_by_vision_dnn(time_str, action='vision')
     print('get_location_by_activity_CNN time_str:', time_str, ' location:', location, ' prob:', prob)
 
-    return location, prob
+    return location, float(prob)
 
 def get_motion_type_by_activity(activity):
     # motion type: sitting, standing, walking, random by the probs
@@ -181,7 +181,7 @@ def get_motion_type_by_activity_cnn(time_str):
 
     print('get_motion_type_by_activity_cnn time_str:', time_str, ' motion_type:', motion_type, ' prob:', prob)
 
-    return motion_type, prob
+    return motion_type, float(prob)
 
 def get_audio_type_by_activity(activity):
     # audio type:
@@ -235,7 +235,7 @@ def get_audio_type_by_activity_cnn(time_str):
 
     print('get_audio_type_by_activity_cnn time_str:', time_str, ' audio_type:', audio_type, ' prob:', prob)
 
-    return audio_type, prob
+    return audio_type, float(prob)
     
 
 
@@ -333,7 +333,7 @@ while(pre_activity == ''):
     # bayes_model_object.set_location_prob(object_prob)
 
     audio_type, audio_type_prob = get_audio_type_by_activity_cnn(cur_time_str)
-    bayes_model_audio.set_audio_type_prob(audio_type_prob)
+    bayes_model_audio.set_audio_type_prob(float(audio_type_prob))
 
     motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
     bayes_model_motion.set_motion_type_prob(motion_type_prob)
@@ -342,6 +342,11 @@ while(pre_activity == ''):
     location_res.append([location, location_prob])
     audio_type_res.append([audio_type, audio_type_prob])
     motion_type_res.append([motion_type, motion_type_prob])
+
+    print('location:', location)
+    # print('object:', object)
+    print('audio_type:', audio_type)
+    print('motion_type:', motion_type)
 
     
     heap_prob = []
@@ -450,7 +455,7 @@ while(not env.done):
 
     else:
         # INTERVAL_FOR_COLLECTING_DATA
-        # audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.MOTION_ACTION)  
+        audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.MOTION_ACTION)  
 
         # detect transition: the end of walk activity
         motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
@@ -704,8 +709,8 @@ while(not env.done):
         print('res_prob:')
         print(res_prob)
 
-    print('last motion type:', motion_type_res[-1], ' cur motion_type:', motion_type)
     if motion_type_res[-1] == motion_adl_bayes_model.MOTION_TYPE_WALKING and motion_type != motion_adl_bayes_model.MOTION_TYPE_WALKING:
+        print('Transition occur:', 'last motion type:', motion_type_res[-1], ' cur motion_type:', motion_type)
         transition_motion = TRUE
         need_recollect_data = True
 

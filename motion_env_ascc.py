@@ -149,8 +149,8 @@ Interval (Secconds)
 ACTION_DICT = {
     0: "audio with 1 interval",  # "audio",
     1: "vision with 1/3 interval", #"vision",
-    2: "motion with 3 interval", #"motion"
-    3: "audio vision (fusion) with 4+1/3 interval",  # "fusion",
+    2: "motion with 2 interval", #"motion"
+    3: "audio vision (fusion) with 2+1/3 interval",  # "fusion",
 
 
 }
