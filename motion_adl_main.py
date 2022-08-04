@@ -278,6 +278,8 @@ location_res = []
 audio_type_res = []
 motion_type_res = []
 
+transition_motion_occur = []
+
 def get_pre_act_list():
 
     return []
@@ -347,6 +349,8 @@ while(pre_activity == ''):
     # print('object:', object)
     print('audio_type:', audio_type)
     print('motion_type:', motion_type)
+
+    
 
     
     heap_prob = []
@@ -709,10 +713,12 @@ while(not env.done):
         print('res_prob:')
         print(res_prob)
 
-    if motion_type_res[-1] == motion_adl_bayes_model.MOTION_TYPE_WALKING and motion_type != motion_adl_bayes_model.MOTION_TYPE_WALKING:
+    print('last motion type:', motion_type_res[-1], ' cur motion_type:', motion_type)
+    if (motion_type_res[-1][0] == motion_adl_bayes_model.MOTION_TYPE_WALKING) and (motion_type != motion_adl_bayes_model.MOTION_TYPE_WALKING):
         print('Transition occur:', 'last motion type:', motion_type_res[-1], ' cur motion_type:', motion_type)
         transition_motion = TRUE
         need_recollect_data = True
+        transition_motion_occur.append(cur_time_str)
 
     location_res.append([location, location_prob])
     audio_type_res.append([audio_type, audio_type_prob])
@@ -745,6 +751,8 @@ print('rank3_res_prob_norm:', rank3_res_prob_norm)
 print('location_res:', location_res)
 print('audio_type_res:', audio_type_res)
 print('motion_type_res:', motion_type_res)
+
+print('transition_motion_occur:', transition_motion_occur)
 
 # # motion probabilities during activities
 # print('p_sitting_prob:', len(p_sitting_prob))

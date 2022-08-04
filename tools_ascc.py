@@ -676,13 +676,15 @@ def get_activity_by_audio_dnn(time_str, action='vision'):
     write_notice_into_file(ASCC_AUDIO_DATA_NOTICE_FILE, audio_dir_name)
 
     # wait for the result, 2-5 seconds, todo: test how long should wait, how to improve the speed
-    time.sleep(1)
+    time.sleep(2)
 
     # get the results
     res_str = read_res_from_file(ASCC_AUDIO_DATA_RES_FILE)
 
     
     print('Audio Recognition res:', res_str)
+    if res_str == '':
+        return '', -1
 
     res_list = res_str.split('\t')
 
