@@ -664,7 +664,7 @@ while(not env.done):
         # if (p_activity_end < 0.01):
         #     need_recollect_data = True
         #     p_check_level = p_check_level -1
-        print("***need_recollect_data p_check_level:", need_recollect_data, ' ', p_check_level)
+        print("############need_recollect_data p_check_level:", need_recollect_data, ' ', p_check_level)
         if need_recollect_data:
             p_less_than_threshold_check_cnt = p_less_than_threshold_check_cnt + 1
 
@@ -672,7 +672,7 @@ while(not env.done):
     print('pre_act_list:', pre_act_list)
     print('heap_prob:', heap_prob)
     top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
-    print('***top3_prob:', top3_prob)
+    print('#########top3_prob:', top3_prob)
     # TODO: normalization for the top3 prob
     # if top3_prob[0] < threshold:
     #     need_recollect_data = True

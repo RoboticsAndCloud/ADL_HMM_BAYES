@@ -243,7 +243,7 @@ ACTIVITY_LOCATION_MAPPING = {
     'bathroom': constants.LOCATION_BATHROOM,
     'bedroom' : constants.LOCATION_BEDROOM,
     'morning_med': constants.LOCATION_KITCHEN,
-    'reading': constants.LOCATION_READINGROOM,
+    'reading': constants.LOCATION_LIVINGROOM,
     'kitchen': constants.LOCATION_KITCHEN,
     'livingroom': constants.LOCATION_LIVINGROOM,
     'chores': ['Chores'],
