@@ -106,11 +106,11 @@ def plot_axis(ax, x, y, title):
     ax.grid(True)
 
 for activity in activities:
-    data_for_plot = data[(data['activity'] == activity)][:Fs*10]
+    data_for_plot = data[(data['activity'] == activity)][Fs*10: Fs*18]
     print('data_for_plot', data_for_plot)
     plot_activity(activity, data_for_plot)
 
-
+exit(0)
 
 df = data.drop(['user', 'time'], axis = 1).copy()
 print('df.head:', df.head())
