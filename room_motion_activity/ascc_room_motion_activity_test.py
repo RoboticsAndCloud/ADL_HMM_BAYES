@@ -1449,6 +1449,7 @@ def test_dnn():
     # get_activity_by_motion_dnn('20220804153242', 'Squating') # 3 g
 
     # get_activity_by_motion_dnn('20220804151607', 'Sit_Stand_Walk_in_kitchen')
+    get_activity_by_motion_dnn('2009-12-11-10-06-38', 'sitting?')
 
     
 
@@ -1460,8 +1461,8 @@ if __name__ == "__main__":
     log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
     logging.info("Hello World!!!")
     #test()
-    # test_dnn()
-    run()
+    test_dnn()
+    # run()
     
 
 

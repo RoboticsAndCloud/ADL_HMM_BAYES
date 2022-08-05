@@ -244,12 +244,12 @@ ACTIVITY_LOCATION_MAPPING = {
     'bedroom' : constants.LOCATION_BEDROOM,
     'morning_med': constants.LOCATION_KITCHEN,
     'reading': constants.LOCATION_READINGROOM,
-    'kitchen': constants.ACTIVITY_KITCHEN,
+    'kitchen': constants.LOCATION_KITCHEN,
     'livingroom': constants.LOCATION_LIVINGROOM,
     'chores': ['Chores'],
     'desk_activity': constants.LOCATION_LIVINGROOM,
     'dining_room_activity': constants.LOCATION_DININGROOM,
-    'eve_med': constants.ACTIVITY_KITCHEN,
+    'eve_med': constants.LOCATION_KITCHEN,
     'leaving_home': constants.LOCATION_DOOR,
     'meditate': constants.LOCATION_BEDROOM
 }
@@ -668,10 +668,10 @@ def get_activity_by_audio_dnn(time_str, action='vision'):
     image_dir_name = get_exist_image_dir(time_str, action)
     if image_dir_name == '':
         return ['None']
-    print('===:', image_dir_name)
 
     audio_dir_name = image_dir_name.replace('Image', 'Audio')
-    
+    print('===:', audio_dir_name)
+
 
     write_notice_into_file(ASCC_AUDIO_DATA_NOTICE_FILE, audio_dir_name)
 
@@ -753,7 +753,7 @@ def get_activity_by_vision_dnn(time_str, action='vision'):
     # todo: re-train the model, use more imges
     # todo: check the code, how to get expected activity,  Miss activity: Expected: Sleep ,Detect: Meditate Running time: 2009-12-11 08:45:26
     # todo: check the image and recognition res when motion occurs 
-    print('res:', res_str)
+    print('vision_dnn res:', res_str)
 
     res_list = res_str.split('\t')
     res_dict = {}

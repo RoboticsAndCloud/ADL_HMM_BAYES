@@ -427,6 +427,7 @@ while(pre_activity == ''):
 need_recollect_data = False
 p_check_level = 4
 start_check_interval = 0
+p_less_than_threshold_check_cnt = 0
 while(not env.done):
 
     # TODO:
@@ -580,9 +581,6 @@ while(not env.done):
 
         print('hmm_prob:', hmm_prob)
 
-        p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
-        p = p2 * hmm_prob
-
         if need_recollect_data:
             p1 = bayes_model_location.get_prob(pre_act_list, act, location, activity_duration)
             p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
@@ -597,6 +595,9 @@ while(not env.done):
             print('p2:', p2)
             print('p3:', p3)
             print('p4:', p4)
+        else:
+            p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
+            p = p2 * hmm_prob
 
             
         print("motion step act:", act)
@@ -663,13 +664,15 @@ while(not env.done):
         # if (p_activity_end < 0.01):
         #     need_recollect_data = True
         #     p_check_level = p_check_level -1
-        print("need_recollect_data p_check_level:", need_recollect_data, ' ', p_check_level)
+        print("***need_recollect_data p_check_level:", need_recollect_data, ' ', p_check_level)
+        if need_recollect_data:
+            p_less_than_threshold_check_cnt = p_less_than_threshold_check_cnt + 1
 
 
     print('pre_act_list:', pre_act_list)
     print('heap_prob:', heap_prob)
     top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
-    print('top3_prob:', top3_prob)
+    print('***top3_prob:', top3_prob)
     # TODO: normalization for the top3 prob
     # if top3_prob[0] < threshold:
     #     need_recollect_data = True
@@ -748,11 +751,14 @@ print('rank1_res_prob_norm:', rank1_res_prob_norm)
 print('rank2_res_prob_norm:', rank2_res_prob_norm)
 print('rank3_res_prob_norm:', rank3_res_prob_norm)
 
+print('location_res len:', len(location_res))
 print('location_res:', location_res)
 print('audio_type_res:', audio_type_res)
 print('motion_type_res:', motion_type_res)
 
+print('transition_motion_occur len:', len(transition_motion_occur))
 print('transition_motion_occur:', transition_motion_occur)
+print('p_less_than_threshold_check_cnt(uncertain when p < 0.4, 0.3, 0.2):', p_less_than_threshold_check_cnt)
 
 # # motion probabilities during activities
 # print('p_sitting_prob:', len(p_sitting_prob))
