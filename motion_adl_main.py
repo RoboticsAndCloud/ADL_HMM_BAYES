@@ -7,12 +7,15 @@ Date: 07/10/2022
 from datetime import datetime
 from pickle import TRUE
 import random
+
+import constantly
 #from tkinter.messagebox import NO
 
 import hmm
 import motion_env_ascc
 import motion_adl_bayes_model
 import tools_ascc
+import constants
 
 
 
@@ -96,6 +99,30 @@ def get_object_by_activity(activity):
         res = sd[index][0]
 
     return res
+
+
+# get object by CNN model
+def get_object_by_activity_cnn(time_str):
+    """
+    # Location
+    LOCATION_READINGROOM = 'readingroom'
+    LOCATION_BATHROOM = 'bathroom'
+    LOCATION_BEDROOM = 'bedroom'
+    LOCATION_LIVINGROOM = 'livingroom'
+    LOCATION_KITCHEN = 'Kitchen'
+    LOCATION_DININGROOM = 'diningroom'
+    LOCATION_DOOR = 'door'
+    LOCATION_LOBBY = 'lobby'
+    """
+    # Mapping
+
+    # should be act : probability
+    # /home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/src/
+    # ascc_room_activity_test.py
+    object, prob = tools_ascc.get_activity_by_vision_dnn(time_str, action='vision', mode='None-map')
+    print('get_object_by_activity_cnn time_str:', time_str, ' object:', object, ' prob:', prob)
+
+    return object, float(prob)
 
 def get_location_by_activity(activity):
     """
@@ -331,7 +358,7 @@ while(pre_activity == ''):
     location, location_prob = get_location_by_activity_cnn(cur_time_str)
     bayes_model_location.set_location_prob(location_prob)
 
-    # object, object_prob = get_object_by_activity(cur_time_str)
+    # object, object_prob = get_object_by_activity_cnn(cur_time_str)
     # bayes_model_object.set_location_prob(object_prob)
 
     audio_type, audio_type_prob = get_audio_type_by_activity_cnn(cur_time_str)
@@ -370,6 +397,7 @@ while(pre_activity == ''):
         # p4 = bayes_model_object.get_prob(pre_act_list, act, object, 0)
 
         p4 = 1
+        p3 = 1
 
         p = p1*p2*p3*p4 * hmm_prob
              
@@ -586,7 +614,27 @@ while(not env.done):
             p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
             p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
             # p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
+
             p4 = 1
+            p3 = 1
+            
+            # todo, in the living room, we can collect audio data more times (3 -r times), to confirm the activity
+            # or, we can get object activity
+            if audio_type == constants.AUDIO_TYPE_ENV:
+                if location == constants.LOCATION_LIVINGROOM:
+                    if object == constants.ACTIVITY_DESK_ACTIVITY:
+                        res_object = constants.OBJECT_PAPER
+                        res_object = constants.OBJECT_LAPTOP # random
+                    elif object == constants.ACTIVITY_READ:
+                        res_object = constants.OBJECT_BOOK
+                    elif object == constants.LOCATION_LIVINGROOM:
+                        res_object = constants.OBJECT_TV
+                        
+                    # p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
+
+                    # get the object and bayes probability
+                    # Reading, Watch Tv, Desk_Activity
+                    pass
 
             p = p1*p2*p3*p4 * hmm_prob
             

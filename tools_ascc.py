@@ -721,7 +721,7 @@ def sorter_take_count(elem):
     # print('elem:', elem)
     return elem[1]
 
-def get_activity_by_vision_dnn(time_str, action='vision'):
+def get_activity_by_vision_dnn(time_str, action='vision', mode='map'):
 
     date_format_str = '%Y-%m-%d %H:%M:%S'
     if DEBUG:
@@ -770,7 +770,8 @@ def get_activity_by_vision_dnn(time_str, action='vision'):
 
         res_dict[location] = res_dict.get(key, 0) + 1
 
-    res = ACTIVITY_LOCATION_MAPPING[res_location]
+    if mode == 'map':
+        res = ACTIVITY_LOCATION_MAPPING[res_location]
     #print('res_activity_list:', res_activity_list)
     return res, max_location_prob
 
