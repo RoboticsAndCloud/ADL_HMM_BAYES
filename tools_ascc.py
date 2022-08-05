@@ -770,9 +770,35 @@ def get_activity_by_vision_dnn(time_str, action='vision', mode='map'):
 
         res_dict[location] = res_dict.get(key, 0) + 1
 
+
+
+
+    res_list = res_str.split('\t')
+    res_dict = {}
+    for key in res_list:
+        location = key.split('(')[0]
+        prob = key.split('(')[1].split(')')[0]
+        res_dict[location] = res_dict.get(location, 0) + 1
+    
+    # sd = sorted(res_dict.items(), reverse=False)
+    sd = sorted(res_dict.items(), key=sorter_take_count, reverse=True)
+
+    # print(res_dict.items())
+
+    for k,v in sd:
+        print('res2:', k, ' v:', v)
+        res2 = k
+        break
+
+    if res != res2:
+        print('res:', res, ' res2:', res2)
+        res = res2
+
+    #print('res_activity_list:', res_activity_list)
+
     if mode == 'map':
         res = ACTIVITY_LOCATION_MAPPING[res_location]
-    #print('res_activity_list:', res_activity_list)
+
     return res, max_location_prob
 
 
