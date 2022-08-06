@@ -667,7 +667,7 @@ def get_activity_by_audio_dnn(time_str, action='vision'):
 
     image_dir_name = get_exist_image_dir(time_str, action)
     if image_dir_name == '':
-        return ['None']
+        return '', -1
 
     audio_dir_name = image_dir_name.replace('Image', 'Audio')
     print('===:', audio_dir_name)
@@ -707,6 +707,9 @@ def get_exist_image_dir(time_str, action='vision'):
     for i in range( 60*60 ):
         new_time = d_act + timedelta(seconds = i)
         ascc_dir_time = convert_time_to_real(new_time)
+        # ignore the walking period from 18:50 -20:35, walk around in home
+
+
         image_dir_name = ASCC_DATA_SET_DIR + '/' + 'Image/' + ascc_dir_time + '/'
 
         if os.path.exists(image_dir_name) == True:
@@ -730,7 +733,7 @@ def get_activity_by_vision_dnn(time_str, action='vision', mode='map'):
 
     image_dir_name = get_exist_image_dir(time_str, action)
     if image_dir_name == '':
-        return ['None']
+        return '', -1
     print('===:', image_dir_name)
     
 
@@ -770,8 +773,7 @@ def get_activity_by_vision_dnn(time_str, action='vision', mode='map'):
 
         res_dict[location] = res_dict.get(key, 0) + 1
 
-
-
+    res = res_location
 
     res_list = res_str.split('\t')
     res_dict = {}
@@ -797,7 +799,7 @@ def get_activity_by_vision_dnn(time_str, action='vision', mode='map'):
     #print('res_activity_list:', res_activity_list)
 
     if mode == 'map':
-        res = ACTIVITY_LOCATION_MAPPING[res_location]
+        res = ACTIVITY_LOCATION_MAPPING[res]
 
     return res, max_location_prob
 

@@ -8,7 +8,7 @@ from datetime import datetime
 from pickle import TRUE
 import random
 
-import constantly
+#import constants
 #from tkinter.messagebox import NO
 
 import hmm
