@@ -11,6 +11,8 @@ import numpy as np
 import os
 import time
 import logging
+from timeit import default_timer as timer
+
 
 labels = ['door_open_closed', 'eating', 'keyboard', 'pouring_water_into_glass', 'toothbrushing', 'vacuum',
  'drinking', 'flush_toilet', 'microwave', 'quiet', 'tv_news', 'washing_hand']
@@ -70,6 +72,8 @@ def CNN_test(test_fold, feat):
 
         pre_test_dir = test_dir
 
+        start = timer()
+
         try:
             t2= time.time()
             path = test_dir + '/' + 'recorded.wav'
@@ -93,6 +97,10 @@ def CNN_test(test_fold, feat):
             res = pre + '(' + str(val) + ')'
         except:
             print("ERROR........")
+
+    
+        end = timer()
+        print("Get_prediction time cost:", end-start)   
 
         write_res_into_file(ASCC_DATA_RES_FILE, res)            
 

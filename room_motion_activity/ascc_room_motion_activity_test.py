@@ -5,6 +5,7 @@ from keras.models import Model
 from keras.applications.xception import Xception, preprocess_input, decode_predictions
 import os
 import time
+from timeit import default_timer as timer
 import pandas as pd
 
 from sklearn.model_selection import train_test_split
@@ -947,6 +948,7 @@ def run():
             print('motion_file not exist:', motion_file)
             continue
 
+        start = timer()
         pred_list, prob_list = get_activity_prediction(str(motion_file), act = 'Sitting', time_str = '0')
 
         for i in range(len(pred_list)):
@@ -960,6 +962,8 @@ def run():
             logging.info('Pred:%s', label + '(' + str(prob) + ')')
 
             res.append(label + '(' + str(prob) + ')')
+        end = timer()
+        print("Get_prediction time cost:", end-start)
 
         write_res_into_file(ASCC_DATA_RES_FILE, res)            
 
@@ -1462,8 +1466,8 @@ if __name__ == "__main__":
     log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
     logging.info("Hello World!!!")
     #test()
-    test_dnn()
-    # run()
+    # test_dnn()
+    run()
     
 
 

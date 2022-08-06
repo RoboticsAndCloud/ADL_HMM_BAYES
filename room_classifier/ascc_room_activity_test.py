@@ -5,6 +5,8 @@ from keras.models import Model
 from keras.applications.xception import Xception, preprocess_input, decode_predictions
 import os
 import time
+from timeit import default_timer as timer
+
 
 import log
 import logging
@@ -234,7 +236,8 @@ def run():
         rows, cols = 6, 7
 
         res = []
-
+        start = timer()
+        
         for num,img in enumerate(images):
             file = img
             # print('file:', file)
@@ -252,6 +255,9 @@ def run():
             # img = Image.open(img).convert('RGB')
             # plt.imshow(img)
             # plt.savefig("test_res.png")
+
+        end = timer()
+        print("Get_prediction time cost:", end-start)    
         
         write_res_into_file(ASCC_DATA_RES_FILE, res)            
 

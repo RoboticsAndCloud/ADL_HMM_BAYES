@@ -156,12 +156,21 @@ ACTION_DICT = {
 }
 
 
+# todo: time cost for recognition:  image: 1.15 for 10 images, audio:0.1, motion: 1.14, totally: 2.5
 ACTION_INTERVAL_DICT = {
     0: 1,  # "audio",
     1: 1.0/3, #"vision",
     2: 3, #"motion"
     3: 4+1.0/3, # fusion
 }
+
+# ACTION_INTERVAL_DICT = {
+#     0: 1.1,  # "audio",
+#     1: 1.15 + 1.0/3, #"vision",
+#     2: 3+1.14, #"motion"
+#     3: 1.1+1.15+1.0/3+3+1.14, # fusion
+# }
+
 
 AUDIO_ACTION_LIST = [0]
 VISION_ACTION_LIST = [1]
