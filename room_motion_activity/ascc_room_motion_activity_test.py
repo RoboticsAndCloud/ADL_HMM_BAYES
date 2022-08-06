@@ -1450,7 +1450,7 @@ def test_dnn():
 
     # get_activity_by_motion_dnn('20220804151607', 'Sit_Stand_Walk_in_kitchen')
     #get_activity_by_motion_dnn('2009-12-11-10-06-38', 'sitting?')
-    get_activity_by_motion_dnn('stand', 'sitting?')
+    get_activity_by_motion_dnn('walk', 'test?')
 
     
 

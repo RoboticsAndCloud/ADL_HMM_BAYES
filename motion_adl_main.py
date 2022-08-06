@@ -304,6 +304,8 @@ pre_act_list = []
 location_res = []
 audio_type_res = []
 motion_type_res = []
+object_res = []
+
 
 transition_motion_occur = []
 
@@ -358,8 +360,8 @@ while(pre_activity == ''):
     location, location_prob = get_location_by_activity_cnn(cur_time_str)
     bayes_model_location.set_location_prob(location_prob)
 
-    # object, object_prob = get_object_by_activity_cnn(cur_time_str)
-    # bayes_model_object.set_location_prob(object_prob)
+    object, object_prob = get_object_by_activity_cnn(cur_time_str)
+    bayes_model_object.set_object_prob(object_prob)
 
     audio_type, audio_type_prob = get_audio_type_by_activity_cnn(cur_time_str)
     bayes_model_audio.set_audio_type_prob(float(audio_type_prob))
@@ -371,9 +373,10 @@ while(pre_activity == ''):
     location_res.append([location, location_prob])
     audio_type_res.append([audio_type, audio_type_prob])
     motion_type_res.append([motion_type, motion_type_prob])
+    object_res.append([object, object_prob])
 
     print('location:', location)
-    # print('object:', object)
+    print('object:', object)
     print('audio_type:', audio_type)
     print('motion_type:', motion_type)
 
@@ -472,8 +475,8 @@ while(not env.done):
         location, location_prob = get_location_by_activity_cnn(cur_time_str)
         bayes_model_location.set_location_prob(location_prob)
 
-        # object, object_prob = get_object_by_activity(cur_time_str)
-        # bayes_model_object.set_location_prob(object_prob)
+        object, object_prob = get_object_by_activity_cnn(cur_time_str)
+        bayes_model_object.set_object_prob(object_prob)
 
         audio_type, audio_type_prob = get_audio_type_by_activity_cnn(cur_time_str)
         bayes_model_audio.set_audio_type_prob(audio_type_prob)
@@ -586,7 +589,7 @@ while(not env.done):
     # audio_type = get_audio_type_by_activity(cur_activity)
 
     print('location:', location)
-    # print('object:', object)
+    print('object:', object)
     print('audio_type:', audio_type)
     print('motion_type:', motion_type)
 
@@ -627,10 +630,10 @@ while(not env.done):
                         res_object = constants.OBJECT_LAPTOP # random
                     elif object == constants.ACTIVITY_READ:
                         res_object = constants.OBJECT_BOOK
-                    elif object == constants.LOCATION_LIVINGROOM:
-                        res_object = constants.OBJECT_TV
+                    # elif object == constants.LOCATION_LIVINGROOM:
+                    #     res_object = constants.OBJECT_TV
                         
-                    # p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
+                    p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
 
                     # get the object and bayes probability
                     # Reading, Watch Tv, Desk_Activity

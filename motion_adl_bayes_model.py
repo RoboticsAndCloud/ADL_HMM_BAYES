@@ -620,6 +620,7 @@ class Bayes_Model_Motion(object):
 
         else:
             # find the probability of location from CNN recognition results
+            p = self.motion_type_prob
             pass
 
         print('prob_of_motion_type_using_motion motion_type, act, p:', motion_type, ' ', act, ' ', p)
@@ -898,6 +899,9 @@ class Bayes_Model_Vision_Object(object):
     def set_object(self, object):
         self.object = object
 
+    def set_object_prob(self, prob):
+        self.object_prob = prob
+
     def get_prob(self, pre_activity, act_name, object, activity_duration, mode=None):
         """ Return the state set of this model. """
         p = 0
@@ -1021,6 +1025,7 @@ class Bayes_Model_Vision_Object(object):
 
         else:
             # find the probability of location from CNN recognition results
+            p = self.object_prob
             pass
 
         print('prob_of_object_using_vision object, act, p:', object, ' ', act, ' ', p)
