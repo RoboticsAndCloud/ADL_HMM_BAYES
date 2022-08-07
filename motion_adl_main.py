@@ -619,25 +619,25 @@ while(not env.done):
             # p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
 
             p4 = 1
-            p3 = 1
+            # p3 = 1
             
             # todo, in the living room, we can collect audio data more times (3 -r times), to confirm the activity
             # or, we can get object activity
-            if audio_type == constants.AUDIO_TYPE_ENV:
-                if location == constants.LOCATION_LIVINGROOM:
-                    if object == constants.ACTIVITY_DESK_ACTIVITY:
-                        res_object = constants.OBJECT_PAPER
-                        res_object = constants.OBJECT_LAPTOP # random
-                    elif object == constants.ACTIVITY_READ:
-                        res_object = constants.OBJECT_BOOK
-                    # elif object == constants.LOCATION_LIVINGROOM:
-                    #     res_object = constants.OBJECT_TV
-                        
-                    p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
+            #if audio_type == constants.AUDIO_TYPE_ENV:
+            if location == constants.LOCATION_LIVINGROOM:
+                if object == constants.ACTIVITY_DESK_ACTIVITY:
+                    res_object = constants.OBJECT_PAPER
+                    res_object = constants.OBJECT_LAPTOP # random
+                elif object == constants.ACTIVITY_READ:
+                    res_object = constants.OBJECT_BOOK
+                elif object == constants.LOCATION_LIVINGROOM:
+                    res_object = constants.OBJECT_TV
+                # p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
+                p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
 
-                    # get the object and bayes probability
-                    # Reading, Watch Tv, Desk_Activity
-                    pass
+                # get the object and bayes probability
+                # Reading, Watch Tv, Desk_Activity
+                pass
 
             p = p1*p2*p3*p4 * hmm_prob
             
