@@ -246,7 +246,7 @@ ACTIVITY_LOCATION_MAPPING = {
     'reading': constants.LOCATION_LIVINGROOM,
     'kitchen': constants.LOCATION_KITCHEN,
     'livingroom': constants.LOCATION_LIVINGROOM,
-    'chores': ['Chores'],
+    'chores': 'Chores',
     'desk_activity': constants.LOCATION_LIVINGROOM,
     'dining_room_activity': constants.LOCATION_DININGROOM,
     'eve_med': constants.LOCATION_KITCHEN,
@@ -254,6 +254,21 @@ ACTIVITY_LOCATION_MAPPING = {
     'meditate': constants.LOCATION_BEDROOM
 }
 
+
+ACTIVITY_LOWER_UPPER_CASE_MAPPING = {
+    'bathroom': constants.ACTIVITY_GUEST_BATHROOM,
+    'bedroom' : constants.ACTIVITY_MASTER_BEDROOM,
+    'morning_med': constants.ACTIVITY_MORNING_MEDS,
+    'reading': constants.ACTIVITY_READ,
+    'kitchen': constants.ACTIVITY_KITCHEN,
+    'livingroom': constants.ACTIVITY_WATCH_TV,
+    'chores': constants.ACTIVITY_CHORES,
+    'desk_activity': constants.ACTIVITY_DESK_ACTIVITY,
+    'dining_room_activity': constants.ACTIVITY_DINING_RM_ACTIVITY,
+    'eve_med': constants.ACTIVITY_EVE_MEDS,
+    'leaving_home': constants.ACTIVITY_LEAVE_HOME,
+    'meditate': constants.ACTIVITY_MEDITATE
+}
 
 # labels = ['door_open_closed', 'eating', 'keyboard', 'pouring_water_into_glass', 'toothbrushing', 'vacuum',
 #  'drinking', 'flush_toilet', 'microwave', 'quiet', 'tv_news', 'washing_hand']
@@ -800,6 +815,8 @@ def get_activity_by_vision_dnn(time_str, action='vision', mode='map'):
 
     if mode == 'map':
         res = ACTIVITY_LOCATION_MAPPING[res]
+    else:
+        res = ACTIVITY_LOWER_UPPER_CASE_MAPPING[res]
 
     return res, max_location_prob
 

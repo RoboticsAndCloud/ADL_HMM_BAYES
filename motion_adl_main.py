@@ -625,12 +625,13 @@ while(not env.done):
             # or, we can get object activity
             #if audio_type == constants.AUDIO_TYPE_ENV:
             if location == constants.LOCATION_LIVINGROOM:
+                res_object = location
                 if object == constants.ACTIVITY_DESK_ACTIVITY:
                     res_object = constants.OBJECT_PAPER
                     res_object = constants.OBJECT_LAPTOP # random
                 elif object == constants.ACTIVITY_READ:
                     res_object = constants.OBJECT_BOOK
-                elif object == constants.LOCATION_LIVINGROOM:
+                elif object == constants.ACTIVITY_WATCH_TV:
                     res_object = constants.OBJECT_TV
                 # p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
                 p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
@@ -679,45 +680,45 @@ while(not env.done):
 
     p_duration_lis.append(p_activity_end)
 
-    if activity_detected == pre_activity:
-        print('p_activity_end:', p_activity_end)
-        # todo if p_activity_end < 0.2, audio,vision+motion
-        if (p_activity_end < 0.4) and (p_check_level == 4):
-            start_check_interval_time = cur_time
-            need_recollect_data = True
-            p_check_level = p_check_level -1
-        if (p_activity_end < 0.3) and (p_check_level == 3):
-            start_check_interval_time = cur_time
-            need_recollect_data = True
-            p_check_level = p_check_level -1
-        if (p_activity_end < 0.2) and (p_check_level == 2):
-            start_check_interval_time = cur_time
-            p_check_level = p_check_level -1
+    # if activity_detected == pre_activity:
+    #     print('p_activity_end:', p_activity_end)
+    #     # todo if p_activity_end < 0.2, audio,vision+motion
+    #     if (p_activity_end < 0.4) and (p_check_level == 4):
+    #         start_check_interval_time = cur_time
+    #         need_recollect_data = True
+    #         p_check_level = p_check_level -1
+    #     if (p_activity_end < 0.3) and (p_check_level == 3):
+    #         start_check_interval_time = cur_time
+    #         need_recollect_data = True
+    #         p_check_level = p_check_level -1
+    #     if (p_activity_end < 0.2) and (p_check_level == 2):
+    #         start_check_interval_time = cur_time
+    #         p_check_level = p_check_level -1
 
-        if p_activity_end < 0.2:    
-            start_check_interval = (cur_time - start_check_interval_time).seconds 
-            print('start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
+    #     if p_activity_end < 0.2:    
+    #         start_check_interval = (cur_time - start_check_interval_time).seconds 
+    #         print('start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
 
-            if (int(start_check_interval) / UNCERTAIN_CHECK_INTERVAL) >= 1:
-                need_recollect_data = True
-                print('reset start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
-                start_check_interval = 0
-                start_check_interval_time = cur_time
+    #         if (int(start_check_interval) / UNCERTAIN_CHECK_INTERVAL) >= 1:
+    #             need_recollect_data = True
+    #             print('reset start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
+    #             start_check_interval = 0
+    #             start_check_interval_time = cur_time
 
-        #     need_recollect_data = True
-        #     p_check_level = p_check_level -1
-        # if (p_activity_end < 0.1) and (p_check_level == 1):
-        #     need_recollect_data = True
-        #     p_check_level = p_check_level -1
-        # if (p_activity_end < 0.05) and (p_check_level == 0):
-        #     need_recollect_data = True
-        #     p_check_level = p_check_level -1
-        # if (p_activity_end < 0.01):
-        #     need_recollect_data = True
-        #     p_check_level = p_check_level -1
-        print("############need_recollect_data p_check_level:", need_recollect_data, ' ', p_check_level)
-        if need_recollect_data:
-            p_less_than_threshold_check_cnt = p_less_than_threshold_check_cnt + 1
+    #     #     need_recollect_data = True
+    #     #     p_check_level = p_check_level -1
+    #     # if (p_activity_end < 0.1) and (p_check_level == 1):
+    #     #     need_recollect_data = True
+    #     #     p_check_level = p_check_level -1
+    #     # if (p_activity_end < 0.05) and (p_check_level == 0):
+    #     #     need_recollect_data = True
+    #     #     p_check_level = p_check_level -1
+    #     # if (p_activity_end < 0.01):
+    #     #     need_recollect_data = True
+    #     #     p_check_level = p_check_level -1
+    #     print("############need_recollect_data p_check_level:", need_recollect_data, ' ', p_check_level)
+    #     if need_recollect_data:
+    #         p_less_than_threshold_check_cnt = p_less_than_threshold_check_cnt + 1
 
 
     print('pre_act_list:', pre_act_list)
