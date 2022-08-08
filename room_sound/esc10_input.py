@@ -70,7 +70,7 @@ def get_data(test_fold, feat):
     return train_x, train_y, test_x, test_y
 
 
-def get_data_all(test_fold, feat):
+def get_data_all(test_fold, feat, number_class=12):
     """load feature for train and test"""
     # load feature
 
@@ -89,8 +89,8 @@ def get_data_all(test_fold, feat):
     print("train_y: ",len(train_y))
     print("train_x: ",len(test_y))
 
-    train_y = dense_to_one_hot(train_y, 33)
-    test_y = dense_to_one_hot(test_y, 33)
+    train_y = dense_to_one_hot(train_y, 12)
+    test_y = dense_to_one_hot(test_y, 12)
 
     # z-score normalization
     mean = np.mean(train_x)

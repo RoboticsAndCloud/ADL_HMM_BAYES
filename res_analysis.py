@@ -37,8 +37,8 @@ cnt = 0
 #         print('index:', i)
 #         print(tmp)
 
-start = 5800
-end = 6000
+start = 5192
+end = 6042
 
 i = start
 res_dict ={}
@@ -66,6 +66,7 @@ output = ['Leave_Home', 'Dining_Rm_Activity', 'Kitchen_Activity', 'Read', 'Bed_t
 #print('time', '\t', 'rank1', '\t', 'rank2', '\t', 'rank3')
 print('time', '\t',output[0], '\t',output[1],'\t',output[2],'\t',output[3],'\t',output[4],'\t',output[5],'\t',output[6],'\t',output[7] )
 
+
 cnt = 0
 i = start
 while i <= end:
@@ -90,7 +91,7 @@ while i <= end:
 
         res_dict[act] = p
 
-    if cnt % 2 == 0:
+    if cnt % 3 == 0:
         print(rank1[i][2], '\t',res_dict[output[0]], '\t',res_dict[output[1]],'\t',res_dict[output[2]],'\t',res_dict[output[3]],'\t',res_dict[output[4]],'\t',res_dict[output[5]],'\t',res_dict[output[6]],'\t',res_dict[output[7]] )
 
     cnt = cnt + 1
@@ -100,7 +101,59 @@ while i <= end:
    
     # print(rank1[i][2], '\t', rank1_res_prob_norm[i], '\t', rank2_res_prob_norm[i], '\t', rank3_res_prob_norm[i])
 
-
     i = i + 1
 
 # print('rank3:', len(rank3))
+
+print('==========================')
+# i = start
+# cnt = 0
+# import constants
+# while i <= end:
+#     if cnt % 3 == 0:
+#         print(rank1[i][2], '\t', constants.ACTIVITY_DICT_INDEX[rank1[i][0]])
+
+#     i += 1
+#     cnt += 1
+
+
+
+for act in rank_set:
+    res_dict[act] = 0
+
+output = ['Leave_Home', 'Dining_Rm_Activity', 'Kitchen_Activity', 'Read', 'Bed_to_Toilet', 'Morning_Meds', 'Master_Bathroom', 'Guest_Bathroom']
+#print('time', '\t', 'rank1', '\t', 'rank2', '\t', 'rank3')
+print('time', '\t',output[0], '\t',output[1],'\t',output[2],'\t',output[3],'\t',output[4],'\t',output[5],'\t',output[6],'\t',output[7] )
+
+
+cnt = 0
+i = start
+while i <= end:
+    # print(rank1[i][0], rank2[i][0], rank3[i][0])
+
+    # print(rank1[i][1], '\t', rank2[i][1], '\t', rank3[i][1])
+    p_rank1 = rank1_res_prob_norm[i]
+    p_rank2 = (1-p_rank1) * (rank2[i][1] + 1e-200)/(rank2[i][1]+ 1e-200+rank3[i][1]+ 1e-200)
+    p_rank3 = (1-p_rank1) * (rank3[i][1] + 1e-200)/(rank2[i][1]+ 1e-200+rank3[i][1]+ 1e-200)
+    # print(rank1[i][2], '\t', p_rank1, '\t', p_rank2, '\t', p_rank3)
+
+    p = 0
+    for act in rank_set:
+        if rank1[i][0] == act:
+            p = 1
+        else:
+            p = 0
+
+        res_dict[act] = p
+
+    if cnt % 3 == 0:
+        print(rank1[i][2], '\t',res_dict[output[0]], '\t',res_dict[output[1]],'\t',res_dict[output[2]],'\t',res_dict[output[3]],'\t',res_dict[output[4]],'\t',res_dict[output[5]],'\t',res_dict[output[6]],'\t',res_dict[output[7]] )
+
+    cnt = cnt + 1
+
+        
+
+   
+    # print(rank1[i][2], '\t', rank1_res_prob_norm[i], '\t', rank2_res_prob_norm[i], '\t', rank3_res_prob_norm[i])
+
+    i = i + 1

@@ -174,7 +174,7 @@ ACTIVITY_MASTER_BEDROOM : {OBJECT_MEDICINE:0.2}
 
 }
 
-MIN_Prob = 1e-100
+MIN_Prob = 1e-150
 
 act_duration_cnt_dict = tools_ascc.get_activity_duration_cnt_set()
 
