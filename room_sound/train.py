@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-@author: Jason Zhang
-@github: https://github.com/JasonZhang156/Sound-Recognition-Tutorial
+@author: Fei Liang
+
+@Reference: github: https://github.com/JasonZhang156/Sound-Recognition-Tutorial
+
+tensorboard --logdir="./log/foldone_second"
+
 """
 
 from keras.callbacks import TensorBoard, ModelCheckpoint, LearningRateScheduler
@@ -11,6 +15,32 @@ import esc10_input
 import numpy as np
 import models
 import os
+
+import matplotlib.pyplot as plt
+
+def plot_learningCurve(history, epochs):
+    # Plot training & validation accuracy values
+    plt.figure()
+    epoch_range = range(1, epochs+1)
+    plt.plot(epoch_range, history.history['accuracy'])
+    plt.plot(epoch_range, history.history['val_accuracy'])
+    plt.title('Model accuracy')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Val'], loc='upper left')
+    plt.show()
+    plt.savefig("accuracy.png")
+
+    # Plot training & validation loss values
+    plt.figure()
+    plt.plot(epoch_range, history.history['loss'])
+    plt.plot(epoch_range, history.history['val_loss'])
+    plt.title('Model loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Val'], loc='upper left')
+    plt.show()
+    plt.savefig("loss.png")
 
 
 def use_gpu():
@@ -44,12 +74,12 @@ def CNN_train(test_fold, feat):
 
     # 读取特征数据
     # train_features, train_labels, test_features, test_labels = esc10_input.get_data(test_fold, feat)
-    ob_folder = './data/ascc_activity_1second/feature/ascc_logmel_total.npz'
+    ob_folder = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity_1second/feature/ascc_logmel_total.npz'
     train_features, train_labels, test_features, test_labels = esc10_input.get_data_all(ob_folder, feat)
 
     print(train_features.shape)
     # 一些超参的配置
-    epoch = 60
+    epoch = 5
     num_class = 33
     batch_size = 128
     input_shape = (64, 138, 1)
@@ -65,8 +95,11 @@ def CNN_train(test_fold, feat):
     # 训练模型
     # model.fit(train_features, train_labels, batch_size=batch_size, nb_epoch=epoch, verbose=1, validation_split=0.1,
     #           callbacks=[checkpoint, reduce_lr, logs])
-    model.fit(train_features, train_labels, batch_size=batch_size, epochs=epoch, verbose=1, validation_split=0.1,
+    history = model.fit(train_features, train_labels, batch_size=batch_size, epochs=epoch, verbose=1, validation_split=0.1,
               callbacks=[checkpoint, reduce_lr, logs])
+
+    plot_learningCurve(history, epoch)
+
     # 保存模型
     model.save('./saved_model/cnn_{}_fold{}.h5'.format(feat, test_fold))
 
