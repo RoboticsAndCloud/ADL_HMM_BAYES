@@ -251,7 +251,8 @@ ACTIVITY_LOCATION_MAPPING = {
     'dining_room_activity': constants.LOCATION_DININGROOM,
     'eve_med': constants.LOCATION_KITCHEN,
     'leaving_home': constants.LOCATION_DOOR,
-    'meditate': constants.LOCATION_BEDROOM
+    'meditate': constants.LOCATION_BEDROOM,
+    'lobby': constants.LOCATION_LOBBY
 }
 
 

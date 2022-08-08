@@ -4,7 +4,12 @@ from keras.layers import Input, Flatten, Dense, GlobalAveragePooling2D
 from keras.models import Model
 from keras.applications.xception import Xception, preprocess_input, decode_predictions
 
+import matplotlib.pyplot as plt
+
+
 MAX_EPOCH = 10
+
+history = ''
 
 def create_generators(train_data_dir, validation_data_dir):
     # Read Data and Augment it: Make sure to select augmentations that are appropriate to your images.
@@ -51,6 +56,43 @@ def create_model(num_classes):
         return model
 
 
+def plot_learningCurve(history, epochs):
+  # Plot training & validation accuracy values
+  plt.figure()
+  epoch_range = range(1, epochs+1)
+  plt.plot(epoch_range, history.history['accuracy'])
+  plt.plot(epoch_range, history.history['val_accuracy'])
+  plt.title('Model accuracy')
+  plt.ylabel('Accuracy')
+  plt.xlabel('Epoch')
+  plt.legend(['Train', 'Val'], loc='upper left')
+  plt.show()
+  plt.savefig("accuracy.png")
+
+  # Plot training & validation loss values
+  plt.figure()
+  plt.plot(epoch_range, history.history['loss'])
+  plt.plot(epoch_range, history.history['val_loss'])
+  plt.title('Model loss')
+  plt.ylabel('Loss')
+  plt.xlabel('Epoch')
+  plt.legend(['Train', 'Val'], loc='upper left')
+  plt.show()
+  plt.savefig("loss.png")
+
+
+def train2(train_generator, validation_generator, model, epoch = 1):
+    global history
+    history = model.fit_generator(train_generator,
+                        epochs=epoch,
+                        validation_data=validation_generator,
+                        steps_per_epoch=3,
+                        validation_steps=2,
+                        verbose=1)
+    
+    plot_learningCurve(history, epoch)
+
+
 def train(train_generator, validation_generator, model):
     model.fit_generator(train_generator,
                         epochs=1,
@@ -69,7 +111,7 @@ def predict(file, model, to_class):
     return to_class[index]
     
 
-DIR = "./"
+DIR = "/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/src/"
 IMG_WIDTH, IMG_HEIGHT = 299, 299 # set this according to keras documentation, each model has its own size
 BATCH_SIZE = 200 # decrease this if your computer explodes
 
@@ -81,11 +123,14 @@ to_class = {v:k for k,v in train_generator.class_indices.items()} # usefull when
 m = create_model(total_classes)
 
 # Run this several times until you get good acurracy in validation (wachout of overfitting)
-for i in range(MAX_EPOCH):
-    train(train_generator, validation_generator, m)
+# for i in range(MAX_EPOCH):
+#     train(train_generator, validation_generator, m)
+train2(train_generator, validation_generator, m, epoch=4)
+
+
 
 # execute this when you want to save the model
-MODEL_SAVED_PATH = 'saved-model'
+MODEL_SAVED_PATH = 'saved-model2'
 m.save(MODEL_SAVED_PATH)
 
 # execute this when you want to load the model
