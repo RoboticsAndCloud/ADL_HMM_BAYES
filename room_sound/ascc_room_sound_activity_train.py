@@ -71,17 +71,23 @@ def CNN_train(test_fold, feat):
             K.set_value(model.optimizer.lr, lr * 0.1)
             print("lr changed to {}".format(lr * 0.1))
         return K.get_value(model.optimizer.lr)
+    
+    
+    labels = ['door_open_closed', 'eating', 'keyboard', 'pouring_water_into_glass', 'vacuum', 'drinking', 'flush_toilet', 'quiet', 'tv_news', 'washing_hand']
+
+    num_class = 10
+
 
     # 读取特征数据
+    # total:2560, train:2044, test:516
     # train_features, train_labels, test_features, test_labels = esc10_input.get_data(test_fold, feat)
     ob_folder = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity_1second/feature/ascc_logmel_total.npz' # acc:0.9396
     # ob_folder = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity_5second/feature/ascc_logmel_total.npz'
-    train_features, train_labels, test_features, test_labels = esc10_input.get_data_all(ob_folder, feat, number_class=12)
+    train_features, train_labels, test_features, test_labels = esc10_input.get_data_all(ob_folder, feat, number_class=num_class)
 
     # print('train_labels: ',train_labels.shape)
     # 一些超参的配置
-    epoch = 50
-    num_class = 12
+    epoch = 1
     batch_size = 128
     input_shape = (64, 138, 1)
 
@@ -100,6 +106,38 @@ def CNN_train(test_fold, feat):
               callbacks=[checkpoint, reduce_lr, logs])
 
     plot_learningCurve(history, epoch)
+
+
+    # confusion matrix
+    from mlxtend.plotting import plot_confusion_matrix
+    from sklearn.metrics import confusion_matrix
+
+    # y_pred = model.predict_classes(X_test)
+
+    # print('X_test:', X_test)
+
+    predict_x=model.predict(test_features) 
+    y_pred=np.argmax(predict_x,axis=1)
+    print('y_pred len:', len(y_pred))
+    print('y_pred:', y_pred)
+    print('test_labels:', len(test_labels))
+
+    print('test_labels:', test_labels)
+    test_rounded_labels=np.argmax(test_labels, axis=1)
+    print('test_rounded_labels:', test_rounded_labels)
+
+    plt.figure()
+    mat = confusion_matrix(test_rounded_labels, y_pred)
+    cm = plot_confusion_matrix(conf_mat=mat, class_names=labels, show_normed=True, figsize=(7,7))
+    
+    # import seaborn as sns
+    # ax = plt.subplot()
+    # sns.set(font_scale=3.0) # Adjust to fit
+    # sns.heatmap(cm, annot=True, ax=ax, cmap="Blues", fmt="g");  
+
+    plt.show()
+    plt.savefig("cm_sound1.png")
+
 
     # 保存模型
     model.save('./saved_model/cnn_{}_fold{}.h5'.format(feat, test_fold))
