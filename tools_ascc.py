@@ -268,7 +268,8 @@ ACTIVITY_LOWER_UPPER_CASE_MAPPING = {
     'dining_room_activity': constants.ACTIVITY_DINING_RM_ACTIVITY,
     'eve_med': constants.ACTIVITY_EVE_MEDS,
     'leaving_home': constants.ACTIVITY_LEAVE_HOME,
-    'meditate': constants.ACTIVITY_MEDITATE
+    'meditate': constants.ACTIVITY_MEDITATE,
+    'lobby': constants.LOCATION_LOBBY # non activity here
 }
 
 # labels = ['door_open_closed', 'eating', 'keyboard', 'pouring_water_into_glass', 'toothbrushing', 'vacuum',

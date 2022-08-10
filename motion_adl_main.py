@@ -743,6 +743,10 @@ while(not env.done):
     #        
     cur_activity = top3_prob[0][0]
 
+    if location == constants.LOCATION_LOBBY:
+        cur_activity = pre_activity
+        print('++++++++++++++Around Lobby,', cur_time_str)
+
     if pre_activity != cur_activity:
         pre_activity = cur_activity
         pre_act_list.append(pre_activity)

@@ -96,9 +96,6 @@ while i <= end:
 
     cnt = cnt + 1
 
-        
-
-   
     # print(rank1[i][2], '\t', rank1_res_prob_norm[i], '\t', rank2_res_prob_norm[i], '\t', rank3_res_prob_norm[i])
 
     i = i + 1
@@ -106,17 +103,19 @@ while i <= end:
 # print('rank3:', len(rank3))
 
 print('==========================')
-# i = start
-# cnt = 0
-# import constants
-# while i <= end:
-#     if cnt % 3 == 0:
-#         print(rank1[i][2], '\t', constants.ACTIVITY_DICT_INDEX[rank1[i][0]])
+print('time', '\t', 'act index')
+i = start
+cnt = 0
+import constants
+while i <= end:
+    if cnt % 3 == 0:
+        print(rank1[i][2], '\t', constants.ACTIVITY_DICT_INDEX[rank1[i][0]])
 
-#     i += 1
-#     cnt += 1
+    i += 1
+    cnt += 1
 
 
+print('===============================================')
 
 for act in rank_set:
     res_dict[act] = 0
@@ -157,3 +156,19 @@ while i <= end:
     # print(rank1[i][2], '\t', rank1_res_prob_norm[i], '\t', rank2_res_prob_norm[i], '\t', rank3_res_prob_norm[i])
 
     i = i + 1
+
+
+
+
+print('==========================All activities')
+print('time', '\t', 'act index')
+i = 0
+cnt = 0
+import constants
+end = len(rank1)
+while i < end:
+    if cnt % 3 == 0:
+        print(rank1[i][2], '\t', constants.ACTIVITY_DICT_INDEX[rank1[i][0]])
+
+    i += 1
+    cnt += 1

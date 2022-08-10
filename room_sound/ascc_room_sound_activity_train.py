@@ -90,7 +90,7 @@ def CNN_train(test_fold, feat):
 
     # print('train_labels: ',train_labels.shape)
     # 一些超参的配置
-    epoch = 50
+    epoch = 70
     batch_size = 128
     input_shape = (64, 138, 1)
 

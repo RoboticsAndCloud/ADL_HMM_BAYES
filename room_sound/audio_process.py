@@ -98,14 +98,14 @@ if __name__ == '__main__':
     source_dir = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity/eating'
     target_dir = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity_1second/eating'
 
-    source_dir = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity/keyboard'
-    target_dir = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity_1second/keyboard'
+    source_dir = '/home/ascc/Desktop/Sample_set/whand/'
+    target_dir = '/home/ascc/Desktop/Sample_set/whand_1sec/'
 
     
-    #cnt = audio_file_truncate(source_dir, target_dir)
-    # print('Count:', cnt)
+    cnt = audio_file_truncate(source_dir, target_dir)
+    print('Count:', cnt)
     
-    audio_file_truncate_by_dir('/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity/')   
+    # audio_file_truncate_by_dir('/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity/')   
 
 
 # dir = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/senior_design/Server/data/audio/'
