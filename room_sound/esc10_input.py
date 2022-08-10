@@ -89,8 +89,8 @@ def get_data_all(test_fold, feat, number_class=12):
     print("train_y: ",len(train_y))
     print("train_x: ",len(test_y))
 
-    train_y = dense_to_one_hot(train_y, 12)
-    test_y = dense_to_one_hot(test_y, 12)
+    train_y = dense_to_one_hot(train_y, number_class)
+    test_y = dense_to_one_hot(test_y, number_class)
 
     # z-score normalization
     mean = np.mean(train_x)

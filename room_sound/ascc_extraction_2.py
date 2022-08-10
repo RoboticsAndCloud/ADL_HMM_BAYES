@@ -12,8 +12,11 @@ import feature_extraction as fe
 import warnings
 warnings.filterwarnings('ignore')
 
-labels = ['door_open_closed', 'eating', 'keyboard', 'pouring_water_into_glass', 'toothbrushing', 'vacuum',
- 'drinking', 'flush_toilet', 'microwave', 'quiet', 'tv_news', 'washing_hand']
+# labels = ['door_open_closed', 'eating', 'keyboard', 'pouring_water_into_glass', 'toothbrushing', 'vacuum',
+#  'drinking', 'flush_toilet', 'microwave', 'quiet', 'tv_news', 'washing_hand']
+
+labels = ['door_open_closed', 'eating', 'keyboard', 'pouring_water_into_glass', 'vacuum',
+ 'drinking', 'flush_toilet', 'quiet', 'tv_news', 'washing_hand']
 
 def pad_truncate_sequence(x, max_len):
     if len(x) < max_len:
@@ -23,10 +26,10 @@ def pad_truncate_sequence(x, max_len):
 
 def extract_esc10_feat():
     # 5-fold cross validation settings
-    cv_index = np.load('cvindex.npz')
+    # cv_index = np.load('cvindex.npz')
 
-    TR = cv_index['TR']  # train fold
-    TE = cv_index['TE']  # test fold
+    # TR = cv_index['TR']  # train fold
+    # TE = cv_index['TE']  # test fold
     # print(TR)
     # print(TE)
 
@@ -113,10 +116,12 @@ flush_toilet@9_freesound-flush_toilet__253105__va7mjl__toilet-flush_4.wav
 
     print('train_feats:', train_feats.shape)
     print('test_feat:', test_feats.shape)
+    print('test_labes:', test_labels.shape)
+    print('test_labes:',test_labels)
 
     # np.savez('./data/esc10/feature/esc10_mfcc_fold{}.npz'.format(fold),
     #          train_x=train_feats, train_y=train_labels, test_x=test_feats, test_y=test_labels)
-    np.savez('./data/ascc_activity_1second/feature/ascc_logmel_total.npz',
+    np.savez('/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity_1second/feature/ascc_logmel_total.npz',
                 train_x=train_feats, train_y=train_labels, test_x=test_feats, test_y=test_labels)
 
 

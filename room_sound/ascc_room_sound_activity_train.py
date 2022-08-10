@@ -79,7 +79,10 @@ def CNN_train(test_fold, feat):
 
 
     # 读取特征数据
-    # total:2560, train:2044, test:516
+    # total sample:  2324
+    # train_feats: (1855, 64, 138)
+    # test_feat: (469, 64, 138)
+    # test_labes: (469,)
     # train_features, train_labels, test_features, test_labels = esc10_input.get_data(test_fold, feat)
     ob_folder = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity_1second/feature/ascc_logmel_total.npz' # acc:0.9396
     # ob_folder = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity_5second/feature/ascc_logmel_total.npz'
@@ -87,7 +90,7 @@ def CNN_train(test_fold, feat):
 
     # print('train_labels: ',train_labels.shape)
     # 一些超参的配置
-    epoch = 1
+    epoch = 50
     batch_size = 128
     input_shape = (64, 138, 1)
 
@@ -125,6 +128,18 @@ def CNN_train(test_fold, feat):
     print('test_labels:', test_labels)
     test_rounded_labels=np.argmax(test_labels, axis=1)
     print('test_rounded_labels:', test_rounded_labels)
+
+    plt.figure()
+    mat = confusion_matrix(test_rounded_labels, y_pred)
+    cm = plot_confusion_matrix(conf_mat=mat, show_normed=True, figsize=(7,7))
+    
+    # import seaborn as sns
+    # ax = plt.subplot()
+    # sns.set(font_scale=3.0) # Adjust to fit
+    # sns.heatmap(cm, annot=True, ax=ax, cmap="Blues", fmt="g");  
+
+    plt.show()
+    plt.savefig("cm_sound.png")
 
     plt.figure()
     mat = confusion_matrix(test_rounded_labels, y_pred)
