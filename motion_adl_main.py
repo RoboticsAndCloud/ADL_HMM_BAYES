@@ -306,6 +306,8 @@ audio_type_res = []
 motion_type_res = []
 object_res = []
 
+res_prob_audio_motion = []
+
 
 transition_motion_occur = []
 
@@ -384,6 +386,7 @@ while(pre_activity == ''):
 
     
     heap_prob = []
+    heap_prob_audio_motion = []
 
     p2_res_dict = {}
 
@@ -400,7 +403,7 @@ while(pre_activity == ''):
         # p4 = bayes_model_object.get_prob(pre_act_list, act, object, 0)
 
         p4 = 1
-        p3 = 1
+        # p3 = 1
 
         p = p1*p2*p3*p4 * hmm_prob
              
@@ -504,6 +507,7 @@ while(not env.done):
 
 
     heap_prob = []
+    heap_prob_audio_motion = []
     # if transition_motion:
     #     cur_time = env.get_running_time()
     #     cur_time_str = cur_time.strftime(motion_env_ascc.DATE_HOUR_TIME_FORMAT)
@@ -640,6 +644,8 @@ while(not env.done):
                 # Reading, Watch Tv, Desk_Activity
                 pass
 
+            p_audio_motion = p2 * p3 * hmm_prob
+
             p = p1*p2*p3*p4 * hmm_prob
             
             print("need_recollect_data step act:", act)
@@ -651,6 +657,8 @@ while(not env.done):
             p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
             p = p2 * hmm_prob
 
+            p_audio_motion = p
+
             
         print("motion step act:", act)
         print('p:', p)
@@ -659,10 +667,17 @@ while(not env.done):
         res_prob[act].append(p) 
         heap_prob.append((act, p, cur_time_str))
 
+        heap_prob_audio_motion.append((act, p_audio_motion, cur_time_str))
+
+
+
     need_recollect_data = False
 
     top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
     activity_detected = top3_prob[0][0]
+
+    top3_prob_audio_motion = sorted(heap_prob_audio_motion, key=sorter_take_count,reverse=True)[:3]
+
 
     # # TODO: get the probability of motion type from motion_type = get_motion_type_by_activity(cur_activity)
     # p_sitting_prob.append(0)
@@ -675,6 +690,7 @@ while(not env.done):
     #     p_standing_prob[len(p_standing_prob)-1] = p2
     # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_WALKING:
     #     p_walking_prob[len(p_walking_prob)-1] = p2
+
 
     p_activity_end = motion_adl_bayes_model.get_end_of_activity_prob_by_duration(activity_duration, activity_detected)
 
@@ -733,11 +749,38 @@ while(not env.done):
     rank2_res_prob.append(top3_prob[1])
     rank3_res_prob.append(top3_prob[2])
 
+    # tmp_r0 = top3_prob[0][1]
+    # tmp_r1 = top3_prob[1][1]
+    # tmp_r2 = top3_prob[2][1]
+
+    # tmp_p0_norm = 1.0 * (tmp_r0 + 1e-200) /(tmp_r0 + tmp_r1 + tmp_r2 + 3* 1e-200)
+    # tmp_p1_norm = 1.0 * (tmp_r1+ 1e-200) /(tmp_r0 + tmp_r1 + tmp_r2 + 3* 1e-200)
+    # tmp_p2_norm = 1.0 * (tmp_r2 + 1e-200)/(tmp_r0 + tmp_r1 + tmp_r2 + 3* 1e-200)
+
+    # rank1_res_prob_norm.append(tmp_r0)
+    # rank2_res_prob_norm.append(tmp_p1_norm)
+    # rank3_res_prob_norm.append(tmp_p2_norm)
+    
+    # After got the new activity, We use the duration of the activity to predict the probability
+    # Another way is to use the prob in top3 list and calculate the probability, but the probability of top1 is always 1, for example:
+    # #########top3_prob: [('Kitchen_Activity', 0.0040946136848312, '2009-12-11 12:19:39'), ('Read', 6.066726746069896e-35, '2009-12-11 12:19:39'), ('Guest_Bathroom', 1.8050356738103724e-35, '2009-12-11 12:19:39')]
     rank1_res_prob_norm.append(p_activity_end)
     p_rank2 = (1-p_activity_end) * (rank2_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
     rank2_res_prob_norm.append(p_rank2)
     p_rank3 = (1-p_activity_end) * (rank3_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
     rank3_res_prob_norm.append(p_rank3)
+
+
+    print('#########top3_prob_audio_motion:', top3_prob_audio_motion)
+    tmp_r0 = top3_prob_audio_motion[0][1]
+    tmp_r1 = top3_prob_audio_motion[1][1]
+    tmp_r2 = top3_prob_audio_motion[2][1]
+
+    tmp_p0_norm = 1.0 * (tmp_r0 + 1e-200) /(tmp_r0 + tmp_r1 + tmp_r2 + 3* 1e-200)
+    tmp_p1_norm = 1.0 * (tmp_r1+ 1e-200) /(tmp_r0 + tmp_r1 + tmp_r2 + 3* 1e-200)
+    tmp_p2_norm = 1.0 * (tmp_r2 + 1e-200)/(tmp_r0 + tmp_r1 + tmp_r2 + 3* 1e-200)
+    print('#########top3_prob_audio_motion: r1, r2, r3:', tmp_p0_norm, " ", tmp_p1_norm, " ", tmp_p2_norm)
+
 
     # todo, if rank1 - rank2 < 0.001, p= p+ p*p_audio, to get a more accurate res
     #        
@@ -745,7 +788,7 @@ while(not env.done):
 
     if location == constants.LOCATION_LOBBY:
         cur_activity = pre_activity
-        print('++++++++++++++Around Lobby,', cur_time_str)
+        print('++++++++++++++Around lobby,', cur_time_str)
 
     if pre_activity != cur_activity:
         pre_activity = cur_activity

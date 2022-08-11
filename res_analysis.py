@@ -56,15 +56,18 @@ while i <= end:
 
     i = i +1
 
-# print(rank_set)
-# exit(0)
+#print(rank_set)
+#exit(0)
 
 for act in rank_set:
     res_dict[act] = 0
 
-output = ['Leave_Home', 'Dining_Rm_Activity', 'Kitchen_Activity', 'Read', 'Bed_to_Toilet', 'Morning_Meds', 'Master_Bathroom', 'Guest_Bathroom']
+#output = ['Leave_Home', 'Dining_Rm_Activity', 'Kitchen_Activity', 'Read', 'Bed_to_Toilet', 'Morning_Meds', 'Master_Bathroom', 'Guest_Bathroom']
+output = ['Master_Bathroom', 'Guest_Bathroom', 'Kitchen_Activity', 'Desk_Activity', 'Chores', 'Bed_to_Toilet', 'Watch_TV', 'Dining_Rm_Activity', 'Read', 'Leave_Home', 'Morning_Meds', 'Meditate']
+
 #print('time', '\t', 'rank1', '\t', 'rank2', '\t', 'rank3')
-print('time', '\t',output[0], '\t',output[1],'\t',output[2],'\t',output[3],'\t',output[4],'\t',output[5],'\t',output[6],'\t',output[7] )
+#print('time', '\t',output[0], '\t',output[1],'\t',output[2],'\t',output[3],'\t',output[4],'\t',output[5],'\t',output[6],'\t',output[7] )
+print('time', '\t',output[0], '\t',output[1],'\t',output[2],'\t',output[3],'\t',output[4],'\t',output[5],'\t',output[6],'\t',output[7],'\t',output[8],'\t',output[9],'\t',output[10],'\t',output[11])
 
 
 cnt = 0
@@ -92,7 +95,7 @@ while i <= end:
         res_dict[act] = p
 
     if cnt % 3 == 0:
-        print(rank1[i][2], '\t',res_dict[output[0]], '\t',res_dict[output[1]],'\t',res_dict[output[2]],'\t',res_dict[output[3]],'\t',res_dict[output[4]],'\t',res_dict[output[5]],'\t',res_dict[output[6]],'\t',res_dict[output[7]] )
+        print(rank1[i][2], '\t',res_dict[output[0]], '\t',res_dict[output[1]],'\t',res_dict[output[2]],'\t',res_dict[output[3]],'\t',res_dict[output[4]],'\t',res_dict[output[5]],'\t',res_dict[output[6]],'\t',res_dict[output[7]], '\t',res_dict[output[8]], '\t',res_dict[output[9]], '\t',res_dict[output[10]], '\t',res_dict[output[11]] )
 
     cnt = cnt + 1
 

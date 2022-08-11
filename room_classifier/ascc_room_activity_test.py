@@ -131,7 +131,7 @@ def predict(file, model, to_class):
 def test():
     # execute this when you want to load the model
     from keras.models import load_model
-    MODEL_SAVED_PATH = 'saved-model'
+    MODEL_SAVED_PATH = 'saved-model_12_lobby'
 
     ml = load_model(MODEL_SAVED_PATH)
     # bathroom: 0, bedroom:1, kitchen:2, livingroom:3
@@ -140,6 +140,9 @@ def test():
     # !!!Notice: the list of class_names should correspond to the list of the result of 'ls ./labelled', like '0  1  10  11  2  3  4  5  6  7  8  9'
     class_names=['bathroom','bedroom', 'morning_med', 'reading', 'kitchen','livingroom', 'chores', 'desk_activity', 'dining_room_activity',
                  'eve_med', 'leaving_home', 'meditate']
+
+    class_names=['bathroom','bedroom', 'morning_med', 'reading', 'kitchen','livingroom', 'chores', 'desk_activity', 'dining_room_activity',
+                 'eve_med', 'leaving_home', 'lobby']
 
     import sys, random
     from pathlib import Path
@@ -192,7 +195,7 @@ def write_res_into_file(file_name, res_list):
 def run():
     # execute this when you want to load the model
     from keras.models import load_model
-    MODEL_SAVED_PATH = 'saved-model'
+    MODEL_SAVED_PATH = 'saved-model_12_lobby'
 
     ml = load_model(MODEL_SAVED_PATH)
     # bathroom: 0, bedroom:1, kitchen:2, livingroom:3
@@ -201,6 +204,9 @@ def run():
     # !!!Notice: the list of class_names should correspond to the list of the result of 'ls ./labelled', like '0  1  10  11  2  3  4  5  6  7  8  9'
     class_names=['bathroom','bedroom', 'morning_med', 'reading', 'kitchen','livingroom', 'chores', 'desk_activity', 'dining_room_activity',
                  'eve_med', 'leaving_home', 'meditate']
+
+    class_names=['bathroom','bedroom', 'morning_med', 'reading', 'kitchen','livingroom', 'chores', 'desk_activity', 'dining_room_activity',
+                 'eve_med', 'leaving_home', 'lobby']
 
     import sys, random
     from pathlib import Path
