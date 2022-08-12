@@ -263,8 +263,8 @@ while(pre_activity == ''):
     cur_activity, cur_beginning_activity, cur_end_activity = \
         bayes_model_location.get_activity_from_dataset_by_time(cur_time_str)
 
-    res_activity_list, beginning_activity, end_activity = tools_ascc.get_activity_by_dnn(self.activity_date_dict, self.activity_begin_list,
-                                                                      self.activity_end_list, sensor_run_time, action_str)
+    #res_activity_list, beginning_activity, end_activity = tools_ascc.get_activity_by_dnn(self.activity_date_dict, self.activity_begin_list,
+    #                                                                  self.activity_end_list, sensor_run_time, action_str)
 
     print('cur_time:', cur_time, ' cur_activity:', cur_activity)
     # exit(0)
@@ -357,6 +357,7 @@ while(pre_activity == ''):
 need_recollect_data = False
 p_check_level = 4
 start_check_interval = 0
+start_check_interval_time = None
 while(not env.done):
 
     # TODO:
@@ -374,6 +375,7 @@ while(not env.done):
         # open all sensors
         # new activity
         # Bayes model prob
+    transition_motion = False
 
     heap_prob = []
     if transition_motion:
@@ -546,7 +548,9 @@ while(not env.done):
                 start_check_interval_time = cur_time
                 p_check_level = p_check_level -1
 
-            if p_activity_end < 0.2:    
+            if p_activity_end < 0.5:    
+                if start_check_interval_time == None:
+                    start_check_interval_time = cur_time
                 start_check_interval = (cur_time - start_check_interval_time).seconds 
                 print('start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
 
