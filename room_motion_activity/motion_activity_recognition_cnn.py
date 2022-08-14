@@ -110,7 +110,7 @@ for activity in activities:
     print('data_for_plot', data_for_plot)
     plot_activity(activity, data_for_plot)
 
-exit(0)
+#exit(0)
 
 df = data.drop(['user', 'time'], axis = 1).copy()
 print('df.head:', df.head())
@@ -127,12 +127,13 @@ min_count = sd[0][1] #15606 # ASCC dataset
 Walking = df[df['activity']=='Walking'].head(min_count).copy()
 Jogging = df[df['activity']=='Jogging'].head(min_count).copy()
 Laying = df[df['activity']=='Laying'].head(min_count).copy()
-Squating = df[df['activity']=='Squating'].head(min_count).copy()
+Jumping = df[df['activity']=='Jumping'].head(min_count).copy()
+#Squating = df[df['activity']=='Squating'].head(min_count).copy()
 Sitting = df[df['activity']=='Sitting'].head(min_count).copy()
 Standing = df[df['activity']=='Standing'].copy()
 
 balanced_data = pd.DataFrame()
-balanced_data = balanced_data.append([Walking, Jogging, Laying, Squating, Sitting, Standing])
+balanced_data = balanced_data.append([Walking, Jogging, Laying, Jumping, Sitting, Standing])
 # balanced_data.shape
 
 balanced_data['activity'].value_counts()
@@ -146,7 +147,7 @@ label = LabelEncoder()
 balanced_data['label'] = label.fit_transform(balanced_data['activity'])
 print('head:',balanced_data.head())
 print('================ label mapping')
-#print(balanced_data.values.tolist())
+print(balanced_data.values.tolist())
 
 print('label:',label.classes_)
 X = balanced_data[['x', 'y', 'z']]
