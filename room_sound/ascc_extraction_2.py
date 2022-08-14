@@ -12,11 +12,11 @@ import feature_extraction as fe
 import warnings
 warnings.filterwarnings('ignore')
 
-# labels = ['door_open_closed', 'eating', 'keyboard', 'pouring_water_into_glass', 'toothbrushing', 'vacuum',
-#  'drinking', 'flush_toilet', 'microwave', 'quiet', 'tv_news', 'washing_hand']
+labels = ['door_open_closed', 'eating', 'keyboard', 'pouring_water_into_glass', 'toothbrushing', 'vacuum',
+ 'drinking', 'flush_toilet', 'microwave', 'quiet', 'tv_news', 'washing_hand']
 
-labels = ['door_open_closed', 'eating', 'keyboard', 'pouring_water_into_glass', 'vacuum',
- 'drinking', 'flush_toilet', 'quiet', 'tv_news', 'washing_hand']
+# labels = ['door_open_closed', 'eating', 'keyboard', 'pouring_water_into_glass', 'vacuum',
+#  'drinking', 'flush_toilet', 'quiet', 'tv_news', 'washing_hand']
 
 def pad_truncate_sequence(x, max_len):
     if len(x) < max_len:

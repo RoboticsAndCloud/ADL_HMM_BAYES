@@ -462,6 +462,7 @@ need_recollect_data = False
 p_check_level = 4
 start_check_interval = 0
 p_less_than_threshold_check_cnt = 0
+start_check_interval_time = None
 while(not env.done):
 
     # TODO:
@@ -649,6 +650,7 @@ while(not env.done):
             p = p1*p2*p3*p4 * hmm_prob
             
             print("need_recollect_data step act:", act)
+            print('hmm_prob:', hmm_prob)
             print('p1:', p1)
             print('p2:', p2)
             print('p3:', p3)
@@ -671,7 +673,6 @@ while(not env.done):
 
 
 
-    need_recollect_data = False
 
     top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
     activity_detected = top3_prob[0][0]
@@ -696,7 +697,7 @@ while(not env.done):
 
     p_duration_lis.append(p_activity_end)
 
-    # if activity_detected == pre_activity:
+    if activity_detected == pre_activity:
     #     print('p_activity_end:', p_activity_end)
     #     # todo if p_activity_end < 0.2, audio,vision+motion
     #     if (p_activity_end < 0.4) and (p_check_level == 4):
@@ -711,15 +712,18 @@ while(not env.done):
     #         start_check_interval_time = cur_time
     #         p_check_level = p_check_level -1
 
-    #     if p_activity_end < 0.2:    
-    #         start_check_interval = (cur_time - start_check_interval_time).seconds 
-    #         print('start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
+        if p_activity_end < 0.2:    
+            if start_check_interval_time == None:
+                start_check_interval_time = cur_time
 
-    #         if (int(start_check_interval) / UNCERTAIN_CHECK_INTERVAL) >= 1:
-    #             need_recollect_data = True
-    #             print('reset start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
-    #             start_check_interval = 0
-    #             start_check_interval_time = cur_time
+            start_check_interval = (cur_time - start_check_interval_time).seconds 
+            print('start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
+
+            if (int(start_check_interval) / UNCERTAIN_CHECK_INTERVAL) >= 1:
+                need_recollect_data = True
+                print('reset start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
+                start_check_interval = 0
+                start_check_interval_time = cur_time
 
     #     #     need_recollect_data = True
     #     #     p_check_level = p_check_level -1
@@ -781,6 +785,16 @@ while(not env.done):
     tmp_p2_norm = 1.0 * (tmp_r2 + 1e-200)/(tmp_r0 + tmp_r1 + tmp_r2 + 3* 1e-200)
     print('#########top3_prob_audio_motion: r1, r2, r3:', tmp_p0_norm, " ", tmp_p1_norm, " ", tmp_p2_norm)
 
+    if need_recollect_data == True:
+        if top3_prob[0][0] != top3_prob_audio_motion[0][0]:
+            print('########audio motion vs audio vision motion not equal')
+        else:
+            print('########audio motion vs audio vision motion equal')
+
+
+    need_recollect_data = False
+
+
 
     # todo, if rank1 - rank2 < 0.001, p= p+ p*p_audio, to get a more accurate res
     #        
@@ -818,8 +832,8 @@ while(not env.done):
     print('last motion type:', motion_type_res[-1], ' cur motion_type:', motion_type)
     if (motion_type_res[-1][0] == motion_adl_bayes_model.MOTION_TYPE_WALKING) and (motion_type != motion_adl_bayes_model.MOTION_TYPE_WALKING):
         print('Transition occur:', 'last motion type:', motion_type_res[-1], ' cur motion_type:', motion_type)
-        transition_motion = TRUE
-        need_recollect_data = True
+        # transition_motion = TRUE
+        # need_recollect_data = True
         transition_motion_occur.append(cur_time_str)
 
     location_res.append([location, location_prob])

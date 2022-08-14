@@ -65,12 +65,12 @@ IMAGE_SIZE = 24.86  # KB
 IMAGE_COUNT = 10  # 10 Frames
 IMAGE_TAKING_TIME_COST = 1/30  # 30 frames
 
-AUDIO_FILE_SIZE = 50  # KB, Duration: 5 seconds
-AUDIO_RECORDING_TIME_COST = 5  # 5 seconds
+# AUDIO_FILE_SIZE = 50  # KB, Duration: 5 seconds
+# AUDIO_RECORDING_TIME_COST = 5  # 5 seconds
 
 
-# AUDIO_FILE_SIZE = 87  # KB, Duration: 1 seconds
-# AUDIO_RECORDING_TIME_COST = 1  # 1 seconds
+AUDIO_FILE_SIZE = 87  # KB, Duration: 1 seconds
+AUDIO_RECORDING_TIME_COST = 1  # 1 seconds
 
 
 

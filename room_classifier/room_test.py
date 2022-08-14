@@ -130,6 +130,9 @@ def test():
     # !!!Notice: the list of class_names should correspond to the list of the result of 'ls ./labelled', like '0  1  10  11  2  3  4  5  6  7  8  9'
     class_names=['bathroom','bedroom', 'morning_med', 'reading', 'kitchen','livingroom', 'chores', 'desk_activity', 'dining_room_activity',
                  'eve_med', 'leaving_home', 'meditate']
+    
+    class_names=['bathroom','bedroom', 'morning_med', 'reading', 'kitchen','livingroom', 'chores', 'desk_activity', 'dining_room_activity',
+                 'eve_med', 'leaving_home', 'lobby']
 
     import sys, random
     from pathlib import Path
