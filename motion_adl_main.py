@@ -693,52 +693,7 @@ while(not env.done):
     #     p_walking_prob[len(p_walking_prob)-1] = p2
 
 
-    p_activity_end = motion_adl_bayes_model.get_end_of_activity_prob_by_duration(activity_duration, activity_detected)
-
-    p_duration_lis.append(p_activity_end)
-
-    if activity_detected == pre_activity:
-    #     print('p_activity_end:', p_activity_end)
-    #     # todo if p_activity_end < 0.2, audio,vision+motion
-    #     if (p_activity_end < 0.4) and (p_check_level == 4):
-    #         start_check_interval_time = cur_time
-    #         need_recollect_data = True
-    #         p_check_level = p_check_level -1
-    #     if (p_activity_end < 0.3) and (p_check_level == 3):
-    #         start_check_interval_time = cur_time
-    #         need_recollect_data = True
-    #         p_check_level = p_check_level -1
-    #     if (p_activity_end < 0.2) and (p_check_level == 2):
-    #         start_check_interval_time = cur_time
-    #         p_check_level = p_check_level -1
-
-        if p_activity_end < 0.2:    
-            if start_check_interval_time == None:
-                start_check_interval_time = cur_time
-
-            start_check_interval = (cur_time - start_check_interval_time).seconds 
-            print('start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
-
-            if (int(start_check_interval) / UNCERTAIN_CHECK_INTERVAL) >= 1:
-                need_recollect_data = True
-                print('reset start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
-                start_check_interval = 0
-                start_check_interval_time = cur_time
-
-    #     #     need_recollect_data = True
-    #     #     p_check_level = p_check_level -1
-    #     # if (p_activity_end < 0.1) and (p_check_level == 1):
-    #     #     need_recollect_data = True
-    #     #     p_check_level = p_check_level -1
-    #     # if (p_activity_end < 0.05) and (p_check_level == 0):
-    #     #     need_recollect_data = True
-    #     #     p_check_level = p_check_level -1
-    #     # if (p_activity_end < 0.01):
-    #     #     need_recollect_data = True
-    #     #     p_check_level = p_check_level -1
-    #     print("############need_recollect_data p_check_level:", need_recollect_data, ' ', p_check_level)
-    #     if need_recollect_data:
-    #         p_less_than_threshold_check_cnt = p_less_than_threshold_check_cnt + 1
+   
 
 
     print('pre_act_list:', pre_act_list)
@@ -793,6 +748,53 @@ while(not env.done):
 
 
     need_recollect_data = False
+    
+    p_activity_end = motion_adl_bayes_model.get_end_of_activity_prob_by_duration(activity_duration, activity_detected)
+
+    p_duration_lis.append(p_activity_end)
+
+    if activity_detected == pre_activity:
+        print('p_activity_end:', p_activity_end)
+    #     # todo if p_activity_end < 0.2, audio,vision+motion
+    #     if (p_activity_end < 0.4) and (p_check_level == 4):
+    #         start_check_interval_time = cur_time
+    #         need_recollect_data = True
+    #         p_check_level = p_check_level -1
+    #     if (p_activity_end < 0.3) and (p_check_level == 3):
+    #         start_check_interval_time = cur_time
+    #         need_recollect_data = True
+    #         p_check_level = p_check_level -1
+    #     if (p_activity_end < 0.2) and (p_check_level == 2):
+    #         start_check_interval_time = cur_time
+    #         p_check_level = p_check_level -1
+
+        if p_activity_end < -0.2:    
+            if start_check_interval_time == None:
+                start_check_interval_time = cur_time
+
+            start_check_interval = (cur_time - start_check_interval_time).seconds 
+            print('start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
+
+            if (int(start_check_interval) / UNCERTAIN_CHECK_INTERVAL) >= 1:
+                need_recollect_data = True
+                print('reset start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
+                start_check_interval = 0
+                start_check_interval_time = cur_time
+
+    #     #     need_recollect_data = True
+    #     #     p_check_level = p_check_level -1
+    #     # if (p_activity_end < 0.1) and (p_check_level == 1):
+    #     #     need_recollect_data = True
+    #     #     p_check_level = p_check_level -1
+    #     # if (p_activity_end < 0.05) and (p_check_level == 0):
+    #     #     need_recollect_data = True
+    #     #     p_check_level = p_check_level -1
+    #     # if (p_activity_end < 0.01):
+    #     #     need_recollect_data = True
+    #     #     p_check_level = p_check_level -1
+    #     print("############need_recollect_data p_check_level:", need_recollect_data, ' ', p_check_level)
+    #     if need_recollect_data:
+    #         p_less_than_threshold_check_cnt = p_less_than_threshold_check_cnt + 1
 
 
 
@@ -832,8 +834,8 @@ while(not env.done):
     print('last motion type:', motion_type_res[-1], ' cur motion_type:', motion_type)
     if (motion_type_res[-1][0] == motion_adl_bayes_model.MOTION_TYPE_WALKING) and (motion_type != motion_adl_bayes_model.MOTION_TYPE_WALKING):
         print('Transition occur:', 'last motion type:', motion_type_res[-1], ' cur motion_type:', motion_type)
-        # transition_motion = TRUE
-        # need_recollect_data = True
+        transition_motion = TRUE
+        need_recollect_data = True
         transition_motion_occur.append(cur_time_str)
 
     location_res.append([location, location_prob])

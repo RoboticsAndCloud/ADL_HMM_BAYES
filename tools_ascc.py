@@ -1824,8 +1824,9 @@ if __name__ == "__main__":
 
     # cnt = get_activity_count_by_date('2009-12-10')
     # print('cnt:', cnt)
-    # res = get_activity_duration_by_date('2009-11-26')
-    # print(res)
+    res = get_activity_count_by_date('2009-12-11')
+    print(res)
+    exit(0)
 
     # res = get_duration_from_dataset2()
     # print(res)

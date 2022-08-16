@@ -1457,7 +1457,7 @@ def test_dnn():
     # get_activity_by_motion_dnn('20220804150956', 'Sitting' ) # 3 g
     # get_activity_by_motion_dnn('20220729102338', 'Sitting' ) # 3, g
     # get_activity_by_motion_dnn('20220802155756', 'Stand' ) # 4, g
-    get_activity_by_motion_dnn('20220802163654', 'walking') # 5, g
+    # get_activity_by_motion_dnn('20220802163654', 'walking') # 5, g
     # get_activity_by_motion_dnn('20220802164744', 'jogging') # 0, g
     # get_activity_by_motion_dnn('20220802161356', 'Laying') # 2, g
     # get_activity_by_motion_dnn('20220813194748', 'Jump') # 1 good
@@ -1488,8 +1488,8 @@ if __name__ == "__main__":
     log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
     logging.info("Hello World!!!")
     # test()
-    test_dnn()
-    # run()
+    # test_dnn()
+    run()
     
 
 
