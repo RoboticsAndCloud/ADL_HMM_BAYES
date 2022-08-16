@@ -29,9 +29,9 @@ DATA_SET_FILE = 'ascc_dataset/ascc_v1_raw.txt'
 
 MOTION_ACTIVITY_MAPPING = {
     0: 'jogging',
-    1: 'laying',
-    2: 'sitting',
-    3: 'squating',
+    1: 'jumping',
+    2: 'laying',
+    3: 'sitting',
     4: 'standing',
     5: 'walking'
 }
@@ -1434,27 +1434,49 @@ MOTION_ACTIVITY_MAPPING = {
     4: 'standing',
     5: 'walking'
 }
+
+
+Jogging:0
+Jump:1
+Laying:2
+Sit : 3
+Stand:4
+Walk: 5
+
 '''
 def test_dnn():
 
-    # get_activity_by_motion_dnn('20220729102338', 'Sitting' ) # 2, g
+    # get_activity_by_motion_dnn('20220729102338', 'Sitting' ) # 3, g
     # get_activity_by_motion_dnn('20220729103312', 'Stand' ) # 2, 3(8) 4(13), bad
     # get_activity_by_motion_dnn('20220729105500', 'walking') # 5 g
-    # get_activity_by_motion_dnn('20220729111901', 'jogging') # 0, g
-    # get_activity_by_motion_dnn('20220729104633', 'Laying') # 1, g
+    #get_activity_by_motion_dnn('20220729111901', 'jogging') # 0, g
+    #get_activity_by_motion_dnn('20220729104633', 'Laying') # 1, g
     # get_activity_by_motion_dnn('20220729110944', 'Squating') # 3 good
 
     # 0802
-    # get_activity_by_motion_dnn('20220804150956', 'Sitting' ) # 4(7), 2(21), w
+    # get_activity_by_motion_dnn('20220804150956', 'Sitting' ) # 3 g
+    # get_activity_by_motion_dnn('20220729102338', 'Sitting' ) # 3, g
     # get_activity_by_motion_dnn('20220802155756', 'Stand' ) # 4, g
-    # get_activity_by_motion_dnn('20220802163654', 'walking') # 5, g
-    #get_activity_by_motion_dnn('20220802164744', 'jogging') # 0, g
-    #get_activity_by_motion_dnn('20220802161356', 'Laying') # 1, g
-    # get_activity_by_motion_dnn('20220804153242', 'Squating') # 3 g
+    get_activity_by_motion_dnn('20220802163654', 'walking') # 5, g
+    # get_activity_by_motion_dnn('20220802164744', 'jogging') # 0, g
+    # get_activity_by_motion_dnn('20220802161356', 'Laying') # 2, g
+    # get_activity_by_motion_dnn('20220813194748', 'Jump') # 1 good
 
-    # get_activity_by_motion_dnn('20220804151607', 'Sit_Stand_Walk_in_kitchen')
-    #get_activity_by_motion_dnn('2009-12-11-10-06-38', 'sitting?')
-    get_activity_by_motion_dnn('walk', 'test?')
+    # 0816
+    # get_activity_by_motion_dnn('20220816100412', 'Sitting' ) # 5, 3, soso
+    # get_activity_by_motion_dnn('20220816100251', 'Stand' ) # 4, g
+    # get_activity_by_motion_dnn('20220816100117', 'walking') # 5, g
+    # get_activity_by_motion_dnn('20220816101007', 'jogging') # 0, g
+    # get_activity_by_motion_dnn('20220816101552', 'Laying') # 2, g
+    # get_activity_by_motion_dnn('20220816110035', 'Jump') # 1 good
+
+    # get_activity_by_motion_dnn('20220816092139', 'Stand_Walk')
+    # get_activity_by_motion_dnn('20220816092014', 'Stand_Walk')
+
+    
+    # get_activity_by_motion_dnn('20220816130042', 'sitting') ## new data
+    # get_activity_by_motion_dnn('20220816130634', 'stand')
+    # get_activity_by_motion_dnn('walk', 'test?')
 
     
 
@@ -1465,9 +1487,9 @@ if __name__ == "__main__":
 
     log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
     logging.info("Hello World!!!")
-    #test()
-    # test_dnn()
-    run()
+    # test()
+    test_dnn()
+    # run()
     
 
 
