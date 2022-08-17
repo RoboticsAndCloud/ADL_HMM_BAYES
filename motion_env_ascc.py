@@ -352,7 +352,7 @@ def merge_dicts(*dict_args):
     return result
 
 class EnvASCC():
-    def __init__(self, time_str = '2021-11-01 08:00:00'):
+    def __init__(self, time_str = '2009-12-11 08:00:00'):
         
         high = np.array([1.0, 1.0, BATTERY_LIFE], dtype=np.float32)
 
@@ -462,6 +462,8 @@ class EnvASCC():
         # Reset the running time to day_begin
         self.reset()
 
+
+
     def activity_dict_init(self):
         day_hour_format_str = self.running_time.strftime(DATE_HOUR_TIME_FORMAT)
         day_str = day_hour_format_str.split()[0]
@@ -536,6 +538,9 @@ class EnvASCC():
         next_state_ = [train_running_time / STATE_TIME_TRANS, (self.activity / 100)]
         # next_state_ = [train_running_time, self.initial_state, self.residual_power]
         # todo change it to real number
+
+        # For debug purpos
+        # self.running_time = datetime.strptime('2009-12-11 09:16:22', DATE_HOUR_TIME_FORMAT)
 
         return next_state_
 
