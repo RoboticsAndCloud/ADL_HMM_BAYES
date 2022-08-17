@@ -1,0 +1,5 @@
+1.image rotate
+python image_rotate.py
+2.copy rotate folder to target activity folder
+3.extend the time
+python ascc_data_util_kitchen_0846.py
