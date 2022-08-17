@@ -5,6 +5,8 @@
 ############################################
 import logging
 import time
+from timeit import default_timer as timer
+
 
 import cv2
 import argparse
@@ -13,9 +15,12 @@ import os
 import utils
 
 # import image_rotate
+ASCC_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/notice.txt'
+ASCC_DATA_YOLOV3_RES_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/recognition_yolov3_result.txt'
+
 
 ap = argparse.ArgumentParser()
-ap.add_argument('-i', '--image', required=True,
+ap.add_argument('-i', '--image', required=False,
                 help = 'path to input image')
 ap.add_argument('-c', '--config', required=True,
                 help = 'path to yolo config file')
@@ -33,6 +38,45 @@ with open(args.classes, 'r') as f:
 
 
 COLORS = np.random.uniform(0, 255, size=(len(classes), 3))
+
+def read_dir_name(file_name):
+    with open(file_name, 'r') as f:
+        dir_name = str(f.read().strip())
+        f.close()
+    print('dir_name:%s', dir_name)
+    return dir_name
+
+def write_res_into_file(file_name, res_list):
+    with open(file_name, 'w') as f:
+        for v in res_list:
+            f.write(str(v))
+            f.write('\t')
+        f.close()
+    
+    return True
+
+"""
+Brief: get file count of a director
+
+Raises:
+     NotImplementedError
+     FileNotFoundError
+"""
+def get_file_count_of_dir(dir, prefix=''):
+    path = dir
+    count = 0
+    for fn in os.listdir(path):
+        if os.path.isfile(dir + '/' + fn):
+            if prefix != '':
+                if prefix in fn:
+                    count = count + 1
+            else:
+                count = count + 1
+        else:
+            print('fn:', fn)
+    # count = sum([len(files) for root, dirs, files in os.walk(dir)])
+    return count
+
 
 def get_output_layers(net):
 
@@ -175,13 +219,17 @@ def draw_prediction(img, class_id, confidence, x, y, x_plus_w, y_plus_h):
     color = COLORS[class_id]
 
     if label == 'refrigerator' or label == 'oven' or label == 'chair' or label == 'spoon':
-        return
+        print('ignore.')
+        return ''
 
-    print(label)
+    res = str(label) + '(' + str(confidence) +')'
+    print(res)
 
     cv2.rectangle(img, (x,y), (x_plus_w,y_plus_h), color, 2)
 
     cv2.putText(img, label, (x-10,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
+    return res
 
 # todo read files from dir and generate the result image
 
@@ -340,7 +388,7 @@ def food_detectiong_dir_by_last_photo_from_dir(dir, rotate_dir, dir_count):
 
 def object_detection(image_str, image_save_path):
 
-    print(args.image)
+    print(image_str)
     image = cv2.imread(image_str)
 
     Width = image.shape[1]
@@ -368,7 +416,6 @@ def object_detection(image_str, image_save_path):
     conf_threshold = 0.5
     nms_threshold = 0.4
 
-
     for out in outs:
         for detection in out:
             scores = detection[5:]
@@ -388,7 +435,9 @@ def object_detection(image_str, image_save_path):
 
     indices = cv2.dnn.NMSBoxes(boxes, confidences, conf_threshold, nms_threshold)
 
-    check_labels(class_ids)
+    # check_labels(class_ids)
+
+    res = []
 
     for i in indices:
         i = i[0]
@@ -401,15 +450,20 @@ def object_detection(image_str, image_save_path):
 
         # check_object_location(x, round(x+w), Width, class_ids[i])
 
-        draw_prediction(image, class_ids[i], confidences[i], round(x), round(y), round(x+w), round(y+h))
+        tmp_res = draw_prediction(image, class_ids[i], confidences[i], round(x), round(y), round(x+w), round(y+h))
+        if tmp_res == '':
+            continue
+        res.append(tmp_res)
 
-    print("Running")
+    print("Running object detection...")
 
-    cv2.imshow("object detection", image)
-    # cv2.waitKey()
+    # cv2.imshow("object detection", image)
+    # # cv2.waitKey()
 
-    cv2.imwrite(image_save_path, image)
-    cv2.destroyAllWindows()
+    # cv2.imwrite(image_save_path, image)
+    # cv2.destroyAllWindows() 
+
+    return res
 
 def run():
     image_dir = '/home/ascc/asccbot_v3/wearable_device_new_design/server/images/'
@@ -417,6 +471,60 @@ def run():
 
     print(image_dir)
     print('Running...')
+    
+    import sys, random
+    from pathlib import Path
+    from PIL import Image
+    import matplotlib.pyplot as plt
+
+
+    # Retreive 9 random images from directory
+    
+    pre_test_dir = ''
+    while True:
+        test_dir = read_dir_name(ASCC_DATA_NOTICE_FILE)
+        # logging.info('pre_test_dir:%s', pre_test_dir)
+        logging.info('got cur test_dir:%s', test_dir)
+
+        if pre_test_dir == test_dir:
+            time.sleep(1)
+            continue
+
+        pre_test_dir = test_dir
+
+        files=Path(test_dir).resolve().glob('*.*')
+
+        test_sample= get_file_count_of_dir(test_dir) 
+        #test_sample= 5
+
+        images=random.sample(list(files), test_sample)
+
+        res = []
+        start = timer()
+
+        logging.info('cur test_dir:%s', test_dir)
+
+        
+        for num,img in enumerate(images):
+            file = img
+            print('file:', file)
+
+            tmp_res = object_detection(str(file), '_detection')
+
+            # plt.subplot(rows,cols,num+1)
+            # plt.title("Pred: "+label + '(' + str(prob) + ')')
+            print("Pred: ", res)
+
+            logging.info('Pred:%s', tmp_res)
+
+            res.extend(tmp_res)
+
+        write_res_into_file(ASCC_DATA_YOLOV3_RES_FILE, res) 
+
+        end = timer()
+        print("Get_prediction time cost:", end-start)    
+
+        
 
     # while(True):
 
@@ -434,37 +542,22 @@ def run():
     #     # get_rotate_file_of_dir(image_dir, res_dir)
 
 
-test_img = '/home/ascc/Desktop/test/read.jpg'
-object_detection(test_img, test_img+'_detection')
-#image_dir = '/home/ascc/lf_workspace/ObjectDetection/object-detection-opencv/dataset/Apple_rotate_all/'
-#res_dir = '/home/ascc/lf_workspace/ObjectDetection/object-detection-opencv/dataset/Apple_res/'
+def test():
+    test_img = '/home/ascc/Desktop/test/read.jpg'
+    test_img = '/home/ascc/Desktop/test/desk.jpg'
+    # test_img = '/home/ascc/Desktop/test/living.jpg'
+    # test_img = '/home/ascc/Desktop/adl_old_data/Image/2009-12-11-22-47-06/image3_rotate.jpg'
+    # test_img = '/home/ascc/Desktop/adl_old_data/Image/2009-12-11-20-49-02/image3_rotate.jpg'
 
-# image_dir = '/home/ascc/lf_workspace/ObjectDetection/object-detection-opencv/dataset/' + 'Pizza_all'
-# res_dir = '/home/ascc/lf_workspace/ObjectDetection/object-detection-opencv/dataset/' + 'Pizza_res'
+    object_detection(test_img, test_img+'_detection')
 
-# image_dir = '/home/ascc/lf_workspace/ObjectDetection/object-detection-opencv/dataset/' + 'Mix_all'
-# res_dir = '/home/ascc/lf_workspace/ObjectDetection/object-detection-opencv/dataset/' + 'Mix_res'
-
-# image_dir = '/home/ascc/lf_workspace/ObjectDetection/object-detection-opencv/dataset/' + 'Banana_all'
-# res_dir = '/home/ascc/lf_workspace/ObjectDetection/object-detection-opencv/dataset/' + 'Banana_res'
-
-# image_dir = '/home/ascc/asccbot_v3/wearable_device_new_design/server/images/'
-# res_dir = '/home/ascc/asccbot_v3/wearable_device_new_design/server/images_food_res/'
-#
-# import log
-# log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
-# logging.info("Hello World!!!")
-#
-# print(image_dir)
-#
-# check_and_wait_for_food_images(image_dir)
-#
-# get_rotate_file_of_dir(image_dir, res_dir)
 
 if __name__ == "__main__":
     import log
 
     log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
     logging.info("Hello World!!!")
+
+    # test()
 
     run()

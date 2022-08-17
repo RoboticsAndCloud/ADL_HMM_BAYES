@@ -102,7 +102,7 @@ def get_object_by_activity(activity):
 
 
 # get object by CNN model
-def get_object_by_activity_cnn(time_str):
+def get_object_by_activity_yolo(time_str):
     """
     # Location
     LOCATION_READINGROOM = 'readingroom'
@@ -119,10 +119,10 @@ def get_object_by_activity_cnn(time_str):
     # should be act : probability
     # /home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/src/
     # ascc_room_activity_test.py
-    object, prob = tools_ascc.get_activity_by_vision_dnn(time_str, action='vision', mode='None-map')
-    print('get_object_by_activity_cnn time_str:', time_str, ' object:', object, ' prob:', prob)
+    object_dict = tools_ascc.get_activity_by_vision_yolov3(time_str, action='vision', mode='None-map')
+    print('get_object_by_activity_yolo time_str:', time_str, ' object:', object_dict)
 
-    return object, float(prob)
+    return object_dict
 
 def get_location_by_activity(activity):
     """
@@ -319,6 +319,7 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
+object_dict = {}
 while(pre_activity == ''):
     # open camera
 
@@ -362,8 +363,8 @@ while(pre_activity == ''):
     location, location_prob = get_location_by_activity_cnn(cur_time_str)
     bayes_model_location.set_location_prob(location_prob)
 
-    object, object_prob = get_object_by_activity_cnn(cur_time_str)
-    bayes_model_object.set_object_prob(object_prob)
+    object_dict = get_object_by_activity_yolo(cur_time_str)
+    # bayes_model_object.set_object_prob(object_prob)
 
     audio_type, audio_type_prob = get_audio_type_by_activity_cnn(cur_time_str)
     bayes_model_audio.set_audio_type_prob(float(audio_type_prob))
@@ -375,10 +376,10 @@ while(pre_activity == ''):
     location_res.append([location, location_prob])
     audio_type_res.append([audio_type, audio_type_prob])
     motion_type_res.append([motion_type, motion_type_prob])
-    object_res.append([object, object_prob])
+    # object_res.append([object, object_prob])
 
     print('location:', location)
-    print('object:', object)
+    print('object:', object_dict)
     print('audio_type:', audio_type)
     print('motion_type:', motion_type)
 
@@ -479,8 +480,9 @@ while(not env.done):
         location, location_prob = get_location_by_activity_cnn(cur_time_str)
         bayes_model_location.set_location_prob(location_prob)
 
-        object, object_prob = get_object_by_activity_cnn(cur_time_str)
-        bayes_model_object.set_object_prob(object_prob)
+        object_dict = get_object_by_activity_yolo(cur_time_str)
+        # bayes_model_object.set_object_prob(object_prob)
+        object = object_dict
 
         audio_type, audio_type_prob = get_audio_type_by_activity_cnn(cur_time_str)
         bayes_model_audio.set_audio_type_prob(audio_type_prob)
@@ -630,20 +632,17 @@ while(not env.done):
             # or, we can get object activity
             #if audio_type == constants.AUDIO_TYPE_ENV:
             if location == constants.LOCATION_LIVINGROOM:
-                res_object = location
-                if object == constants.ACTIVITY_DESK_ACTIVITY:
-                    res_object = constants.OBJECT_PAPER
-                    res_object = constants.OBJECT_LAPTOP # random
-                elif object == constants.ACTIVITY_READ:
-                    res_object = constants.OBJECT_BOOK
-                elif object == constants.ACTIVITY_WATCH_TV:
-                    res_object = constants.OBJECT_TV
-                # p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
-                p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
 
-                # get the object and bayes probability
-                # Reading, Watch Tv, Desk_Activity
-                pass
+                res_object = location
+                res_object_p = constants.MIN_Prob
+                for object, prob in object_dict:
+                    if object == constants.OBJECT_BOOK or object == constants.OBJECT_LAPTOP or object == constants.OBJECT_TV:
+                        res_object = object
+                        res_object_p = prob
+                        bayes_model_object.set_object_prob(res_object_p)
+                        p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
+
+                        break
 
             p_audio_motion = p2 * p3 * hmm_prob
 

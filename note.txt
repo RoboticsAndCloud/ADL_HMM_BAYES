@@ -344,6 +344,10 @@ cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity
 
 python ascc_room_motion_activity_test.py 
 
-4. Launch motion adl main 
+4. Launch yolo object detection
+cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/room_classifier/ImageProcess
+python food_yolo_opencv.py --config yolov3.cfg --weights  yolov3.weights --class yolov3.txt
+
+5. Launch motion adl main 
 cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES
 python motion_adl_main.py

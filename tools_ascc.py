@@ -163,7 +163,10 @@ DEBUG = True
 
 ASCC_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/notice.txt'
 ASCC_DATA_RES_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/recognition_result.txt'
-ASCC_DATA_SET_DIR = '/home/ascc/LF_Workspace/ReinforcementLearning/ASCC_Energy_Consumption/ASCC-RL-Algorithms_New_Reward_Test_Part/ascc_activity_real_data_0309/'
+ASCC_DATA_YOLOV3_RES_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/recognition_yolov3_result.txt'
+
+# ASCC_DATA_SET_DIR = '/home/ascc/LF_Workspace/ReinforcementLearning/ASCC_Energy_Consumption/ASCC-RL-Algorithms_New_Reward_Test_Part/ascc_activity_real_data_0309/'
+ASCC_DATA_SET_DIR = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/Ascc_Dataset_0815/'
 ASCC_DATASET_DATE_HOUR_TIME_FORMAT_DIR = '%Y-%m-%d-%H-%M-%S'
 
 ASCC_AUDIO_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/ascc_data/notice.txt'
@@ -740,6 +743,70 @@ def get_exist_image_dir(time_str, action='vision'):
 def sorter_take_count(elem):
     # print('elem:', elem)
     return elem[1]
+
+def get_activity_by_vision_yolov3(time_str, action='vision', mode='map'):
+
+    date_format_str = '%Y-%m-%d %H:%M:%S'
+    if DEBUG:
+        print("get_activity time_str:", time_str)
+    d_act = datetime.strptime(time_str, date_format_str)
+
+    image_dir_name = get_exist_image_dir(time_str, action)
+    if image_dir_name == '':
+        return '', -1
+    print('===:', image_dir_name)
+    
+
+    write_notice_into_file(ASCC_DATA_NOTICE_FILE, image_dir_name)
+
+    # wait for the result, 2-5 seconds, todo: test how long should wait, how to improve the speed
+    time.sleep(5*2)
+
+    # get the results
+    res_str = read_res_from_file(ASCC_DATA_YOLOV3_RES_FILE)
+
+    """
+    class_names=['bathroom','bedroom', 'morning_med', 'reading', 'kitchen','livingroom', 'chores', 'desk_activity', 'dining_room_activity',
+                 'eve_med', 'leaving_home', 'meditate']
+    """
+    # use res_str[0]
+    # todo: how to get the result from 10 images, for example, in the dir 08-45-46
+    # todo: how to check the motion
+    # todo: meditate should be treat as the bedroom activity
+    # todo: re-train the model, use more imges
+    # todo: check the code, how to get expected activity,  Miss activity: Expected: Sleep ,Detect: Meditate Running time: 2009-12-11 08:45:26
+    # todo: check the image and recognition res when motion occurs 
+    print('yolov3 res:', res_str)
+
+    if res_str == '':
+        return {}
+
+    res_list = res_str.split('\t')
+    res_dict = {}
+    for key in res_list:
+        location = key.split('(')[0]
+        prob = key.split('(')[1].split(')')[0]
+        res_dict[location] = res_dict.get(location, 0) + 1
+    
+    # sd = sorted(res_dict.items(), reverse=False)
+    sd = sorted(res_dict.items(), key=sorter_take_count, reverse=True)
+
+    # print(res_dict.items())
+
+    # for k,v in sd:
+    #     print('res2:', k, ' v:', v)
+    #     res2 = k
+    #     break
+
+    # if res != res2:
+    #     print('res:', res, ' res2:', res2)
+    #     res = res2
+
+    #print('res_activity_list:', res_activity_list)
+
+    return sd
+
+
 
 def get_activity_by_vision_dnn(time_str, action='vision', mode='map'):
 

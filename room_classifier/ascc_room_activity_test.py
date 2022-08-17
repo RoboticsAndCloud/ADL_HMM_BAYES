@@ -134,15 +134,10 @@ def test():
     MODEL_SAVED_PATH = 'saved-model_12_lobby'
 
     ml = load_model(MODEL_SAVED_PATH)
-    # bathroom: 0, bedroom:1, kitchen:2, livingroom:3
-    # Chores:4, Desk_activity:5, Dining_room_activity:6, Eve_Med:7, Leaving_home: 8, Meditate:9, Morning_Med:10, Reading: 11
-    
-    # !!!Notice: the list of class_names should correspond to the list of the result of 'ls ./labelled', like '0  1  10  11  2  3  4  5  6  7  8  9'
-    class_names=['bathroom','bedroom', 'morning_med', 'reading', 'kitchen','livingroom', 'chores', 'desk_activity', 'dining_room_activity',
-                 'eve_med', 'leaving_home', 'meditate']
 
-    class_names=['bathroom','bedroom', 'morning_med', 'reading', 'kitchen','livingroom', 'chores', 'desk_activity', 'dining_room_activity',
-                 'eve_med', 'leaving_home', 'lobby']
+
+    # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, lobby:4, door:5
+    class_names=['bathroom','bedroom', 'kitchen','livingroom', 'lobby', 'door']
 
     import sys, random
     from pathlib import Path
@@ -195,18 +190,12 @@ def write_res_into_file(file_name, res_list):
 def run():
     # execute this when you want to load the model
     from keras.models import load_model
-    MODEL_SAVED_PATH = 'saved-model_12_lobby'
+    MODEL_SAVED_PATH = 'saved-model2'
 
     ml = load_model(MODEL_SAVED_PATH)
-    # bathroom: 0, bedroom:1, kitchen:2, livingroom:3
-    # Chores:4, Desk_activity:5, Dining_room_activity:6, Eve_Med:7, Leaving_home: 8, Meditate:9, Morning_Med:10, Reading: 11
-    
-    # !!!Notice: the list of class_names should correspond to the list of the result of 'ls ./labelled', like '0  1  10  11  2  3  4  5  6  7  8  9'
-    class_names=['bathroom','bedroom', 'morning_med', 'reading', 'kitchen','livingroom', 'chores', 'desk_activity', 'dining_room_activity',
-                 'eve_med', 'leaving_home', 'meditate']
 
-    class_names=['bathroom','bedroom', 'morning_med', 'reading', 'kitchen','livingroom', 'chores', 'desk_activity', 'dining_room_activity',
-                 'eve_med', 'leaving_home', 'lobby']
+    # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, lobby:4, door:5
+    class_names=['bathroom','bedroom', 'kitchen','livingroom', 'lobby', 'door']
 
     import sys, random
     from pathlib import Path
