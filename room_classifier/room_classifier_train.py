@@ -7,7 +7,12 @@ from keras.applications.xception import Xception, preprocess_input, decode_predi
 import matplotlib.pyplot as plt
 
 
-MAX_EPOCH = 10
+
+# bathroom: 0, bedroom:1, kitchen:2, livingroom:3, lobby:4, door:5
+class_names=['bathroom','bedroom', 'kitchen','livingroom', 'lobby', 'door']
+
+
+MAX_EPOCH = 20
 
 history = ''
 
@@ -111,7 +116,7 @@ def predict(file, model, to_class):
     return to_class[index]
     
 
-DIR = "/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/src/"
+DIR = "/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/room_classifier/room_dataset/"
 IMG_WIDTH, IMG_HEIGHT = 299, 299 # set this according to keras documentation, each model has its own size
 BATCH_SIZE = 200 # decrease this if your computer explodes
 

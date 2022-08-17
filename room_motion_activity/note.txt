@@ -1,0 +1,4 @@
+
+source  ~/LF_Workspace/venv3.7_energy/bin/activate
+python motion_activity_recognition_cnn.py
+

@@ -17,7 +17,7 @@ pip install librosa
 
 python ascc_extraction_2.py
 
-python train.py
+python ascc_room_sound_activity_train.py
 
 
 python ascc_room_sound_activity_test.py

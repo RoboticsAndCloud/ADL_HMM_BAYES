@@ -75,8 +75,8 @@ file_dict_test = {
 
 
 
-MOTION_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/motion_0802/'
-MOTION_FOLDER_TEST = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/motion/test/'
+MOTION_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/room_motion_activity/ascc_dataset/motion_0802/'
+MOTION_FOLDER_TEST = './test/'
 
 MOTION_TXT = 'motion.txt'
 sit_path_1 = MOTION_FOLDER + '20220729101522' + '/' + 'motion.txt'

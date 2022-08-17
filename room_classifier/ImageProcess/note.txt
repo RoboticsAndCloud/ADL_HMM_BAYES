@@ -1,0 +1,9 @@
+source  ~/LF_Workspace/venv3.7_energy/bin/activate
+
+
+python food_yolo_opencv.py --image ./appleAsccRotate.jpg --config yolov3.cfg --weights  yolov3.weights --class yolov3.txt
+
+
+python yolo_opencv.py --image ~/Desktop/test/read.jpg --config yolov3.cfg --weights  yolov3.weights --class yolov3.txt
+
+https://github.com/arunponnusamy/object-detection-opencv

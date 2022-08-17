@@ -250,15 +250,15 @@ def copy_ascc_act_dir(dir, target_dir, type, copy_flag=False):
     print('count:', count)
 
 
-target_dir = '/home/ascc/Desktop/test_set/'
-dir = '/home/ascc/Desktop/adl_0815/activity_data/'
+# target_dir = '/home/ascc/Desktop/test_set/'
+# dir = '/home/ascc/Desktop/adl_0815/activity_data/'
 # copy_ascc_act_dir(dir,  target_dir, type = 'Motion')
 # copy_ascc_act_dir(dir,  target_dir, type = 'Motion', copy_flag=True)
 # copy_ascc_act_dir(dir,  target_dir, type = 'Audio', copy_flag=True)
-copy_ascc_act_dir(dir,  target_dir, type = 'Image', copy_flag=True)
+# copy_ascc_act_dir(dir,  target_dir, type = 'Image', copy_flag=True)
 
 
-exit(0)
+# exit(0)
 
 #image_rotate(IMAGE_TEST)
 
@@ -280,9 +280,10 @@ image_dir = '/home/ascc/Desktop/data_activity_0217/data_0217/Res_activity/Dining
 image_dest_dir = '/home/ascc/Desktop/data_activity_0217/data_0217/Res_activity/Dining_room_activity_pad'
 image_dir = '/home/ascc/Desktop/data_activity_0217/data_0217/Res_activity/Desk_activity/'
 image_dest_dir = '/home/ascc/Desktop/data_activity_0217/data_0217/Res_activity/Desk_activity_pad'
-image_dir = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/data_activity_0217/data_0808/res_images/'
-image_dest_dir = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/data_activity_0217/data_0808/res_images_pad/'
 
-# count = generate_copy_image_file_from_dir(image_dir, image_dest_dir)
+image_dir = '/home/ascc/Desktop/image_living_bedroom/new_data/bed_rotate/'
+image_dest_dir = '/home/ascc/Desktop/image_living_bedroom/new_data/bed_res/'
+
+count = generate_copy_image_file_from_dir(image_dir, image_dest_dir)
 
 print("Res file count:", count)
