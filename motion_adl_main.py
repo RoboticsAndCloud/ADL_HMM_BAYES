@@ -12,7 +12,7 @@ import random
 #from tkinter.messagebox import NO
 
 import hmm
-import motion_env_ascc
+import real_time_env_ascc
 import motion_adl_bayes_model
 import tools_ascc
 import constants
@@ -266,7 +266,7 @@ def get_audio_type_by_activity_cnn(time_str):
     
 
 
-env = motion_env_ascc.EnvASCC(TEST_BASE_DATE + ' 00:00:00')
+env = real_time_env_ascc.EnvASCC(TEST_BASE_DATE + ' 00:00:00')
 env.reset()
 
 hmm_model = get_hmm_model()
@@ -464,7 +464,9 @@ p_check_level = 4
 start_check_interval = 0
 p_less_than_threshold_check_cnt = 0
 start_check_interval_time = None
-while(not env.done):
+
+check_times = 0
+while(True):
 
     # TODO:
     # p = rank1_res_prob[-1]
@@ -841,101 +843,52 @@ while(not env.done):
     audio_type_res.append([audio_type, audio_type_prob])
     motion_type_res.append([motion_type, motion_type_prob])
 
-# while not env.done
+
+    check_times = check_times + 1
+
+    if check_times % 2 == 0:
+        print("===================================================")
+        # print out results
+        print('rank1:', len(rank1_res_prob))
+        print(rank1_res_prob)
+
+        print('rank2:', len(rank2_res_prob))
+        print(rank2_res_prob)
+
+        print('rank3:', len(rank3_res_prob))
+        print(rank3_res_prob)
+
+        print('res_prob:', len(res_prob))
+        print(res_prob)
+
+        print('p_duration_lis:', len(p_duration_lis))
+        print(p_duration_lis)
+
+        print('rank1_res_prob_norm:', rank1_res_prob_norm)
+        print('rank2_res_prob_norm:', rank2_res_prob_norm)
+        print('rank3_res_prob_norm:', rank3_res_prob_norm)
+
+        print('location_res len:', len(location_res))
+        print('location_res:', location_res)
+        print('audio_type_res:', audio_type_res)
+        print('motion_type_res:', motion_type_res)
+
+        print('transition_motion_occur len:', len(transition_motion_occur))
+        print('transition_motion_occur:', transition_motion_occur)
+        print('p_less_than_threshold_check_cnt(uncertain when p < 0.4, 0.3, 0.2):', p_less_than_threshold_check_cnt)
+
+        print("============================================================================================")
+        print("Total times:", env.total_check_times)
+        print("Total Fusion times:", env.fusion_check_times)
+        print("Total Motion times:", env.motion_check_times)
+
+        print("Day End Running time:", env.running_time)
+        print("Sensors Energy cost:", env.sensor_energy_cost)
+        print("Sensors Time cost:", env.sensor_time_cost)
+
+        end_time_of_wmu = env.get_running_time()
+        print("Duration of Day:", (end_time_of_wmu - env.day_begin).seconds/3600.0)
+        print('check times in adl mian:', check_times)
 
 
-print("===================================================")
-# print out results
-print('rank1:', len(rank1_res_prob))
-print(rank1_res_prob)
-
-print('rank2:', len(rank2_res_prob))
-print(rank2_res_prob)
-
-print('rank3:', len(rank3_res_prob))
-print(rank3_res_prob)
-
-print('res_prob:', len(res_prob))
-print(res_prob)
-
-print('p_duration_lis:', len(p_duration_lis))
-print(p_duration_lis)
-
-print('rank1_res_prob_norm:', rank1_res_prob_norm)
-print('rank2_res_prob_norm:', rank2_res_prob_norm)
-print('rank3_res_prob_norm:', rank3_res_prob_norm)
-
-print('location_res len:', len(location_res))
-print('location_res:', location_res)
-print('audio_type_res:', audio_type_res)
-print('motion_type_res:', motion_type_res)
-
-print('transition_motion_occur len:', len(transition_motion_occur))
-print('transition_motion_occur:', transition_motion_occur)
-print('p_less_than_threshold_check_cnt(uncertain when p < 0.4, 0.3, 0.2):', p_less_than_threshold_check_cnt)
-
-# # motion probabilities during activities
-# print('p_sitting_prob:', len(p_sitting_prob))
-# print(p_sitting_prob)
-
-# print('p_standing_prob:', len(p_standing_prob))
-# print(p_standing_prob)
-
-# print('p_walking_prob:', len(p_walking_prob))
-# print(p_walking_prob)
-
-# todo: probability of each activities obtained from the p_duration, for example, cur_activity is 'Read', P_duration(Read) = 0.8, then p(rank2) + p(rank3) = 1-p(Read)=1- 0.8  = 0.2
-
-
-
-print("===================================================")
-
-if env.done:
-    print("Activity_none_times:", env.activity_none_times)
-    print("Expected_activity_none_times:", env.expected_activity_none_times)
-    print("Hit times:", env.done_hit_event_times)
-    print("Miss times:", env.done_missed_event_times)
-    print("Random Miss times:", env.done_random_miss_event_times)
-    print("Middle times:", env.done_middle_event_times)
-    print("Penalty times:", env.done_penalty_times)
-    print("Uncertain times:", env.done_uncertain_times)
-    print("Total times:", env.done_totol_check_times)
-    print("Residual power:", env.done_residual_power)
-    print("Beginning event times:", env.done_beginning_event_times)
-    print("Endding event times:", env.done_end_event_times)
-    print("Middle event times:", env.done_middle_event_times)
-    print("Day End Running time:", env.done_running_time)
-    print("Reward:", env.done_reward)
-    print("Done status:", env.done)
-    print("Sensors Energy cost:", env.done_energy_cost)
-    print("Sensors Time cost:", env.done_time_cost)
-    print("Sensors Energy total  cost:", env.energy_cost)
-    print("Sensors Time total cost:", env.time_cost)
-    print("Total Time cost:", env.done_total_time_cost)
-    print("Motion_triggered_times:", env.motion_triggered_times)
-    print("Hit_activity_check_times", env.hit_activity_check_times)
-    end_time_of_wmu = datetime.strptime(env.done_running_time.strftime(DATE_TIME_FORMAT).split()[1], HOUR_TIME_FORMAT)
-    print("Duration of Day:", (end_time_of_wmu - env.day_begin).seconds/3600.0)
-
-end_time_of_wmu = datetime.strptime(env.done_running_time.strftime(DATE_TIME_FORMAT).split()[1], HOUR_TIME_FORMAT)
-print("Duration of Day:", (end_time_of_wmu - env.day_begin).seconds/3600.0)
-
-
-print("Display information:")
-# env.display_action_counter()
-# env.display_info()
-print("===================================================")
-
-print("Activity_none_times \t Expected_activity_none_times \t Hit times \t Miss times \
-    \t Random Miss times \t Penalty times \t Uncertain times \t Total times \
-    \t Residual power \t Beginning event times \t Endding event times \t Middle event times \
-    \t Day End Running time \t Done status \t Duration of Day \t DoneReward \t Reward  \
-    \t Sensors energy cost \t Sensors time cost \t total time cost \t Motion_triggered_times \t Hit_activity_check_times \t motion_activity_cnt \t")
-
-print(env.activity_none_times, '\t', env.expected_activity_none_times, '\t',env.done_hit_event_times, '\t', env.done_missed_event_times, \
-    '\t', env.done_random_miss_event_times, '\t', env.done_penalty_times, '\t', env.done_uncertain_times, '\t', env.done_totol_check_times, \
-    '\t', env.done_residual_power, '\t', env.done_beginning_event_times, '\t', env.done_end_event_times, '\t', env.done_middle_event_times, \
-    '\t', env.done_running_time, '\t', env.done, '\t', (end_time_of_wmu - env.day_begin).seconds/3600.0, '\t', 0, '\t', 0, \
-    '\t', env.done_energy_cost, '\t', env.done_time_cost, "\t", env.done_total_time_cost, "\t", env.motion_triggered_times, '\t', env.hit_activity_check_times, '\t',env.motion_activity_cnt)
-
-print("===================================================")
+print('End')
