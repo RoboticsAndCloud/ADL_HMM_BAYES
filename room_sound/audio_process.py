@@ -101,17 +101,26 @@ if __name__ == '__main__':
     source_dir = '/home/ascc/Desktop/Sample_set/whand/'
     target_dir = '/home/ascc/Desktop/Sample_set/whand_1sec/'
 
-    
-    cnt = audio_file_truncate(source_dir, target_dir)
-    print('Count:', cnt)
+    # dir = '/home/ascc/Desktop/image_living_bedroom/new_data/audio/'
+    # target = '/home/ascc/Desktop/image_living_bedroom/new_data/quiet_1sec/'
+    # cnt = copy_file(dir, target)
+    # print("count:", cnt)
+
+    dir = '/home/ascc/Desktop/image_living_bedroom/new_data/quiet/'
+    target = '/home/ascc/Desktop/image_living_bedroom/new_data/quiet_test/'
+    cnt = copy_file(dir, target)
+    print("count:", cnt)
+
+
+    # source_dir =  '/home/ascc/Desktop/image_living_bedroom/new_data/audio_pad/'
+    # target_dir = '/home/ascc/Desktop/image_living_bedroom/new_data/quiet_1sec/'
+    # cnt = audio_file_truncate(source_dir, target_dir)
+    # print('Count:', cnt)
     
     # audio_file_truncate_by_dir('/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity/')   
 
 
-# dir = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/senior_design/Server/data/audio/'
-# target = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/rpi/'
-#cnt = copy_file(dir, target)
-#print("count:", cnt)
+
 
 
 

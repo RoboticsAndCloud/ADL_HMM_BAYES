@@ -45,7 +45,8 @@ flush_toilet@9_freesound-flush_toilet__253105__va7mjl__toilet-flush_4.wav
     '''
     info = {}
     for i in labels:
-        sub_dir = "/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity_1second/audio/" + i
+        # sub_dir = "/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity_1second/audio/" + i
+        sub_dir = "/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/room_sound/sound_dataset/ascc_activity_1second/audio/" + i
         files = os.listdir(sub_dir)
         aa = []
         for a_file in files:
@@ -61,6 +62,12 @@ flush_toilet@9_freesound-flush_toilet__253105__va7mjl__toilet-flush_4.wav
     train_labels = []
     test_feats = []
     test_labels = []
+
+    """
+    total sample:  2175
+    train_feats: (1735, 64, 138)
+    test_feat: (440, 64, 138)
+    """
 
     # class_list = np.sort(glob('./data/esc10/audio/*'))
     # class_list = np.sort(glob('/home/ascc/Downloads/total_sound_1_second/*'))
@@ -121,8 +128,13 @@ flush_toilet@9_freesound-flush_toilet__253105__va7mjl__toilet-flush_4.wav
 
     # np.savez('./data/esc10/feature/esc10_mfcc_fold{}.npz'.format(fold),
     #          train_x=train_feats, train_y=train_labels, test_x=test_feats, test_y=test_labels)
-    np.savez('/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity_1second/feature/ascc_logmel_total.npz',
+    # np.savez('/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity_1second/feature/ascc_logmel_total.npz',
+    #             train_x=train_feats, train_y=train_labels, test_x=test_feats, test_y=test_labels)
+
+    np.savez('/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/room_sound/sound_dataset/ascc_activity_1second/feature/ascc_logmel_total.npz',
                 train_x=train_feats, train_y=train_labels, test_x=test_feats, test_y=test_labels)
+
+                
 
 
 if __name__ == '__main__':
