@@ -7,6 +7,7 @@ Date: 07/10/2022
 from datetime import datetime
 from pickle import TRUE
 import random
+from re import T
 
 #import constants
 #from tkinter.messagebox import NO
@@ -464,6 +465,8 @@ p_check_level = 4
 start_check_interval = 0
 p_less_than_threshold_check_cnt = 0
 start_check_interval_time = None
+living_room_check_times = 2
+
 while(not env.done):
 
     # TODO:
@@ -474,6 +477,8 @@ while(not env.done):
     object = ''
     motion_type = ''
     audio_type = ''
+
+    living_room_check_flag = False
 
     if need_recollect_data:
         audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.FUSION_ACTION)  
@@ -613,6 +618,7 @@ while(not env.done):
     #     p_walking_prob[len(p_walking_prob)-1] = p2
 
 
+
     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
         print("motion step act:", act)
         hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
@@ -626,26 +632,41 @@ while(not env.done):
             # p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
 
             p4 = 1
-            # p3 = 1
+            p3 = 1
             
+            p_audio_motion = p2 * p3 * hmm_prob
+
             # todo, in the living room, we can collect audio data more times (3 -r times), to confirm the activity
             # or, we can get object activity
+            # object == constants.OBJECT_BOOK
             #if audio_type == constants.AUDIO_TYPE_ENV:
+
             if location == constants.LOCATION_LIVINGROOM:
+                living_room_check_flag = True
 
                 res_object = location
                 res_object_p = constants.MIN_Prob
                 for object, prob in object_dict:
-                    if object == constants.OBJECT_BOOK or object == constants.OBJECT_LAPTOP or object == constants.OBJECT_TV:
+                    print('in living room:', object)
+                    if object == constants.OBJECT_LAPTOP:
+                        res_object = object
+                        res_object_p = prob
+                        bayes_model_object.set_object_prob(res_object_p)
+                        p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
+                        break
+                    elif object == constants.OBJECT_BOOK:
                         res_object = object
                         res_object_p = prob
                         bayes_model_object.set_object_prob(res_object_p)
                         p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
 
-                        break
+                p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
 
-            p_audio_motion = p2 * p3 * hmm_prob
+                
 
+
+            
+            
             p = p1*p2*p3*p4 * hmm_prob
             
             print("need_recollect_data step act:", act)
@@ -767,7 +788,7 @@ while(not env.done):
     #         start_check_interval_time = cur_time
     #         p_check_level = p_check_level -1
 
-        if p_activity_end < -0.2:    
+        if p_activity_end < 0.3:    
             if start_check_interval_time == None:
                 start_check_interval_time = cur_time
 
@@ -836,6 +857,15 @@ while(not env.done):
         transition_motion = TRUE
         need_recollect_data = True
         transition_motion_occur.append(cur_time_str)
+
+    if living_room_check_flag == True and living_room_check_times > 0:
+        print('living_room_check_flag occur:', 'times:', living_room_check_flag, ' cur motion_type:', living_room_check_times)
+        living_room_check_times = living_room_check_times -1
+        need_recollect_data = True
+    else:
+        living_room_check_times = 2
+        living_room_check_flag = False
+
 
     location_res.append([location, location_prob])
     audio_type_res.append([audio_type, audio_type_prob])
