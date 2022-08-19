@@ -65,6 +65,7 @@ Raises:
 def get_file_count_of_dir(dir, prefix=''):
     path = dir
     count = 0
+    print('get_file_count_of_dir: ', path)
     for fn in os.listdir(path):
         if os.path.isfile(dir + '/' + fn):
             if prefix != '':
@@ -493,8 +494,13 @@ def run():
         pre_test_dir = test_dir
 
         files=Path(test_dir).resolve().glob('*.*')
-
-        test_sample= get_file_count_of_dir(test_dir) 
+        
+        try:
+            test_sample= get_file_count_of_dir(test_dir) 
+        except Exception as e:
+            print('Got error:', e)
+            continue
+        
         #test_sample= 5
 
         images=random.sample(list(files), test_sample)

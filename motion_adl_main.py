@@ -835,6 +835,10 @@ while(not env.done):
         start_check_interval_time = None
         start_check_interval = 0
 
+        # when new activity occrs, double check that, the model will generate the new next activity, we need to confirm again
+        # need_recollect_data = True
+
+
     
     if len(rank1_res_prob) % 1000 == 0:
         print("===================================================")
