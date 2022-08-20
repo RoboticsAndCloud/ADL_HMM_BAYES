@@ -166,7 +166,9 @@ ASCC_DATA_RES_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room
 ASCC_DATA_YOLOV3_RES_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/recognition_yolov3_result.txt'
 
 # ASCC_DATA_SET_DIR = '/home/ascc/LF_Workspace/ReinforcementLearning/ASCC_Energy_Consumption/ASCC-RL-Algorithms_New_Reward_Test_Part/ascc_activity_real_data_0309/'
-ASCC_DATA_SET_DIR = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/Ascc_Dataset_0815/'
+# sequence program to collect data: 0815
+# multithread program to collect data: 0819
+ASCC_DATA_SET_DIR = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/Ascc_Dataset_0819/'
 ASCC_DATASET_DATE_HOUR_TIME_FORMAT_DIR = '%Y-%m-%d-%H-%M-%S'
 
 ASCC_AUDIO_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/ascc_data/notice.txt'
@@ -640,8 +642,8 @@ def get_activity_by_motion_dnn(time_str, action='vision'):
     # /home/ascc/LF_Workspace/ReinforcementLearning/ASCC_Energy_Consumption/ASCC-RL-Algorithms_New_Reward_Test_Part/ascc_activity_real_data_0309//Image/2009-12-11-08-45-15/
 
     # check motion dir
+    # motion_dir_name = get_exist_motion_dir(motion_dir_name)
 
-    motion_dir_name = get_exist_motion_dir(motion_dir_name)
     if motion_dir_name == '':
         return [], []
     
@@ -692,6 +694,8 @@ def get_activity_by_audio_dnn(time_str, action='vision'):
 
     audio_dir_name = image_dir_name.replace('Image', 'Audio')
     print('===:', audio_dir_name)
+    if audio_dir_name == '':
+        return '', -1
 
 
     write_notice_into_file(ASCC_AUDIO_DATA_NOTICE_FILE, audio_dir_name)
@@ -724,6 +728,11 @@ def get_exist_image_dir(time_str, action='vision'):
     if DEBUG:
         print("get_activity time_str:", time_str)
     d_act = datetime.strptime(time_str, DATE_TIME_FORMAT)
+
+    # 2009-12-11 19
+    if '2009-12-11 19:' in time_str or '2009-12-11 20:0' in time_str or '2009-12-11 20:1' in time_str or '2009-12-11 20:2' in time_str:
+        print('ignore he walking period from 18:50 -20:35, walk around in home: ', time_str)
+        return ''
 
     for i in range( 60*60 ):
         new_time = d_act + timedelta(seconds = i)

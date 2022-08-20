@@ -250,15 +250,15 @@ def copy_ascc_act_dir(dir, target_dir, type, copy_flag=False):
     print('count:', count)
 
 
-# target_dir = '/home/ascc/Desktop/test_set/'
-# dir = '/home/ascc/Desktop/adl_0815/activity_data/'
-# copy_ascc_act_dir(dir,  target_dir, type = 'Motion')
-# copy_ascc_act_dir(dir,  target_dir, type = 'Motion', copy_flag=True)
-# copy_ascc_act_dir(dir,  target_dir, type = 'Audio', copy_flag=True)
-# copy_ascc_act_dir(dir,  target_dir, type = 'Image', copy_flag=True)
+target_dir = '/home/ascc/Desktop/test_set/'
+dir = '/home/ascc/Desktop/adl_0819v1/activity_data/'
+copy_ascc_act_dir(dir,  target_dir, type = 'Motion')
+copy_ascc_act_dir(dir,  target_dir, type = 'Motion', copy_flag=True)
+copy_ascc_act_dir(dir,  target_dir, type = 'Audio', copy_flag=True)
+copy_ascc_act_dir(dir,  target_dir, type = 'Image', copy_flag=True)
 
 
-# exit(0)
+exit(0)
 
 #image_rotate(IMAGE_TEST)
 

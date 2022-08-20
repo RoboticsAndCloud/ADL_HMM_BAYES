@@ -660,6 +660,12 @@ while(not env.done):
                         bayes_model_object.set_object_prob(res_object_p)
                         p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
 
+                    elif object == constants.OBJECT_TV:
+                        res_object = object
+                        res_object_p = prob
+                        bayes_model_object.set_object_prob(res_object_p)
+                        p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
+
                 p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
 
                 
@@ -788,7 +794,7 @@ while(not env.done):
     #         start_check_interval_time = cur_time
     #         p_check_level = p_check_level -1
 
-        if p_activity_end < 0.3:    
+        if p_activity_end < -0.3:    
             if start_check_interval_time == None:
                 start_check_interval_time = cur_time
 

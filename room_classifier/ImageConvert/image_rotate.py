@@ -156,6 +156,6 @@ def get_rotate_file_from_dir(dir):
 
 # count = get_file_count_of_dir(IMAGE_DIR)
 # count = get_rotate_file_of_dir(IMAGE_DIR, IMAGE_SAVE_DIR)
-IMAGE_DIR = "/home/ascc/Desktop/image_living_bedroom/new_data/images/"
+IMAGE_DIR = "/home/ascc/Desktop/data_0819_p2/images/"
 count = get_rotate_file_from_dir(IMAGE_DIR)
 print("Rotate file count:", count)

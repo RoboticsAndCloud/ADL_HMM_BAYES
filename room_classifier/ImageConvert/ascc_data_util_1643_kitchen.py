@@ -241,7 +241,7 @@ def generate_data_from_dir_kitchen_copy(dir):
     return map_dict
 
 milan_activity_date = '2009-12-11 16:43:42'
-ascc_date_str = '20220814133543_rotate'
+ascc_date_str = '20220819160400_rotate'
 base_path = '/home/ascc/Desktop/adl_0815/activity_data/1643_kitchen/'
 
 images = base_path +  '/Image'

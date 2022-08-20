@@ -949,7 +949,12 @@ def run():
             continue
 
         start = timer()
-        pred_list, prob_list = get_activity_prediction(str(motion_file), act = 'Sitting', time_str = '0')
+        try:
+            pred_list, prob_list = get_activity_prediction(str(motion_file), act = 'Sitting', time_str = '0')
+        except Exception as e:
+            print('error:', e)
+            logging.warn('error:%s', e)
+            continue
 
         for i in range(len(pred_list)):
 
@@ -1475,7 +1480,7 @@ def test_dnn():
 
     
     # get_activity_by_motion_dnn('20220816130042', 'sitting') ## new data
-    # get_activity_by_motion_dnn('20220816130634', 'stand')
+    get_activity_by_motion_dnn('20220819143746', 'stand')
     # get_activity_by_motion_dnn('walk', 'test?')
 
     

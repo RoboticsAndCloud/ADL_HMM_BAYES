@@ -239,80 +239,30 @@ def generate_data_from_dir_kitchen_copy(dir):
     return map_dict
 
 milan_activity_date = '2009-12-11 09:10:27'
-ascc_date_str = '20220814114848_rotate'
+ascc_date_str = '20220819144529_rotate'
+base_path = '/home/ascc/Desktop/adl_0819/activity/0910_leave_home/'
 
-duration = 60 * 18
-images = '/home/ascc/Desktop/adl_0815/activity_data/leave_home_0910/Image'
-
-
-# get_timestamp_map(test_dir=images, milan_activity_date=milan_activity_date, ascc_date_str=ascc_date_str)
+images = base_path +  'Image'
 
 
-# res = generate_data_from_dir(images, duration)
-# sd = sorted(res.items())
-# print('Mapping')
-# print('Old \t New')
-# for k,v in sd:
-#     print(k, '\t', v)
-
-
-# kitchen_dir = '/home/ascc/Desktop/white_case_0309_1211/activity_data/kitchen_activity'
-# res = generate_data_from_dir_kitchen_copy(kitchen_dir)
-# sd = sorted(res.items())
-# print('Mapping')
-# print('Old \t New')
-# for k,v in sd:
-#     print(k, '\t', v)
+get_timestamp_map(test_dir=images, milan_activity_date=milan_activity_date, ascc_date_str=ascc_date_str)
 
 # Generate final data dir
-# get_timestamp_map(test_dir = images,milan_activity_date=milan_activity_date, ascc_date_str=ascc_date_str, copy_flag=True)
+get_timestamp_map(test_dir = images,milan_activity_date=milan_activity_date, ascc_date_str=ascc_date_str, copy_flag=True)
 
-# exit(0)
+audio = base_path + 'Audio'
 
-audio = '/home/ascc/Desktop/adl_0815/activity_data/leave_home_0910/Audio'
+get_timestamp_map(test_dir=audio, milan_activity_date=milan_activity_date, ascc_date_str=ascc_date_str,copy_flag=False)
 
-# get_timestamp_map(test_dir=audio, milan_activity_date=milan_activity_date, ascc_date_str=ascc_date_str,copy_flag=False)
-
-
-# res = generate_data_from_dir(audio, duration)
-# sd = sorted(res.items())
-# print('Mapping')
-# print('Old \t New')
-# for k,v in sd:
-#     print(k, '\t', v)
-
-
-# kitchen_dir = audio
-# res = generate_data_from_dir_kitchen_copy(kitchen_dir)
-# sd = sorted(res.items())
-# print('Mapping')
-# print('Old \t New')
-# for k,v in sd:
-#     print(k, '\t', v)
 
 # Generate final data dir
-# get_timestamp_map(test_dir=audio, milan_activity_date=milan_activity_date, ascc_date_str=ascc_date_str,copy_flag=True)
+get_timestamp_map(test_dir=audio, milan_activity_date=milan_activity_date, ascc_date_str=ascc_date_str,copy_flag=True)
 
 
-motion = '/home/ascc/Desktop/adl_0815/activity_data/leave_home_0910/Motion'
+motion = base_path + 'Motion'
 
 get_timestamp_map(test_dir=motion, milan_activity_date=milan_activity_date, ascc_date_str=ascc_date_str)
 
-# res = generate_data_from_dir(motion)
-# sd = sorted(res.items())
-# print('Mapping')
-# print('Old \t New')
-# for k,v in sd:
-#     print(k, '\t', v)
-
-
-# kitchen_dir = motion
-# res = generate_data_from_dir_kitchen_copy(kitchen_dir)
-# sd = sorted(res.items())
-# print('Mapping')
-# print('Old \t New')
-# for k,v in sd:
-#     print(k, '\t', v)
 
 # Generate final data dir
 get_timestamp_map(test_dir=motion, milan_activity_date=milan_activity_date, ascc_date_str=ascc_date_str,copy_flag=True)
