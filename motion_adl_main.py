@@ -33,6 +33,8 @@ DAY_FORMAT_STR = '%Y-%m-%d'
 
 UNCERTAIN_CHECK_INTERVAL = 60 # Seconds
 
+LIVING_ROOM_CHECK_TIMES_MAX = 2
+
 
 """
 Given the duration, return the probability that the activity may be finished
@@ -465,7 +467,7 @@ p_check_level = 4
 start_check_interval = 0
 p_less_than_threshold_check_cnt = 0
 start_check_interval_time = None
-living_room_check_times = 2
+living_room_check_times = LIVING_ROOM_CHECK_TIMES_MAX 
 
 while(not env.done):
 
@@ -502,6 +504,9 @@ while(not env.done):
         # motion_type_res.append([motion_type, motion_type_prob])
 
         if location == '':
+            print('Location  empty:', cur_time)
+            cur_time = env.get_running_time()
+            cur_time_str = cur_time.strftime(motion_env_ascc.DATE_HOUR_TIME_FORMAT)
             continue
 
     else:
@@ -646,6 +651,8 @@ while(not env.done):
             # or, we can get object activity
             # object == constants.OBJECT_BOOK
             #if audio_type == constants.AUDIO_TYPE_ENV:
+        
+
 
             if location == constants.LOCATION_LIVINGROOM:
                 living_room_check_flag = True
@@ -653,7 +660,7 @@ while(not env.done):
                 res_object = location
                 res_object_p = constants.MIN_Prob
                 for object, prob in object_dict:
-                    print('in living room:', object)
+                    print('in living room:', object, ' cur_time_str:', cur_time_str)
                     if object == constants.OBJECT_LAPTOP:
                         res_object = object
                         res_object_p = prob
@@ -838,6 +845,12 @@ while(not env.done):
         cur_activity = pre_activity
         print('++++++++++++++Around lobby,', cur_time_str)
 
+    # if living_room_check_times == MAX:
+    # 
+    if living_room_check_times > 0:
+        cur_activity = pre_activity
+        print('++++++++++++++first in living room,', cur_time_str)
+
     if pre_activity != cur_activity:
         pre_activity = cur_activity
         pre_act_list.append(pre_activity)
@@ -879,7 +892,7 @@ while(not env.done):
         living_room_check_times = living_room_check_times -1
         need_recollect_data = True
     else:
-        living_room_check_times = 2
+        living_room_check_times = LIVING_ROOM_CHECK_TIMES_MAX
         living_room_check_flag = False
 
 
