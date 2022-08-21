@@ -2,3 +2,6 @@
 source  ~/LF_Workspace/venv3.7_energy/bin/activate
 python motion_activity_recognition_cnn.py
 
+
+python ascc_room_motion_activity_test.py 
+

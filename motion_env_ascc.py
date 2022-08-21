@@ -540,7 +540,7 @@ class EnvASCC():
         # todo change it to real number
 
         # For debug purpos
-        # self.running_time = datetime.strptime('2009-12-11 13:56:30', DATE_HOUR_TIME_FORMAT)
+        self.running_time = datetime.strptime('2009-12-11 08:46:27', DATE_HOUR_TIME_FORMAT)
 
         return next_state_
 

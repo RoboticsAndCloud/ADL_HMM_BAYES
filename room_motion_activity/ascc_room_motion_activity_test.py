@@ -1480,8 +1480,17 @@ def test_dnn():
 
     
     # get_activity_by_motion_dnn('20220816130042', 'sitting') ## new data
-    get_activity_by_motion_dnn('20220819143746', 'stand')
     # get_activity_by_motion_dnn('walk', 'test?')
+
+
+    # get_activity_by_motion_dnn('2009-12-11-09-17-25', 'sitting') # should be sitting, but walking...
+    # get_activity_by_motion_dnn('2009-12-11-09-17-45', 'sitting') # good
+    # get_activity_by_motion_dnn('2009-12-11-09-18-13', 'sitting') # good
+    # get_activity_by_motion_dnn('20220821074239', 'sitting_sofa') # not good
+    # get_activity_by_motion_dnn('20220821083945', 'sitting sofa') # good
+    # get_activity_by_motion_dnn('2009-12-11-09-10-39', 'stand') # good
+
+
 
     
 

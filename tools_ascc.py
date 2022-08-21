@@ -735,7 +735,7 @@ def get_exist_image_dir(time_str, action='vision'):
         return ''
 
     for i in range( 60*60 ):
-        new_time = d_act + timedelta(seconds = i)
+        new_time = d_act - timedelta(seconds = i)
         ascc_dir_time = convert_time_to_real(new_time)
         # ignore the walking period from 18:50 -20:35, walk around in home
 
@@ -851,6 +851,9 @@ def get_activity_by_vision_dnn(time_str, action='vision', mode='map'):
     # todo: check the code, how to get expected activity,  Miss activity: Expected: Sleep ,Detect: Meditate Running time: 2009-12-11 08:45:26
     # todo: check the image and recognition res when motion occurs 
     print('vision_dnn res:', res_str)
+
+    if res_str == '':
+        return '', -1
 
     res_list = res_str.split('\t')
     res_dict = {}
