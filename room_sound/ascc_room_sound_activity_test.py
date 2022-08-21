@@ -96,6 +96,7 @@ def CNN_test(test_fold, feat):
             res = pre + '(' + str(val) + ')'
         except:
             print("ERROR........")
+            res = ''
 
     
         end = timer()

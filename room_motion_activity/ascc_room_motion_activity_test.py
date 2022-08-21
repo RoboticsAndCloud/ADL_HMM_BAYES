@@ -974,6 +974,7 @@ def run():
 
 
 MOTION_FOLDER_TEST = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/motion/test/'
+MOTION_FOLDER_TEST = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/Ascc_Dataset_0819/Motion/'
 MOTION_FOLDER_0802 = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/motion_0802/'
 MOTION_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/motion/'
 
@@ -1490,6 +1491,9 @@ def test_dnn():
     # get_activity_by_motion_dnn('20220821083945', 'sitting sofa') # good
     # get_activity_by_motion_dnn('2009-12-11-09-10-39', 'stand') # good
 
+    get_activity_by_motion_dnn('2009-12-11-09-10-39', 'sitting') # good
+
+
 
 
     
@@ -1502,8 +1506,8 @@ if __name__ == "__main__":
     log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
     logging.info("Hello World!!!")
     # test()
-    # test_dnn()
-    run()
+    test_dnn()
+    # run()
     
 
 

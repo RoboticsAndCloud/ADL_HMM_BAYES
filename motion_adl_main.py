@@ -496,9 +496,13 @@ while(not env.done):
         bayes_model_motion.set_motion_type_prob(motion_type_prob)
         # bayes_model_motion.set_motion_type(motion_type)
 
+
         location_res.append([location, location_prob])
         audio_type_res.append([audio_type, audio_type_prob])
         # motion_type_res.append([motion_type, motion_type_prob])
+
+        if location == '':
+            continue
 
     else:
         # INTERVAL_FOR_COLLECTING_DATA
@@ -511,6 +515,8 @@ while(not env.done):
         location_res.append(['', ''])
         audio_type_res.append(['', ''])
         # motion_type_res.append([motion_type, motion_type_prob])
+
+
 
 
 
