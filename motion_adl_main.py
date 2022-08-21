@@ -659,6 +659,16 @@ while(not env.done):
 
                 res_object = location
                 res_object_p = constants.MIN_Prob
+                
+                object_labtop_flag = False
+                object_book_flag = False
+                for object, prob in object_dict:
+                    if object == constants.OBJECT_LAPTOP:
+                        object_labtop_flag = True
+                    elif object == constants.OBJECT_BOOK:
+                        object_book_flag = True
+
+
                 for object, prob in object_dict:
                     print('in living room:', object, ' cur_time_str:', cur_time_str)
                     if object == constants.OBJECT_LAPTOP:
@@ -668,12 +678,20 @@ while(not env.done):
                         p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
                         break
                     elif object == constants.OBJECT_BOOK:
+
+                        if object_book_flag == True:
+                            continue
+
                         res_object = object
                         res_object_p = prob
                         bayes_model_object.set_object_prob(res_object_p)
                         p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
 
+
                     elif object == constants.OBJECT_TV:
+                        if object_book_flag == True or object_labtop_flag == True:
+                            continue
+                        
                         res_object = object
                         res_object_p = prob
                         bayes_model_object.set_object_prob(res_object_p)
@@ -792,6 +810,8 @@ while(not env.done):
 
     p_duration_lis.append(p_activity_end)
 
+
+
     if activity_detected == pre_activity:
         print('p_activity_end:', p_activity_end)
     #     # todo if p_activity_end < 0.2, audio,vision+motion
@@ -847,12 +867,19 @@ while(not env.done):
 
     # if living_room_check_times == MAX:
     # 
-    if living_room_check_times > 0:
+    if location == constants.LOCATION_LIVINGROOM and living_room_check_times > 0:
         cur_activity = pre_activity
-        print('++++++++++++++first in living room,', cur_time_str)
+        print('++++++++++++++ in living room, checks:', living_room_check_times, ' ', cur_time_str)
+
+    # incase the wrong prediction from HMM model
+    if location == '' and cur_activity != pre_activity:
+        cur_activity = pre_activity
+        need_recollect_data = True
 
     if pre_activity != cur_activity:
+
         pre_activity = cur_activity
+
         pre_act_list.append(pre_activity)
         activity_begin_time = cur_time
         need_recollect_data = False
