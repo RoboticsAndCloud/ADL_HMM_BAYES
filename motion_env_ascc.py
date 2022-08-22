@@ -61,6 +61,8 @@ ENERGY_TX = 220  # mA
 ENERGY_RECORDING_MIC = 130  # mA (to be Done from Ricky)
 
 
+# WMU
+# IMAGE_SIZE = 174 #KB
 IMAGE_SIZE = 24.86  # KB
 IMAGE_COUNT = 10  # 10 Frames
 IMAGE_TAKING_TIME_COST = 1/30  # 30 frames

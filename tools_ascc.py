@@ -148,6 +148,7 @@ day_time_str: 2010-01-05
 from datetime import datetime
 from datetime import timedelta
 from genericpath import exists
+import logging
 import os
 import re
 import time
@@ -707,7 +708,7 @@ def get_activity_by_audio_dnn(time_str, action='vision'):
     res_str = read_res_from_file(ASCC_AUDIO_DATA_RES_FILE)
 
     
-    print('Audio Recognition res:', res_str)
+    print('Audio Recognition res:', res_str, ' time:', time_str)
     if res_str == '':
         return '', -1
 

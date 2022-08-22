@@ -35,6 +35,9 @@ UNCERTAIN_CHECK_INTERVAL = 60 # Seconds
 
 LIVING_ROOM_CHECK_TIMES_MAX = 2
 
+new_activity_check_times = 2
+DOUBLE_CHECK = 2
+
 
 """
 Given the duration, return the probability that the activity may be finished
@@ -698,11 +701,9 @@ while(not env.done):
                         p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
 
                 p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
+                p3 = 1
 
                 
-
-
-            
             
             p = p1*p2*p3*p4 * hmm_prob
             
@@ -867,14 +868,23 @@ while(not env.done):
 
     # if living_room_check_times == MAX:
     # 
-    if location == constants.LOCATION_LIVINGROOM and living_room_check_times > 0:
-        cur_activity = pre_activity
-        print('++++++++++++++ in living room, checks:', living_room_check_times, ' ', cur_time_str)
 
     # incase the wrong prediction from HMM model
     if location == '' and cur_activity != pre_activity:
         cur_activity = pre_activity
         need_recollect_data = True
+
+    if pre_activity != cur_activity:
+        if location == constants.LOCATION_LIVINGROOM and living_room_check_times > 0:
+            cur_activity = pre_activity
+            print('++++++++++++++ in living room, checks:', living_room_check_times, ' ', cur_time_str)
+
+        if new_activity_check_times == DOUBLE_CHECK:
+            cur_activity = pre_activity
+            new_activity_check_times = new_activity_check_times - 1
+            need_recollect_data = TRUE
+        else:
+            new_activity_check_times = DOUBLE_CHECK
 
     if pre_activity != cur_activity:
 
