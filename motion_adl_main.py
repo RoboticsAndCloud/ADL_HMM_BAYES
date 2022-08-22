@@ -663,11 +663,11 @@ while(not env.done):
                 res_object = location
                 res_object_p = constants.MIN_Prob
                 
-                object_labtop_flag = False
+                object_laptop_flag = False
                 object_book_flag = False
                 for object, prob in object_dict:
                     if object == constants.OBJECT_LAPTOP:
-                        object_labtop_flag = True
+                        object_laptop_flag = True
                     elif object == constants.OBJECT_BOOK:
                         object_book_flag = True
 
@@ -682,7 +682,7 @@ while(not env.done):
                         break
                     elif object == constants.OBJECT_BOOK:
 
-                        if object_book_flag == True:
+                        if object_laptop_flag == True:
                             continue
 
                         res_object = object
@@ -692,7 +692,7 @@ while(not env.done):
 
 
                     elif object == constants.OBJECT_TV:
-                        if object_book_flag == True or object_labtop_flag == True:
+                        if object_book_flag == True or object_laptop_flag == True:
                             continue
                         
                         res_object = object
