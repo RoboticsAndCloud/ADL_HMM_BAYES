@@ -614,8 +614,18 @@ def get_exist_motion_dir(motion_dir_name):
     time_str = motion_dir.split('/')[-2]
     d_act = datetime.strptime(time_str, ASCC_DATASET_DATE_HOUR_TIME_FORMAT_DIR)
 
-    for i in range( 60 ):
+    for i in range(5):
         new_time = d_act - timedelta(seconds = i)
+        ascc_dir_time = convert_time_to_real(new_time)
+        new_motion_dir_name = ASCC_DATA_SET_DIR + '/' + 'Motion/' + ascc_dir_time + '/'
+
+        if os.path.exists(new_motion_dir_name) == True:
+            print('tools_ascc new_motion_dir_name:', new_motion_dir_name)
+
+            return new_motion_dir_name
+
+    for i in range(2):
+        new_time = d_act + timedelta(seconds = i)
         ascc_dir_time = convert_time_to_real(new_time)
         new_motion_dir_name = ASCC_DATA_SET_DIR + '/' + 'Motion/' + ascc_dir_time + '/'
 
@@ -643,7 +653,7 @@ def get_activity_by_motion_dnn(time_str, action='vision'):
     # /home/ascc/LF_Workspace/ReinforcementLearning/ASCC_Energy_Consumption/ASCC-RL-Algorithms_New_Reward_Test_Part/ascc_activity_real_data_0309//Image/2009-12-11-08-45-15/
 
     # check motion dir
-    # motion_dir_name = get_exist_motion_dir(motion_dir_name)
+    motion_dir_name = get_exist_motion_dir(motion_dir_name)
 
     if motion_dir_name == '':
         return [], []
@@ -658,7 +668,7 @@ def get_activity_by_motion_dnn(time_str, action='vision'):
     res_str = read_res_from_file(ASCC_MOTION_DATA_RES_FILE)
 
     
-    print('Motion Recognition res:', res_str)
+    print('Motion Recognition res:', res_str, ',dir:', motion_dir_name)
 
 
     res_list = res_str.split('\t')

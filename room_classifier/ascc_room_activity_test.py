@@ -131,7 +131,7 @@ def predict(file, model, to_class):
 def test():
     # execute this when you want to load the model
     from keras.models import load_model
-    MODEL_SAVED_PATH = 'saved-model_12_lobby'
+    MODEL_SAVED_PATH = 'saved-model2'
 
     ml = load_model(MODEL_SAVED_PATH)
 
@@ -262,8 +262,8 @@ if __name__ == "__main__":
 
     log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
     logging.info("Hello World!!!")
-    # test()
-    run()
+    test()
+    # run()
 
 
 

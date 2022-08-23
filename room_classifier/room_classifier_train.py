@@ -130,7 +130,7 @@ m = create_model(total_classes)
 # Run this several times until you get good acurracy in validation (wachout of overfitting)
 # for i in range(MAX_EPOCH):
 #     train(train_generator, validation_generator, m)
-train2(train_generator, validation_generator, m, epoch=10)
+train2(train_generator, validation_generator, m, epoch=12)
 
 
 

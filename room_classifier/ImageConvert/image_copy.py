@@ -164,7 +164,7 @@ def copy_file_from_dir(dir, dest_dir):
             else:
                 print(fn)
                 image_file = dir + '/' + fn
-                dest_file = dest_dir + '/' + fn.strip('.jpg') + '-' + str(g_copy_file_count) + '.jpg'
+                dest_file = dest_dir + '/' + fn.strip('.jpg') + '-' + str(g_copy_file_count) + '0823' + '.jpg'
                 #dest_file = dest_dir + '/' + room_name + '-' + str(g_copy_file_count) + '.jpg'
 
                 try:
@@ -250,15 +250,15 @@ def copy_ascc_act_dir(dir, target_dir, type, copy_flag=False):
     print('count:', count)
 
 
-target_dir = '/home/ascc/Desktop/test_set/'
-dir = '/home/ascc/Desktop/adl_0819v1/activity_data/'
-copy_ascc_act_dir(dir,  target_dir, type = 'Motion')
-copy_ascc_act_dir(dir,  target_dir, type = 'Motion', copy_flag=True)
-copy_ascc_act_dir(dir,  target_dir, type = 'Audio', copy_flag=True)
-copy_ascc_act_dir(dir,  target_dir, type = 'Image', copy_flag=True)
+# target_dir = '/home/ascc/Desktop/image_0823/rotate/bed/'
+# dir = '/home/ascc/Desktop/image_0823/rotate/bed_pad/'
+# # copy_ascc_act_dir(dir,  target_dir, type = 'Motion')
+# # copy_ascc_act_dir(dir,  target_dir, type = 'Motion', copy_flag=True)
+# # copy_ascc_act_dir(dir,  target_dir, type = 'Audio', copy_flag=True)
+# copy_ascc_act_dir(dir,  target_dir, type = 'Image', copy_flag=True)
 
 
-exit(0)
+# exit(0)
 
 #image_rotate(IMAGE_TEST)
 
@@ -283,6 +283,9 @@ image_dest_dir = '/home/ascc/Desktop/data_activity_0217/data_0217/Res_activity/D
 
 image_dir = '/home/ascc/Desktop/image_living_bedroom/new_data/bed_rotate/'
 image_dest_dir = '/home/ascc/Desktop/image_living_bedroom/new_data/bed_res/'
+
+image_dir = '/home/ascc/Desktop/image_0823/rotate/bed/'
+image_dest_dir = '/home/ascc/Desktop/image_0823/rotate/bed_pad/'
 
 count = generate_copy_image_file_from_dir(image_dir, image_dest_dir)
 

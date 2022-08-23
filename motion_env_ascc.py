@@ -162,8 +162,8 @@ ACTION_DICT = {
 ACTION_INTERVAL_DICT = {
     0: 1,  # "audio",
     1: 1.0/3, #"vision",
-    2: 3, #"motion"
-    3: 4+1.0/3, # fusion
+    2: 2, #"motion"
+    3: 2, # fusion  # multi-thread, simultanously
 }
 
 # ACTION_INTERVAL_DICT = {
