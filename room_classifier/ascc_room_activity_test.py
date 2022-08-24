@@ -212,7 +212,7 @@ def run():
         logging.info('got cur test_dir:%s', test_dir)
 
         if pre_test_dir == test_dir:
-            time.sleep(1)
+            time.sleep(0.4)
             continue
 
         pre_test_dir = test_dir
@@ -262,8 +262,8 @@ if __name__ == "__main__":
 
     log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
     logging.info("Hello World!!!")
-    test()
-    # run()
+    # test()
+    run()
 
 
 

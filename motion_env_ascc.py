@@ -77,7 +77,7 @@ AUDIO_RECORDING_TIME_COST = 1  # 1 seconds
 
 
 ACCELEROMETER_DATA_SIZE = 8  # KB  float 4 bytes,  3-axis,  data rate 100 HZ, recording time 3 seconds,
-ACCELEROMETER_DATA_RECORDING_TIME_COST = 3  # 5 seconds (Reference: xxx)
+ACCELEROMETER_DATA_RECORDING_TIME_COST = 2  # 5 seconds (Reference: xxx)
 
 # speed could vary in the ASCC Lab Environment
 WIFI_BANDWIDTH_SPEED = 100  # KB/s
@@ -1060,15 +1060,15 @@ class EnvASCC():
             if 'audio' in action_str:
                 energy_consum = energy_consum + (ENERGY_RECORDING_MIC - ENERGY_STANDBY) * AUDIO_RECORDING_TIME_COST   # 30
                 energy_consum = energy_consum + AUDIO_FILE_SIZE / WIFI_BANDWIDTH_SPEED * (ENERGY_TX - ENERGY_STANDBY) # 50
-                time_cost = time_cost + AUDIO_RECORDING_TIME_COST + AUDIO_FILE_SIZE / WIFI_BANDWIDTH_SPEED
+                time_cost = time_cost + AUDIO_FILE_SIZE / WIFI_BANDWIDTH_SPEED
 
             if 'vision' in action_str:
                 energy_consum = energy_consum + 0  #  ignore the image taking energy as it need less energy
                 energy_consum = energy_consum + IMAGE_SIZE * IMAGE_COUNT / WIFI_BANDWIDTH_SPEED * (ENERGY_TX - ENERGY_STANDBY)
-                time_cost = time_cost + IMAGE_SIZE * IMAGE_COUNT / WIFI_BANDWIDTH_SPEED + IMAGE_TAKING_TIME_COST * IMAGE_COUNT
+                time_cost = time_cost + IMAGE_SIZE * IMAGE_COUNT / WIFI_BANDWIDTH_SPEED
 
             energy_consum = ACCELEROMETER_DATA_SIZE / WIFI_BANDWIDTH_SPEED * (ENERGY_TX - ENERGY_STANDBY)
-            # time_cost = time_cost + ACCELEROMETER_DATA_RECORDING_TIME_COST + ACCELEROMETER_DATA_SIZE / WIFI_BANDWIDTH_SPEED
+            time_cost = time_cost + ACCELEROMETER_DATA_SIZE / WIFI_BANDWIDTH_SPEED
 
             time_cost = time_cost # do not need interval, just use sensors active time
 

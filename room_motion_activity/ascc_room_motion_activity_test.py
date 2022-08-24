@@ -935,7 +935,7 @@ def run():
         logging.info('got cur test_dir:%s', test_dir)
 
         if pre_test_dir == test_dir:
-            time.sleep(1)
+            time.sleep(0.4)
             continue
 
         pre_test_dir = test_dir
@@ -1491,7 +1491,7 @@ def test_dnn():
     # get_activity_by_motion_dnn('20220821083945', 'sitting sofa') # good
     # get_activity_by_motion_dnn('2009-12-11-09-10-39', 'stand') # good
 
-    get_activity_by_motion_dnn('2009-12-11-09-10-47', 'sitting') # good
+    get_activity_by_motion_dnn('2009-12-11-14-30-30', 'sitting') # good
 
 
 

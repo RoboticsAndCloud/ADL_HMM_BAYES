@@ -614,7 +614,7 @@ def get_exist_motion_dir(motion_dir_name):
     time_str = motion_dir.split('/')[-2]
     d_act = datetime.strptime(time_str, ASCC_DATASET_DATE_HOUR_TIME_FORMAT_DIR)
 
-    for i in range(5):
+    for i in range(4):
         new_time = d_act - timedelta(seconds = i)
         ascc_dir_time = convert_time_to_real(new_time)
         new_motion_dir_name = ASCC_DATA_SET_DIR + '/' + 'Motion/' + ascc_dir_time + '/'
