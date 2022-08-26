@@ -647,7 +647,7 @@ while(not env.done):
             # p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
 
             p4 = 1
-            p3 = 1
+            # p3 = 1
             
             p_audio_motion = p2 * p3 * hmm_prob
 
@@ -701,9 +701,9 @@ while(not env.done):
                         bayes_model_object.set_object_prob(res_object_p)
                         p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
 
-                p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
+                # p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
                 
-                p3 = p3 * AUDIO_WEIGHT
+            p3 = p3 * AUDIO_WEIGHT
 
                 
             

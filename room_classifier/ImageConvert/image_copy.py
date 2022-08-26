@@ -284,8 +284,8 @@ image_dest_dir = '/home/ascc/Desktop/data_activity_0217/data_0217/Res_activity/D
 image_dir = '/home/ascc/Desktop/image_living_bedroom/new_data/bed_rotate/'
 image_dest_dir = '/home/ascc/Desktop/image_living_bedroom/new_data/bed_res/'
 
-image_dir = '/home/ascc/Desktop/image_0823/rotate/bed/'
-image_dest_dir = '/home/ascc/Desktop/image_0823/rotate/bed_pad/'
+image_dir = '/home/ascc/Desktop/data_0825/door/'
+image_dest_dir = '/home/ascc/Desktop/data_0825/door_pad/'
 
 count = generate_copy_image_file_from_dir(image_dir, image_dest_dir)
 
