@@ -1491,7 +1491,7 @@ def test_dnn():
     # get_activity_by_motion_dnn('20220821083945', 'sitting sofa') # good
     # get_activity_by_motion_dnn('2009-12-11-09-10-39', 'stand') # good
 
-    get_activity_by_motion_dnn('2009-12-11-14-30-30', 'sitting') # good
+    # get_activity_by_motion_dnn('2009-12-11-13-59-22', 'sitting') # good
 
 
 

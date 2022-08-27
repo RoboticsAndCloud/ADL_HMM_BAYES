@@ -215,6 +215,10 @@ def run():
             time.sleep(0.4)
             continue
 
+        if os.path.exists(test_dir) == False:
+            print('test_dir not exist:', test_dir)
+            continue
+
         pre_test_dir = test_dir
 
         files=Path(test_dir).resolve().glob('*.*')
