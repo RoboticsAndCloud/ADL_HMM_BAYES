@@ -708,6 +708,7 @@ while(not env.done):
                 
             
             p = p1*p2*p3*p4 * hmm_prob
+
             
             print("need_recollect_data step act:", act)
             print('hmm_prob:', hmm_prob)
