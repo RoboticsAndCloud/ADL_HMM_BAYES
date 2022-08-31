@@ -1153,6 +1153,21 @@ def get_day_begin_end_summary():
     return 0
 
 
+def get_activity_type(cur_time_str):
+    
+    cur_type_time = datetime.strptime(cur_time_str.split()[1], HOUR_TIME_FORMAT)
+
+
+    activity_type = 'M'
+    if cur_type_time.hour < ACTIVITY_NOON_HOUR:
+        activity_type = 'M'
+    elif cur_type_time.hour < ACTIVITY_NIGHT_HOUR:
+        activity_type = 'A'
+    else:
+        activity_type = 'N'
+
+    return activity_type
+    
 
 def get_activity_count_state_list_by_date(base_date):
     counter = 0
@@ -1915,9 +1930,9 @@ if __name__ == "__main__":
 
     # cnt = get_activity_count_by_date('2009-12-10')
     # print('cnt:', cnt)
-    res = get_activity_count_by_date('2009-12-11')
-    print(res)
-    exit(0)
+    #res = get_activity_count_by_date('2009-12-11')
+    #print(res)
+    #exit(0)
 
     # res = get_duration_from_dataset2()
     # print(res)
@@ -1997,6 +2012,7 @@ if __name__ == "__main__":
     #print(len(motion_dict))
     #print(motion_dict)
     print(get_activity_duration_cnt_set())
+    exit(0)
 
 
     # base_date = '2009-10-16'

@@ -119,6 +119,7 @@ for i in range(len(symbol_list) -15, len(symbol_list)):
 
 print('acc:', correct*1.0/(correct+incorrect))
 
+exit(0)
 
 # todo: output top1 and top2  decode results
 
@@ -129,13 +130,20 @@ State list
 ('Kitchen_Activity', 'Morning_Meds', 'Master_Bathroom', 'Guest_Bathroom', 'Master_Bedroom_Activity', 'Master_Bathroom', 'Kitchen_Activity', 'Guest_Bathroom', 'Guest_Bathroom', 'Master_Bathroom', 'Guest_Bathroom', 'Kitchen_Activity', 'Leave_Home', 'Kitchen_Activity', 'Master_Bedroom_Activity', 'Guest_Bathroom', 'Kitchen_Activity', 'Dining_Rm_Activity', 'Master_Bedroom_Activity', 'Master_Bathroom', 'Sleep', 'Watch_TV', 'Kitchen_Activity', 'Leave_Home', 'Kitchen_Activity', 'Guest_Bathroom', 'Watch_TV', 'Master_Bedroom_Activity', 'Master_Bathroom', 'Kitchen_Activity', 'Watch_TV', 'Master_Bedroom_Activity', 'Guest_Bathroom', 'Kitchen_Activity', 'Master_Bedroom_Activity', 'Master_Bathroom', 'Master_Bathroom', 'Watch_TV', 'Guest_Bathroom', 'Kitchen_Activity', 'Watch_TV', 'Read', 'Kitchen_Activity', 'Kitchen_Activity', 'Guest_Bathroom')
 '''
 
-
+print('================================================')
 pre_act_list = ['Kitchen_Activity_M_0', 'Morning_Meds_M_0', 'Master_Bathroom_M_0', 'Guest_Bathroom_M_0', 'Master_Bedroom_Activity_M_0', 'Master_Bathroom_M_0']
+pre_act_list = ['Kitchen_Activity', 'Morning_Meds', 'Master_Bathroom', 'Guest_Bathroom_M', 'Master_Bedroom_Activity', 'Master_Bathroom']
+
 
 '''
 res:
 
 [('Desk_Activity_M_0', 1.8623982760695668e-09), ('Guest_Bathroom_M_0', 2.980555827185469e-10), ('Kitchen_Activity_M_0', 1.0016603910175761e-10), ('Master_Bathroom_M_0', 1.2101368066561746e-11), ('Meditate_M_0', 1.7932082130730003e-13), ('Watch_TV_M_0', 1.1818092915624083e-14), ('Sleep_M_0', 9.791065829199752e-18), ('Read_M_0', 1.5190234024797781e-18), ('Bed_to_Toilet_M_0', 1.0935579770578827e-21), ('Chores_M_0', 1.515004274111183e-23), ('Dining_Rm_Activity_M_0', 1.6451103756130846e-26), ('Eve_Meds_M_0', 2.9856230184917954e-29), ('Leave_Home_M_0', 1.623934968595129e-30), ('Morning_Meds_M_0', 5.284790190764109e-32), ('Master_Bedroom_Activity_M_0', 2.1300100178437638e-33)]
+
+no type info
+[('Desk_Activity_M_0', 2.9687738820853098e-21), ('Guest_Bathroom_M_0', 4.746848387476407e-22), ('Kitchen_Activity_M_0', 1.5952430135128177e-22), ('Master_Bathroom_M_0', 1.9272622741847656e-23), ('Meditate_M_0', 2.855861023108703e-25), ('Watch_TV_M_0', 1.8821479111653402e-26), ('Sleep_M_0', 1.5593238460791244e-29), ('Read_M_0', 2.41919465720972e-30), ('Bed_to_Toilet_M_0', 1.7415989846691785e-33), ('Chores_M_0', 2.4127937986975524e-35), ('Dining_Rm_Activity_M_0', 2.620000603484075e-38), ('Eve_Meds_M_0', 4.754899261582551e-41), ('Leave_Home_M_0', 2.58627667833687e-42), ('Morning_Meds_M_0', 8.416549852424719e-44), ('Master_Bedroom_Activity_M_0', 3.3922511309297697e-45)]
+
+
 '''
 
 res = {}

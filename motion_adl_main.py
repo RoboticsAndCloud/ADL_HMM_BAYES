@@ -307,6 +307,9 @@ p_walking_prob = []
 p_duration_lis =[]
 
 pre_act_list = []
+pre_act_symbol_list = []
+
+
 
 location_res = []
 audio_type_res = []
@@ -400,6 +403,8 @@ while(pre_activity == ''):
 
     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
         hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+        # hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
+
 
         p1 = bayes_model_location.get_prob(pre_act_list, act, location, 0)
         
@@ -463,6 +468,11 @@ while(pre_activity == ''):
     activity_begin_time = cur_time
 
     pre_act_list.append(pre_activity)
+
+    node = tools_ascc.Activity_Node_Observable(pre_activity, tools_ascc.get_activity_type(cur_time_str), 0)
+    pre_activity_symbol = node.activity_res_generation()
+    pre_act_symbol_list.append(pre_activity_symbol)
+
     # TODO top3 data
     # TODO how to get the accuracy
 
@@ -638,6 +648,9 @@ while(not env.done):
         print("motion step act:", act)
         hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
 
+        # hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
+
+
         print('hmm_prob:', hmm_prob)
 
         if need_recollect_data:
@@ -758,6 +771,7 @@ while(not env.done):
 
 
     print('pre_act_list:', pre_act_list)
+    print('pre_act_symbol_list:', pre_act_symbol_list)
     print('heap_prob:', heap_prob)
     top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
     print('#########top3_prob:', top3_prob)
@@ -894,6 +908,11 @@ while(not env.done):
         pre_activity = cur_activity
 
         pre_act_list.append(pre_activity)
+
+        node = tools_ascc.Activity_Node_Observable(pre_activity, tools_ascc.get_activity_type(cur_time_str), 0)
+        pre_activity_symbol = node.activity_res_generation()
+        pre_act_symbol_list.append(pre_activity_symbol)
+
         activity_begin_time = cur_time
         need_recollect_data = False
         p_check_level = 4
