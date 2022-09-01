@@ -1,3 +1,4 @@
+from pydoc import classname
 import numpy as np
 from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
 from keras.layers import Input, Flatten, Dense, GlobalAveragePooling2D
@@ -116,6 +117,47 @@ def predict(file, model, to_class):
 # MODEL_SAVED_PATH = 'saved-model'
 # m.save(MODEL_SAVED_PATH)
 
+def room_sample_plot():
+    
+    # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, lobby:4, door:5
+    class_names=['bathroom','bedroom', 'kitchen','livingroom', 'lobby', 'door']
+
+    sample_folder = './room_samples_0831'
+
+
+    import sys, random
+    from pathlib import Path
+    from PIL import Image
+    import matplotlib.pyplot as plt
+
+
+    # Retreive 9 random images from directory
+
+    files=Path(sample_folder).resolve().glob('*.*')
+    test_sample= get_file_count_of_dir(sample_folder)
+
+    images=random.sample(list(files), test_sample)
+
+    # Configure plots
+    # fig = plt.figure(figsize=(9,9))
+    rows,cols = 3,3
+    fig = plt.figure(figsize=(12,12))
+    # rows, cols = 6, 7
+
+    for num,img in enumerate(images):
+            file = img
+            print('file:', file.name)
+            label = file.name
+            label = label.replace('.jpg', '')
+            print('label:', label)
+
+            plt.subplot(rows,cols,num+1)
+            plt.title(label)
+            print("Name: "+label)
+            plt.axis('off')
+            img = Image.open(img).convert('RGB')
+            plt.imshow(img)
+            plt.savefig("sample_res.png")
 
 
 def test():
@@ -161,9 +203,124 @@ def test():
             plt.imshow(img)
             plt.savefig("test_res.png")
 
+def get_confusion_matrix():
+    dir = './room_dataset/test/'
+    path = dir
+    y_test = []
+    y_pred = []
+
+    class_names=['bathroom','bedroom', 'kitchen','livingroom', 'lobby', 'door']
+
+    
+    for fn in os.listdir(path):
+        if os.path.isdir(dir + '/' + fn):
+            print(fn)
+            test_dir = dir + '/' + fn
+            sample_cnt = get_file_count_of_dir(test_dir)
+            print('sample cnt:', sample_cnt)
+            
+            test_truth_label = []
+            for i in range(sample_cnt):
+                index = int(fn)
+                print('test lable:', class_names[index])
+                test_truth_label.append(class_names[index])
+                
+
+            y_test.extend(test_truth_label)
+            print('len test_truth_label:', len(test_truth_label))
+            print('len y_test:', len(y_test))
+
+            predict_res = test_confusion_matrix(test_dir)
+            print('len(predict_res):', len(predict_res))
+            y_pred.extend(predict_res)
+
+
+    import matplotlib.pyplot as plt
+    # confusion matrix
+    from mlxtend.plotting import plot_confusion_matrix
+    from sklearn.metrics import confusion_matrix
+
+    print('y_pred len:', len(y_pred))
+    print('y_pred:', y_pred)
+    print('y_test len:', len(y_test))
+    print('y_test:', y_test)
+
+    plt.figure()
+    mat = confusion_matrix(y_test, y_pred)
+    cm = plot_confusion_matrix(conf_mat=mat, class_names=class_names, show_normed=True, figsize=(7,7))
+    plt.show()
+    plt.savefig("room_cm.png")
+
+
+
+def test_confusion_matrix(file_dir):
+    from keras.models import load_model
+    MODEL_SAVED_PATH = 'saved-model2'
+
+    ml = load_model(MODEL_SAVED_PATH)
+    
+    # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, lobby:4, door:5
+    class_names=['bathroom','bedroom', 'kitchen','livingroom', 'lobby', 'door']
+
+
+    import sys, random
+    from pathlib import Path
+    from PIL import Image
+    import matplotlib.pyplot as plt
+
+
+    # Retreive 9 random images from directory
+
+    files=Path(file_dir).resolve().glob('*.*')
+    test_sample= get_file_count_of_dir(file_dir)
+
+    images=random.sample(list(files), test_sample)
+
+    # Configure plots
+    fig = plt.figure(figsize=(9,9))
+    rows,cols = 3,3
+    fig = plt.figure(figsize=(36,36))
+    rows, cols = 9, 9
+
+    predict_res = []
+    cnt = 0
+
+    for num,img in enumerate(images):
+            file = img
+            label = predict(file, ml, class_names)
+            predict_res.append(label)
+
+            # if label == 'bedroom':
+            #     continue
+
+            # # plt.subplot(rows,cols,num+1)
+            # plt.subplot(rows,cols,cnt+1)
+
+            # print('file:', file)
+            # plt.title("Pred: "+label)
+            # print("Pred: "+label)
+            # plt.axis('off')
+            # img = Image.open(img).convert('RGB')
+            # plt.imshow(img)
+            # plt.savefig("test_resxx.png")
+
+            # cnt = cnt + 1
+
+            # if cnt > 50:
+            #     break
+
+    return predict_res
+
+
+
+
+
 if __name__ == "__main__":
     print('Test running:===========================================================\n')
-    test()
+    # test()
+    # room_sample_plot()
+    get_confusion_matrix()
+    # test_confusion_matrix('./room_dataset/test/1')
 
 
 

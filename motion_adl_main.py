@@ -402,8 +402,8 @@ while(pre_activity == ''):
     p2_res_dict = {}
 
     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
-        hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
-        # hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
+        # hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+        hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
 
 
         p1 = bayes_model_location.get_prob(pre_act_list, act, location, 0)
@@ -646,9 +646,9 @@ while(not env.done):
 
     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
         print("motion step act:", act)
-        hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+        # hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
 
-        # hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
+        hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
 
 
         print('hmm_prob:', hmm_prob)
@@ -660,7 +660,7 @@ while(not env.done):
             # p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
 
             p4 = 1
-            # p3 = 1
+            p3 = 1
             
             p_audio_motion = p2 * p3 * hmm_prob
 
@@ -716,7 +716,7 @@ while(not env.done):
 
                 # p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
                 
-            p3 = p3 * AUDIO_WEIGHT
+            # p3 = p3 * AUDIO_WEIGHT
 
                 
             
