@@ -66,7 +66,11 @@ def CNN_test(test_fold, feat):
         logging.info('got cur test_dir:%s', test_dir)
 
         if pre_test_dir == test_dir:
-            time.sleep(1)
+            time.sleep(0.4)
+            continue
+
+        if os.path.exists(test_dir) == False:
+            print('test_dir not exist:', test_dir)
             continue
 
         pre_test_dir = test_dir
@@ -96,6 +100,7 @@ def CNN_test(test_fold, feat):
             res = pre + '(' + str(val) + ')'
         except:
             print("ERROR........")
+            res = ''
 
     
         end = timer()

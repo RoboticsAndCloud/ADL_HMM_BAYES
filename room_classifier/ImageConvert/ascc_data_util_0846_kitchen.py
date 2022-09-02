@@ -239,8 +239,8 @@ def generate_data_from_dir_kitchen_copy(dir):
     return map_dict
 
 milan_activity_date = '2009-12-11 08:46:27'
-ascc_date_str = '20220814114120_rotate'
-base_path = '/home/ascc/Desktop/adl_0815/activity_data/kitchen_0846/'
+ascc_date_str = '20220819144013_rotate'
+base_path = '/home/ascc/Desktop/adl_0819/activity/0846_kitchen/'
 
 images = base_path +  'Image'
 
@@ -248,7 +248,7 @@ images = base_path +  'Image'
 get_timestamp_map(test_dir=images, milan_activity_date=milan_activity_date, ascc_date_str=ascc_date_str)
 
 # Generate final data dir
-# get_timestamp_map(test_dir = images,milan_activity_date=milan_activity_date, ascc_date_str=ascc_date_str, copy_flag=True)
+get_timestamp_map(test_dir = images,milan_activity_date=milan_activity_date, ascc_date_str=ascc_date_str, copy_flag=True)
 
 audio = base_path + 'Audio'
 
@@ -256,7 +256,7 @@ get_timestamp_map(test_dir=audio, milan_activity_date=milan_activity_date, ascc_
 
 
 # Generate final data dir
-# get_timestamp_map(test_dir=audio, milan_activity_date=milan_activity_date, ascc_date_str=ascc_date_str,copy_flag=True)
+get_timestamp_map(test_dir=audio, milan_activity_date=milan_activity_date, ascc_date_str=ascc_date_str,copy_flag=True)
 
 
 motion = base_path + 'Motion'
@@ -265,4 +265,4 @@ get_timestamp_map(test_dir=motion, milan_activity_date=milan_activity_date, ascc
 
 
 # Generate final data dir
-# get_timestamp_map(test_dir=motion, milan_activity_date=milan_activity_date, ascc_date_str=ascc_date_str,copy_flag=True)
+get_timestamp_map(test_dir=motion, milan_activity_date=milan_activity_date, ascc_date_str=ascc_date_str,copy_flag=True)

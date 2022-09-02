@@ -75,7 +75,7 @@ ACTIVITY_LEAVE_HOME : {LOCATION_DOOR: 0.9, LOCATION_LOBBY: 0.1},
 ACTIVITY_READ :{LOCATION_LIVINGROOM:0.95},
 ACTIVITY_GUEST_BATHROOM : {LOCATION_BATHROOM: 0.99},
 ACTIVITY_MASTER_BATHROOM : {LOCATION_BATHROOM: 0.99},
-ACTIVITY_DESK_ACTIVITY : {LOCATION_LIVINGROOM:0.9, LOCATION_KITCHEN: 0.1},
+ACTIVITY_DESK_ACTIVITY : {LOCATION_LIVINGROOM:0.9},
 ACTIVITY_EVE_MEDS : {LOCATION_KITCHEN: 0.6, LOCATION_BEDROOM: 0.4},
 ACTIVITY_MEDITATE : {LOCATION_KITCHEN: 0.7, LOCATION_BEDROOM: 0.3},
 ACTIVITY_DINING_RM_ACTIVITY : {LOCATION_DININGROOM: 0.99},
@@ -336,6 +336,20 @@ class Bayes_Model_Vision_Location(object):
             print('prob_prior_act_by_prelist == target_act_name, duration, p', target_act_name, ' ', duration, ' ', p)
 
             return p
+
+        act_type_list = get_activity_type(self.cur_time)
+        for type in act_type_list:
+            activity_type = type
+            node = tools_ascc.Activity_Node_Observable(target_act_name, activity_type, 0)
+            next_act = node.activity_res_generation()
+
+            if pre_act_list[-1] == next_act:
+                p = get_end_of_activity_prob_by_duration(duration, target_act_name)
+
+                print('prob_prior_act_by_prelist == next_act, duration, p', next_act, ' ', duration, ' ', p)
+
+                return p
+
         
         res = {}
         act_type_list = get_activity_type(self.cur_time)
@@ -355,6 +369,7 @@ class Bayes_Model_Vision_Location(object):
                 print('test_lis:', test_lis)
                 print('prob:', prob)
                 res[next_act] = prob
+
 
         # print('=========================================================')
 
@@ -550,6 +565,18 @@ class Bayes_Model_Motion(object):
 
             return p
         
+        act_type_list = get_activity_type(self.cur_time)
+        for type in act_type_list:
+            activity_type = type
+            node = tools_ascc.Activity_Node_Observable(target_act_name, activity_type, 0)
+            next_act = node.activity_res_generation()
+
+            if pre_act_list[-1] == next_act:
+                p = get_end_of_activity_prob_by_duration(duration, target_act_name)
+
+                print('prob_prior_act_by_prelist == next_act, duration, p', next_act, ' ', duration, ' ', p)
+
+                return p
 
 
         res = {}
@@ -754,7 +781,18 @@ class Bayes_Model_Audio(object):
 
             return p
         
+        act_type_list = get_activity_type(self.cur_time)
+        for type in act_type_list:
+            activity_type = type
+            node = tools_ascc.Activity_Node_Observable(target_act_name, activity_type, 0)
+            next_act = node.activity_res_generation()
 
+            if pre_act_list[-1] == next_act:
+                p = get_end_of_activity_prob_by_duration(duration, target_act_name)
+
+                print('prob_prior_act_by_prelist == next_act, duration, p', next_act, ' ', duration, ' ', p)
+
+                return p
 
         res = {}
         act_type_list = get_activity_type(self.cur_time)
@@ -957,7 +995,19 @@ class Bayes_Model_Vision_Object(object):
             print('prob_prior_act_by_prelist ==target_act_name, duration, p:', target_act_name, ' ', duration, ' ', p)
 
             return p
-        
+
+        act_type_list = get_activity_type(self.cur_time)
+        for type in act_type_list:
+            activity_type = type
+            node = tools_ascc.Activity_Node_Observable(target_act_name, activity_type, 0)
+            next_act = node.activity_res_generation()
+
+            if pre_act_list[-1] == next_act:
+                p = get_end_of_activity_prob_by_duration(duration, target_act_name)
+
+                print('prob_prior_act_by_prelist == next_act, duration, p', next_act, ' ', duration, ' ', p)
+
+                return p
 
         res = {}
         act_type_list = get_activity_type(self.cur_time)

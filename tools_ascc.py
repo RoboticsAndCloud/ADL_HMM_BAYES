@@ -148,6 +148,7 @@ day_time_str: 2010-01-05
 from datetime import datetime
 from datetime import timedelta
 from genericpath import exists
+import logging
 import os
 import re
 import time
@@ -166,7 +167,9 @@ ASCC_DATA_RES_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room
 ASCC_DATA_YOLOV3_RES_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/recognition_yolov3_result.txt'
 
 # ASCC_DATA_SET_DIR = '/home/ascc/LF_Workspace/ReinforcementLearning/ASCC_Energy_Consumption/ASCC-RL-Algorithms_New_Reward_Test_Part/ascc_activity_real_data_0309/'
-ASCC_DATA_SET_DIR = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/Ascc_Dataset_0815/'
+# sequence program to collect data: 0815
+# multithread program to collect data: 0819
+ASCC_DATA_SET_DIR = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/Ascc_Dataset_0819/'
 ASCC_DATASET_DATE_HOUR_TIME_FORMAT_DIR = '%Y-%m-%d-%H-%M-%S'
 
 ASCC_AUDIO_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/ascc_data/notice.txt'
@@ -254,6 +257,7 @@ ACTIVITY_LOCATION_MAPPING = {
     'dining_room_activity': constants.LOCATION_DININGROOM,
     'eve_med': constants.LOCATION_KITCHEN,
     'leaving_home': constants.LOCATION_DOOR,
+    'door': constants.LOCATION_DOOR,
     'meditate': constants.LOCATION_BEDROOM,
     'lobby': constants.LOCATION_LOBBY
 }
@@ -610,8 +614,18 @@ def get_exist_motion_dir(motion_dir_name):
     time_str = motion_dir.split('/')[-2]
     d_act = datetime.strptime(time_str, ASCC_DATASET_DATE_HOUR_TIME_FORMAT_DIR)
 
-    for i in range( 60 ):
+    for i in range(4):
         new_time = d_act - timedelta(seconds = i)
+        ascc_dir_time = convert_time_to_real(new_time)
+        new_motion_dir_name = ASCC_DATA_SET_DIR + '/' + 'Motion/' + ascc_dir_time + '/'
+
+        if os.path.exists(new_motion_dir_name) == True:
+            print('tools_ascc new_motion_dir_name:', new_motion_dir_name)
+
+            return new_motion_dir_name
+
+    for i in range(2):
+        new_time = d_act + timedelta(seconds = i)
         ascc_dir_time = convert_time_to_real(new_time)
         new_motion_dir_name = ASCC_DATA_SET_DIR + '/' + 'Motion/' + ascc_dir_time + '/'
 
@@ -639,8 +653,8 @@ def get_activity_by_motion_dnn(time_str, action='vision'):
     # /home/ascc/LF_Workspace/ReinforcementLearning/ASCC_Energy_Consumption/ASCC-RL-Algorithms_New_Reward_Test_Part/ascc_activity_real_data_0309//Image/2009-12-11-08-45-15/
 
     # check motion dir
-
     motion_dir_name = get_exist_motion_dir(motion_dir_name)
+
     if motion_dir_name == '':
         return [], []
     
@@ -654,7 +668,7 @@ def get_activity_by_motion_dnn(time_str, action='vision'):
     res_str = read_res_from_file(ASCC_MOTION_DATA_RES_FILE)
 
     
-    print('Motion Recognition res:', res_str)
+    print('Motion Recognition res:', res_str, ',dir:', motion_dir_name)
 
 
     res_list = res_str.split('\t')
@@ -691,6 +705,8 @@ def get_activity_by_audio_dnn(time_str, action='vision'):
 
     audio_dir_name = image_dir_name.replace('Image', 'Audio')
     print('===:', audio_dir_name)
+    if audio_dir_name == '':
+        return '', -1
 
 
     write_notice_into_file(ASCC_AUDIO_DATA_NOTICE_FILE, audio_dir_name)
@@ -702,7 +718,7 @@ def get_activity_by_audio_dnn(time_str, action='vision'):
     res_str = read_res_from_file(ASCC_AUDIO_DATA_RES_FILE)
 
     
-    print('Audio Recognition res:', res_str)
+    print('Audio Recognition res:', res_str, ' time:', time_str)
     if res_str == '':
         return '', -1
 
@@ -724,8 +740,13 @@ def get_exist_image_dir(time_str, action='vision'):
         print("get_activity time_str:", time_str)
     d_act = datetime.strptime(time_str, DATE_TIME_FORMAT)
 
+    # 2009-12-11 19
+    if '2009-12-11 19:' in time_str or '2009-12-11 20:0' in time_str or '2009-12-11 20:1' in time_str or '2009-12-11 20:2' in time_str:
+        print('ignore he walking period from 18:50 -20:35, walk around in home: ', time_str)
+        return ''
+
     for i in range( 60*60 ):
-        new_time = d_act + timedelta(seconds = i)
+        new_time = d_act - timedelta(seconds = i)
         ascc_dir_time = convert_time_to_real(new_time)
         # ignore the walking period from 18:50 -20:35, walk around in home
 
@@ -841,6 +862,9 @@ def get_activity_by_vision_dnn(time_str, action='vision', mode='map'):
     # todo: check the code, how to get expected activity,  Miss activity: Expected: Sleep ,Detect: Meditate Running time: 2009-12-11 08:45:26
     # todo: check the image and recognition res when motion occurs 
     print('vision_dnn res:', res_str)
+
+    if res_str == '':
+        return '', -1
 
     res_list = res_str.split('\t')
     res_dict = {}
@@ -1129,6 +1153,21 @@ def get_day_begin_end_summary():
     return 0
 
 
+def get_activity_type(cur_time_str):
+    
+    cur_type_time = datetime.strptime(cur_time_str.split()[1], HOUR_TIME_FORMAT)
+
+
+    activity_type = 'M'
+    if cur_type_time.hour < ACTIVITY_NOON_HOUR:
+        activity_type = 'M'
+    elif cur_type_time.hour < ACTIVITY_NIGHT_HOUR:
+        activity_type = 'A'
+    else:
+        activity_type = 'N'
+
+    return activity_type
+    
 
 def get_activity_count_state_list_by_date(base_date):
     counter = 0
@@ -1891,9 +1930,9 @@ if __name__ == "__main__":
 
     # cnt = get_activity_count_by_date('2009-12-10')
     # print('cnt:', cnt)
-    res = get_activity_count_by_date('2009-12-11')
-    print(res)
-    exit(0)
+    #res = get_activity_count_by_date('2009-12-11')
+    #print(res)
+    #exit(0)
 
     # res = get_duration_from_dataset2()
     # print(res)
@@ -1973,6 +2012,7 @@ if __name__ == "__main__":
     #print(len(motion_dict))
     #print(motion_dict)
     print(get_activity_duration_cnt_set())
+    exit(0)
 
 
     # base_date = '2009-10-16'

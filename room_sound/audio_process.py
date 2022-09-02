@@ -106,16 +106,16 @@ if __name__ == '__main__':
     # cnt = copy_file(dir, target)
     # print("count:", cnt)
 
-    dir = '/home/ascc/Desktop/image_living_bedroom/new_data/quiet/'
-    target = '/home/ascc/Desktop/image_living_bedroom/new_data/quiet_test/'
-    cnt = copy_file(dir, target)
-    print("count:", cnt)
+    # dir = '/home/ascc/Desktop/audio.0822/quiet/'
+    # target = '/home/ascc/Desktop/audio.0822/quiet_test/'
+    # cnt = copy_file(dir, target)
+    # print("count:", cnt)
 
 
-    # source_dir =  '/home/ascc/Desktop/image_living_bedroom/new_data/audio_pad/'
-    # target_dir = '/home/ascc/Desktop/image_living_bedroom/new_data/quiet_1sec/'
-    # cnt = audio_file_truncate(source_dir, target_dir)
-    # print('Count:', cnt)
+    source_dir =  '/home/ascc/Desktop/audio.0822/quiet_test/'
+    target_dir = '/home/ascc/Desktop/audio.0822/quiet_1sec/'
+    cnt = audio_file_truncate(source_dir, target_dir)
+    print('Count:', cnt)
     
     # audio_file_truncate_by_dir('/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity/')   
 

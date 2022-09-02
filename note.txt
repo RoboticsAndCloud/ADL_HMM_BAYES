@@ -326,6 +326,26 @@ read
 Desk
 3.548005992361036e-84
 
+0828
+
+need_recollect_data step act: Watch_TV
+hmm_prob: 3.9471481196293098e-112
+p1: 4.696721955491932
+p2: 0.009390932689063285
+p3: 1
+p4: 8.784965034965032e-151
+motion step act: Watch_TV
+p: 1.5294209672298238e-263
+
+hmm_prob: 1.717244062923594e-112
+p1: 4.269747232265392
+p2: 0.01115173256826265
+p3: 1
+p4: 0.35139860139860135
+motion step act: Desk_Activity
+p: 2.873270830070831e-114
+
+
 
 
 ### how to test in real env
@@ -351,3 +371,4 @@ python food_yolo_opencv.py --config yolov3.cfg --weights  yolov3.weights --class
 5. Launch motion adl main 
 cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES
 python motion_adl_main.py
+

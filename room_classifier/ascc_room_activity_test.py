@@ -131,7 +131,7 @@ def predict(file, model, to_class):
 def test():
     # execute this when you want to load the model
     from keras.models import load_model
-    MODEL_SAVED_PATH = 'saved-model_12_lobby'
+    MODEL_SAVED_PATH = 'saved-model2'
 
     ml = load_model(MODEL_SAVED_PATH)
 
@@ -212,7 +212,11 @@ def run():
         logging.info('got cur test_dir:%s', test_dir)
 
         if pre_test_dir == test_dir:
-            time.sleep(1)
+            time.sleep(0.4)
+            continue
+
+        if os.path.exists(test_dir) == False:
+            print('test_dir not exist:', test_dir)
             continue
 
         pre_test_dir = test_dir

@@ -7,12 +7,13 @@ Date: 07/10/2022
 from datetime import datetime
 from pickle import TRUE
 import random
+from re import T
 
 #import constants
 #from tkinter.messagebox import NO
 
 import hmm
-import real_time_env_ascc
+import motion_env_ascc
 import motion_adl_bayes_model
 import tools_ascc
 import constants
@@ -32,6 +33,12 @@ DAY_FORMAT_STR = '%Y-%m-%d'
 
 UNCERTAIN_CHECK_INTERVAL = 60 # Seconds
 
+LIVING_ROOM_CHECK_TIMES_MAX = 2
+
+new_activity_check_times = 2
+DOUBLE_CHECK = 2
+
+AUDIO_WEIGHT = 0.6
 
 """
 Given the duration, return the probability that the activity may be finished
@@ -266,7 +273,7 @@ def get_audio_type_by_activity_cnn(time_str):
     
 
 
-env = real_time_env_ascc.EnvASCC(TEST_BASE_DATE + ' 00:00:00')
+env = motion_env_ascc.EnvASCC(TEST_BASE_DATE + ' 00:00:00')
 env.reset()
 
 hmm_model = get_hmm_model()
@@ -300,6 +307,9 @@ p_walking_prob = []
 p_duration_lis =[]
 
 pre_act_list = []
+pre_act_symbol_list = []
+
+
 
 location_res = []
 audio_type_res = []
@@ -392,7 +402,9 @@ while(pre_activity == ''):
     p2_res_dict = {}
 
     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
-        hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+        # hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+        hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
+
 
         p1 = bayes_model_location.get_prob(pre_act_list, act, location, 0)
         
@@ -404,7 +416,7 @@ while(pre_activity == ''):
         # p4 = bayes_model_object.get_prob(pre_act_list, act, object, 0)
 
         p4 = 1
-        # p3 = 1
+        p3 = 1
 
         p = p1*p2*p3*p4 * hmm_prob
              
@@ -456,6 +468,11 @@ while(pre_activity == ''):
     activity_begin_time = cur_time
 
     pre_act_list.append(pre_activity)
+
+    node = tools_ascc.Activity_Node_Observable(pre_activity, tools_ascc.get_activity_type(cur_time_str), 0)
+    pre_activity_symbol = node.activity_res_generation()
+    pre_act_symbol_list.append(pre_activity_symbol)
+
     # TODO top3 data
     # TODO how to get the accuracy
 
@@ -464,9 +481,9 @@ p_check_level = 4
 start_check_interval = 0
 p_less_than_threshold_check_cnt = 0
 start_check_interval_time = None
+living_room_check_times = LIVING_ROOM_CHECK_TIMES_MAX 
 
-check_times = 0
-while(True):
+while(not env.done):
 
     # TODO:
     # p = rank1_res_prob[-1]
@@ -476,6 +493,8 @@ while(True):
     object = ''
     motion_type = ''
     audio_type = ''
+
+    living_room_check_flag = False
 
     if need_recollect_data:
         audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.FUSION_ACTION)  
@@ -493,9 +512,16 @@ while(True):
         bayes_model_motion.set_motion_type_prob(motion_type_prob)
         # bayes_model_motion.set_motion_type(motion_type)
 
+
         location_res.append([location, location_prob])
         audio_type_res.append([audio_type, audio_type_prob])
         # motion_type_res.append([motion_type, motion_type_prob])
+
+        if location == '':
+            print('Location  empty:', cur_time)
+            cur_time = env.get_running_time()
+            cur_time_str = cur_time.strftime(motion_env_ascc.DATE_HOUR_TIME_FORMAT)
+            continue
 
     else:
         # INTERVAL_FOR_COLLECTING_DATA
@@ -508,6 +534,8 @@ while(True):
         location_res.append(['', ''])
         audio_type_res.append(['', ''])
         # motion_type_res.append([motion_type, motion_type_prob])
+
+
 
 
 
@@ -615,9 +643,13 @@ while(True):
     #     p_walking_prob[len(p_walking_prob)-1] = p2
 
 
+
     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
         print("motion step act:", act)
-        hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+        # hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+
+        hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
+
 
         print('hmm_prob:', hmm_prob)
 
@@ -628,27 +660,68 @@ while(True):
             # p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
 
             p4 = 1
-            # p3 = 1
+            p3 = 1
             
+            p_audio_motion = p2 * p3 * hmm_prob
+
             # todo, in the living room, we can collect audio data more times (3 -r times), to confirm the activity
             # or, we can get object activity
+            # object == constants.OBJECT_BOOK
             #if audio_type == constants.AUDIO_TYPE_ENV:
+        
+
+
             if location == constants.LOCATION_LIVINGROOM:
+                living_room_check_flag = True
 
                 res_object = location
                 res_object_p = constants.MIN_Prob
+                
+                object_laptop_flag = False
+                object_book_flag = False
                 for object, prob in object_dict:
-                    if object == constants.OBJECT_BOOK or object == constants.OBJECT_LAPTOP or object == constants.OBJECT_TV:
+                    if object == constants.OBJECT_LAPTOP:
+                        object_laptop_flag = True
+                    elif object == constants.OBJECT_BOOK:
+                        object_book_flag = True
+
+
+                for object, prob in object_dict:
+                    print('in living room:', object, ' cur_time_str:', cur_time_str)
+                    if object == constants.OBJECT_LAPTOP:
+                        res_object = object
+                        res_object_p = prob
+                        bayes_model_object.set_object_prob(res_object_p)
+                        p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
+                        break
+                    elif object == constants.OBJECT_BOOK:
+
+                        if object_laptop_flag == True:
+                            continue
+
                         res_object = object
                         res_object_p = prob
                         bayes_model_object.set_object_prob(res_object_p)
                         p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
 
-                        break
 
-            p_audio_motion = p2 * p3 * hmm_prob
+                    elif object == constants.OBJECT_TV:
+                        if object_book_flag == True or object_laptop_flag == True:
+                            continue
+                        
+                        res_object = object
+                        res_object_p = prob
+                        bayes_model_object.set_object_prob(res_object_p)
+                        p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
 
+                # p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
+                
+            # p3 = p3 * AUDIO_WEIGHT
+
+                
+            
             p = p1*p2*p3*p4 * hmm_prob
+
             
             print("need_recollect_data step act:", act)
             print('hmm_prob:', hmm_prob)
@@ -698,6 +771,7 @@ while(True):
 
 
     print('pre_act_list:', pre_act_list)
+    print('pre_act_symbol_list:', pre_act_symbol_list)
     print('heap_prob:', heap_prob)
     top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
     print('#########top3_prob:', top3_prob)
@@ -754,6 +828,8 @@ while(True):
 
     p_duration_lis.append(p_activity_end)
 
+
+
     if activity_detected == pre_activity:
         print('p_activity_end:', p_activity_end)
     #     # todo if p_activity_end < 0.2, audio,vision+motion
@@ -769,7 +845,7 @@ while(True):
     #         start_check_interval_time = cur_time
     #         p_check_level = p_check_level -1
 
-        if p_activity_end < -0.2:    
+        if p_activity_end < -0.3:    
             if start_check_interval_time == None:
                 start_check_interval_time = cur_time
 
@@ -807,14 +883,45 @@ while(True):
         cur_activity = pre_activity
         print('++++++++++++++Around lobby,', cur_time_str)
 
+    # if living_room_check_times == MAX:
+    # 
+
+    # incase the wrong prediction from HMM model
+    if location == '' and cur_activity != pre_activity:
+        cur_activity = pre_activity
+        need_recollect_data = True
+
     if pre_activity != cur_activity:
+        if location == constants.LOCATION_LIVINGROOM and living_room_check_times > 0:
+            cur_activity = pre_activity
+            print('++++++++++++++ in living room, checks:', living_room_check_times, ' ', cur_time_str)
+
+        if new_activity_check_times == DOUBLE_CHECK:
+            cur_activity = pre_activity
+            new_activity_check_times = new_activity_check_times - 1
+            need_recollect_data = TRUE
+        else:
+            new_activity_check_times = DOUBLE_CHECK
+
+    if pre_activity != cur_activity:
+
         pre_activity = cur_activity
+
         pre_act_list.append(pre_activity)
+
+        node = tools_ascc.Activity_Node_Observable(pre_activity, tools_ascc.get_activity_type(cur_time_str), 0)
+        pre_activity_symbol = node.activity_res_generation()
+        pre_act_symbol_list.append(pre_activity_symbol)
+
         activity_begin_time = cur_time
         need_recollect_data = False
         p_check_level = 4
         start_check_interval_time = None
         start_check_interval = 0
+
+        # when new activity occrs, double check that, the model will generate the new next activity, we need to confirm again
+        # need_recollect_data = True
+
 
     
     if len(rank1_res_prob) % 1000 == 0:
@@ -839,56 +946,114 @@ while(True):
         need_recollect_data = True
         transition_motion_occur.append(cur_time_str)
 
+    if living_room_check_flag == True and living_room_check_times > 0:
+        print('living_room_check_flag occur:', 'times:', living_room_check_flag, ' cur motion_type:', living_room_check_times)
+        living_room_check_times = living_room_check_times -1
+        need_recollect_data = True
+    else:
+        living_room_check_times = LIVING_ROOM_CHECK_TIMES_MAX
+        living_room_check_flag = False
+
+
     location_res.append([location, location_prob])
     audio_type_res.append([audio_type, audio_type_prob])
     motion_type_res.append([motion_type, motion_type_prob])
 
-
-    check_times = check_times + 1
-
-    if check_times % 2 == 0:
-        print("===================================================")
-        # print out results
-        print('rank1:', len(rank1_res_prob))
-        print(rank1_res_prob)
-
-        print('rank2:', len(rank2_res_prob))
-        print(rank2_res_prob)
-
-        print('rank3:', len(rank3_res_prob))
-        print(rank3_res_prob)
-
-        print('res_prob:', len(res_prob))
-        print(res_prob)
-
-        print('p_duration_lis:', len(p_duration_lis))
-        print(p_duration_lis)
-
-        print('rank1_res_prob_norm:', rank1_res_prob_norm)
-        print('rank2_res_prob_norm:', rank2_res_prob_norm)
-        print('rank3_res_prob_norm:', rank3_res_prob_norm)
-
-        print('location_res len:', len(location_res))
-        print('location_res:', location_res)
-        print('audio_type_res:', audio_type_res)
-        print('motion_type_res:', motion_type_res)
-
-        print('transition_motion_occur len:', len(transition_motion_occur))
-        print('transition_motion_occur:', transition_motion_occur)
-        print('p_less_than_threshold_check_cnt(uncertain when p < 0.4, 0.3, 0.2):', p_less_than_threshold_check_cnt)
-
-        print("============================================================================================")
-        print("Total times:", env.total_check_times)
-        print("Total Fusion times:", env.fusion_check_times)
-        print("Total Motion times:", env.motion_check_times)
-
-        print("Day End Running time:", env.running_time)
-        print("Sensors Energy cost:", env.sensor_energy_cost)
-        print("Sensors Time cost:", env.sensor_time_cost)
-
-        end_time_of_wmu = env.get_running_time()
-        print("Duration of Day:", (end_time_of_wmu - env.day_begin).seconds/3600.0)
-        print('check times in adl mian:', check_times)
+# while not env.done
 
 
-print('End')
+print("===================================================")
+# print out results
+print('rank1:', len(rank1_res_prob))
+print(rank1_res_prob)
+
+print('rank2:', len(rank2_res_prob))
+print(rank2_res_prob)
+
+print('rank3:', len(rank3_res_prob))
+print(rank3_res_prob)
+
+print('res_prob:', len(res_prob))
+print(res_prob)
+
+print('p_duration_lis:', len(p_duration_lis))
+print(p_duration_lis)
+
+print('rank1_res_prob_norm:', rank1_res_prob_norm)
+print('rank2_res_prob_norm:', rank2_res_prob_norm)
+print('rank3_res_prob_norm:', rank3_res_prob_norm)
+
+print('location_res len:', len(location_res))
+print('location_res:', location_res)
+print('audio_type_res:', audio_type_res)
+print('motion_type_res:', motion_type_res)
+
+print('transition_motion_occur len:', len(transition_motion_occur))
+print('transition_motion_occur:', transition_motion_occur)
+print('p_less_than_threshold_check_cnt(uncertain when p < 0.4, 0.3, 0.2):', p_less_than_threshold_check_cnt)
+
+# # motion probabilities during activities
+# print('p_sitting_prob:', len(p_sitting_prob))
+# print(p_sitting_prob)
+
+# print('p_standing_prob:', len(p_standing_prob))
+# print(p_standing_prob)
+
+# print('p_walking_prob:', len(p_walking_prob))
+# print(p_walking_prob)
+
+# todo: probability of each activities obtained from the p_duration, for example, cur_activity is 'Read', P_duration(Read) = 0.8, then p(rank2) + p(rank3) = 1-p(Read)=1- 0.8  = 0.2
+
+
+
+print("===================================================")
+
+if env.done:
+    print("Activity_none_times:", env.activity_none_times)
+    print("Expected_activity_none_times:", env.expected_activity_none_times)
+    print("Hit times:", env.done_hit_event_times)
+    print("Miss times:", env.done_missed_event_times)
+    print("Random Miss times:", env.done_random_miss_event_times)
+    print("Middle times:", env.done_middle_event_times)
+    print("Penalty times:", env.done_penalty_times)
+    print("Uncertain times:", env.done_uncertain_times)
+    print("Total times:", env.done_totol_check_times)
+    print("Residual power:", env.done_residual_power)
+    print("Beginning event times:", env.done_beginning_event_times)
+    print("Endding event times:", env.done_end_event_times)
+    print("Middle event times:", env.done_middle_event_times)
+    print("Day End Running time:", env.done_running_time)
+    print("Reward:", env.done_reward)
+    print("Done status:", env.done)
+    print("Sensors Energy cost:", env.done_energy_cost)
+    print("Sensors Time cost:", env.done_time_cost)
+    print("Sensors Energy total  cost:", env.energy_cost)
+    print("Sensors Time total cost:", env.time_cost)
+    print("Total Time cost:", env.done_total_time_cost)
+    print("Motion_triggered_times:", env.motion_triggered_times)
+    print("Hit_activity_check_times", env.hit_activity_check_times)
+    end_time_of_wmu = datetime.strptime(env.done_running_time.strftime(DATE_TIME_FORMAT).split()[1], HOUR_TIME_FORMAT)
+    print("Duration of Day:", (end_time_of_wmu - env.day_begin).seconds/3600.0)
+
+end_time_of_wmu = datetime.strptime(env.done_running_time.strftime(DATE_TIME_FORMAT).split()[1], HOUR_TIME_FORMAT)
+print("Duration of Day:", (end_time_of_wmu - env.day_begin).seconds/3600.0)
+
+
+print("Display information:")
+# env.display_action_counter()
+# env.display_info()
+print("===================================================")
+
+print("Activity_none_times \t Expected_activity_none_times \t Hit times \t Miss times \
+    \t Random Miss times \t Penalty times \t Uncertain times \t Total times \
+    \t Residual power \t Beginning event times \t Endding event times \t Middle event times \
+    \t Day End Running time \t Done status \t Duration of Day \t DoneReward \t Reward  \
+    \t Sensors energy cost \t Sensors time cost \t total time cost \t Motion_triggered_times \t Hit_activity_check_times \t motion_activity_cnt \t")
+
+print(env.activity_none_times, '\t', env.expected_activity_none_times, '\t',env.done_hit_event_times, '\t', env.done_missed_event_times, \
+    '\t', env.done_random_miss_event_times, '\t', env.done_penalty_times, '\t', env.done_uncertain_times, '\t', env.done_totol_check_times, \
+    '\t', env.done_residual_power, '\t', env.done_beginning_event_times, '\t', env.done_end_event_times, '\t', env.done_middle_event_times, \
+    '\t', env.done_running_time, '\t', env.done, '\t', (end_time_of_wmu - env.day_begin).seconds/3600.0, '\t', 0, '\t', 0, \
+    '\t', env.done_energy_cost, '\t', env.done_time_cost, "\t", env.done_total_time_cost, "\t", env.motion_triggered_times, '\t', env.hit_activity_check_times, '\t',env.motion_activity_cnt)
+
+print("===================================================")

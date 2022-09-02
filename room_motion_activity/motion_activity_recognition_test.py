@@ -1428,10 +1428,10 @@ def test_dnn():
 
     # 0802
     # get_activity_by_motion_dnn('20220802154633', 'Sitting' ) # 4, w
-    get_activity_by_motion_dnn('20220802155756', 'Stand' ) # 4, g
+    # get_activity_by_motion_dnn('20220802155756', 'Stand' ) # 4, g
     #get_activity_by_motion_dnn('20220802163654', 'walking') # 5, g
     #get_activity_by_motion_dnn('20220802164744', 'jogging') # 0, g
-    #get_activity_by_motion_dnn('20220802161356', 'Laying') # 1, g
+    get_activity_by_motion_dnn('20220802161356', 'Laying') # 1, g
     # get_activity_by_motion_dnn('20220802162515', 'Squating') # 2,3 w
 
     return 0

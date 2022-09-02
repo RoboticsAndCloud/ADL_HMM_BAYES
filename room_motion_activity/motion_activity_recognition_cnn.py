@@ -247,7 +247,7 @@ model.add(Dense(6, activation='softmax'))
 
 model.compile(optimizer=Adam(learning_rate = 0.00001), loss = 'sparse_categorical_crossentropy', metrics = ['accuracy'])
 
-epochs = 530
+epochs = 500
 
 history = model.fit(X_train, y_train, epochs = epochs, validation_data= (X_test, y_test), verbose=1)
 

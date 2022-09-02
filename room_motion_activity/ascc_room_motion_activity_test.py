@@ -935,7 +935,7 @@ def run():
         logging.info('got cur test_dir:%s', test_dir)
 
         if pre_test_dir == test_dir:
-            time.sleep(1)
+            time.sleep(0.4)
             continue
 
         pre_test_dir = test_dir
@@ -949,7 +949,12 @@ def run():
             continue
 
         start = timer()
-        pred_list, prob_list = get_activity_prediction(str(motion_file), act = 'Sitting', time_str = '0')
+        try:
+            pred_list, prob_list = get_activity_prediction(str(motion_file), act = 'Sitting', time_str = '0')
+        except Exception as e:
+            print('error:', e)
+            logging.warn('error:%s', e)
+            continue
 
         for i in range(len(pred_list)):
 
@@ -969,6 +974,7 @@ def run():
 
 
 MOTION_FOLDER_TEST = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/motion/test/'
+MOTION_FOLDER_TEST = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/Ascc_Dataset_0819/Motion/'
 MOTION_FOLDER_0802 = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/motion_0802/'
 MOTION_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/motion/'
 
@@ -1475,8 +1481,20 @@ def test_dnn():
 
     
     # get_activity_by_motion_dnn('20220816130042', 'sitting') ## new data
-    # get_activity_by_motion_dnn('20220816130634', 'stand')
     # get_activity_by_motion_dnn('walk', 'test?')
+
+
+    # get_activity_by_motion_dnn('2009-12-11-09-17-25', 'sitting') # should be sitting, but walking...
+    # get_activity_by_motion_dnn('2009-12-11-09-17-45', 'sitting') # good
+    # get_activity_by_motion_dnn('2009-12-11-09-18-13', 'sitting') # good
+    # get_activity_by_motion_dnn('20220821074239', 'sitting_sofa') # not good
+    # get_activity_by_motion_dnn('20220821083945', 'sitting sofa') # good
+    # get_activity_by_motion_dnn('2009-12-11-09-10-39', 'stand') # good
+
+    # get_activity_by_motion_dnn('2009-12-11-13-59-22', 'sitting') # good
+
+
+
 
     
 
