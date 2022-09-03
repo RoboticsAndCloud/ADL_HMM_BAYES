@@ -11,6 +11,7 @@ from timeit import default_timer as timer
 import threading
 import math
 import time
+import numpy as np
 
 from gpiozero import LED
 import board
@@ -22,7 +23,7 @@ import wave
 
 
 
-import ADL_HMM_BAYES.adl_wmu.wmu_type_constants as wmu_type_constants
+import wmu_type_constants
 
 
 WAV_PATH = "../data/audio/"
@@ -30,7 +31,7 @@ CAM_PATH = "../data/images/"
 MO_PATH = "../data/motion/"
 
 IMAGE_CNT = 10
-AUDIO_DURATION = 1
+AUDIO_DURATION = 2
 MOTION_DURATION = 3
 
 DATE_TIME_FORMAT = '%Y%m%d%H%M%S'
@@ -91,7 +92,7 @@ heart = 0
 temperature = 0
 activeTime = 1
 blue = LED(24)
-button = Button(23)
+#button = Button(23)
 step = 0
 
 
@@ -321,9 +322,6 @@ def motion_data_saver():
 
 
 def audio_capture(current_time):
-    # SocketSendVariable(IPSEND, PORT, MODULATION, "2")
-    global MODULATION
-    MODULATION = MODULATION + 1
     time.sleep(.1)
     stream, audio = pyserial_start()  # start the pyaudio stream
     record_length = AUDIO_DURATION  # seconds to record

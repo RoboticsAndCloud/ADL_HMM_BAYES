@@ -38,7 +38,7 @@ import tools_ascc
 import adl_type_constants
 
 import env_socket_type_constants
-import ADL_HMM_BAYES.adl_env_client_lib as adl_env_client_lib
+import adl_env_client_lib
 
 
 # import pandas as pd
@@ -375,17 +375,17 @@ class EnvASCC():
 
     def step(self, p_action):
 
-        logging.info("Send cmd to WMU to take fusion data, action ", p_action)
+        logging.info("Send cmd to WMU to take fusion data, action %s ", p_action)
 
         try:
             if p_action == FUSION_ACTION:
                 adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
-                                                            env_socket_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_FUSION)
+                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_FUSION)
                 self.fusion_check_times += 1
 
             elif p_action == MOTION_ACTION:
                 adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
-                                                            env_socket_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_MOTION)
+                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_MOTION)
                 self.motion_check_times += 1
         
         except Exception as e:

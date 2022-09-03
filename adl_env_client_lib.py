@@ -5,7 +5,7 @@ import struct
 import time
 
 
-import env_socket_type_constants
+import adl_type_constants
 
 STATE_ACTIVITY_TRIGGER_NAME = 9
 
@@ -31,7 +31,7 @@ def cmd_mode_sending_handler(IP, PORT, var):
 
     s.close()
 
-def audio_sending_handler(ipsend, port, file, type = env_socket_type_constants.STATE_MEDICATION_ACTIVITY_CMD_PLAY_AUDIO):
+def audio_sending_handler(ipsend, port, file, type):
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((ipsend, port))
@@ -42,7 +42,7 @@ def audio_sending_handler(ipsend, port, file, type = env_socket_type_constants.S
     s.send(packed_data)
 
     now = datetime.now()
-    dt_string = now.strftime(env_socket_type_constants.DATE_TIME_FORMAT    )
+    dt_string = now.strftime(adl_type_constants.DATE_TIME_FORMAT    )
     print("Date and time =", dt_string)
 
     current_time = dt_string
@@ -72,7 +72,9 @@ if __name__ == "__main__":
         # default event
         file = ''
         if activeTime % 3 == 0: 
-            audio_sending_handler(IPSEND, PORT, file, medicine_type_constants.STATE_MEDICATION_ACTIVITY_CMD_PLAY_AUDIO)
+            cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_MOTION)
+            # audio_sending_handler(IPSEND, PORT, file, adl_type_constants.STATE_MEDICATION_ACTIVITY_CMD_PLAY_AUDIO)
 
         activeTime = activeTime + 1
         print("Active Time:", activeTime)

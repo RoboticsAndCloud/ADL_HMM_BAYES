@@ -24,14 +24,14 @@ import sys
 import os
 import time
 
-from google.cloud import texttospeech
+# from google.cloud import texttospeech
 
 import requests
 
 
 #from google.cloud import speech_v1
 #from google.cloud.speech_v1 import enums
-from google.cloud import speech
+# from google.cloud import speech
 #from google.cloud.speech import enums
 import io
 

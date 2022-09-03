@@ -10,7 +10,7 @@ import random
 
 
 import struct
-import ADL_HMM_BAYES.adl_wmu.wmu_type_constants as wmu_type_constants
+import wmu_type_constants
 
 STATE_HEARTBEAT = 0
 STATE_TEMPERATURE = 1
@@ -134,26 +134,27 @@ def server():
 
     while True:
         # time out
-        conn, addr = s.accept()
-        print('conn:', conn)
 
-        if conn is None:
-            print('conn is None, default motion')
-            # motion_data_saver()
-            continue
+        conn = None
+        test_file = '/home/pi/Desktop//data/motion/20220903180445//motion.txt'
+        #test_sending(test_file)
+        #continue
 
-        handler_service(conn)
-
-        conn.close()
-
-        # try: 
-        #     (conn, (ip, port)) = tcpServer.accept()
-        # except socket.timeout:
-        #     pass
-        # except:
-        #     raise
-        # else:
-        # # work with the connection, create a thread etc.
+        try: 
+            conn, addr = s.accept()
+            print('conn:', conn)
+        except socket.timeout:
+            if conn is None:
+                #print('conn is None, default motion')
+                #motion_data_saver()
+                continue
+            pass
+        except:
+            raise
+        else:
+         # work with the connection, create a thread etc.
+            handler_service(conn)
+            conn.close()
 
     return 0
 

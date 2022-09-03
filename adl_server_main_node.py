@@ -14,10 +14,7 @@ from timeit import default_timer as timer
 
 
 
-from std_msgs.msg import String
-
-
-import ADL_HMM_BAYES.adl_type_constants as adl_type_constants, ADL_HMM_BAYES.adl_utils as adl_utils
+import adl_type_constants, adl_utils
 
 """
 gnome-terminal -x bash -c "export PYTHONPATH=/usr/local/lib/python3.7/dist-packages:$PYTHONPATH && source ~/szd-python3-env/bin/activate && rosrun voice_interface medicine_server_main_node.py"
@@ -147,7 +144,7 @@ class MedicineServerMain(object):
                 f.write(l)
         print("Received motion:", mf)
 
-        adl_utils.write_res_into_file(adl_type_constants.WMU_AUDIO_FILE_NOTIFICATION_FILE, mf)
+        adl_utils.write_res_into_file(adl_type_constants.WMU_MOTION_FILE_NOTIFICATION_FILE, mf)
 
 
         return 0

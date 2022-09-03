@@ -274,7 +274,7 @@ def get_audio_type_by_activity_cnn(time_str):
 
 
 env = real_time_env_ascc.EnvASCC(TEST_BASE_DATE + ' 00:00:00')
-env.reset()
+# env.reset()
 
 hmm_model = get_hmm_model()
 
@@ -333,7 +333,7 @@ object_dict = {}
 while(pre_activity == ''):
     # open camera
 
-    audio_data, vision_data, motion_data, transition_motion = env.step(real_time_env_ascc.FUSION_ACTION)  # real_time_env_ascc.FUSION_ACTION?
+    status = env.step(real_time_env_ascc.FUSION_ACTION)  # real_time_env_ascc.FUSION_ACTION?
 
     # env.running_time
     # test_time_str = '2009-12-11 12:58:33'
@@ -498,7 +498,9 @@ while(True):
     living_room_check_flag = False
 
     if need_recollect_data:
-        audio_data, vision_data, motion_data, transition_motion = env.step(real_time_env_ascc.FUSION_ACTION)  
+        status = env.step(real_time_env_ascc.FUSION_ACTION)
+
+        # todo wait the event then read the recognition result  
         location, location_prob = get_location_by_activity_cnn(cur_time_str)
         bayes_model_location.set_location_prob(location_prob)
 
@@ -526,7 +528,7 @@ while(True):
 
     else:
         # INTERVAL_FOR_COLLECTING_DATA
-        audio_data, vision_data, motion_data, transition_motion = env.step(real_time_env_ascc.MOTION_ACTION)  
+        status = env.step(real_time_env_ascc.MOTION_ACTION)  
 
         # detect transition: the end of walk activity
         motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
