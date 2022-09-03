@@ -13,7 +13,7 @@ from re import T
 #from tkinter.messagebox import NO
 
 import hmm
-import motion_env_ascc
+import real_time_env_ascc
 import motion_adl_bayes_model
 import tools_ascc
 import constants
@@ -273,7 +273,7 @@ def get_audio_type_by_activity_cnn(time_str):
     
 
 
-env = motion_env_ascc.EnvASCC(TEST_BASE_DATE + ' 00:00:00')
+env = real_time_env_ascc.EnvASCC(TEST_BASE_DATE + ' 00:00:00')
 env.reset()
 
 hmm_model = get_hmm_model()
@@ -333,12 +333,12 @@ object_dict = {}
 while(pre_activity == ''):
     # open camera
 
-    audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.FUSION_ACTION)  # motion_env_ascc.FUSION_ACTION?
+    audio_data, vision_data, motion_data, transition_motion = env.step(real_time_env_ascc.FUSION_ACTION)  # real_time_env_ascc.FUSION_ACTION?
 
     # env.running_time
     # test_time_str = '2009-12-11 12:58:33'
     cur_time = env.get_running_time()
-    cur_time_str = cur_time.strftime(motion_env_ascc.DATE_HOUR_TIME_FORMAT)
+    cur_time_str = cur_time.strftime(real_time_env_ascc.DATE_HOUR_TIME_FORMAT)
     print('cur_time:', cur_time)
     
     bayes_model_location.set_time(cur_time_str)
@@ -483,11 +483,12 @@ p_less_than_threshold_check_cnt = 0
 start_check_interval_time = None
 living_room_check_times = LIVING_ROOM_CHECK_TIMES_MAX 
 
-while(not env.done):
+# while(not env.done):
+while(True):
 
     # TODO:
     # p = rank1_res_prob[-1]
-    # if p of previous detection is smaller than threshodl, env.step(motion_env_ascc.FUSION_ACTION)
+    # if p of previous detection is smaller than threshodl, env.step(real_time_env_ascc.FUSION_ACTION)
 
     location = ''
     object = ''
@@ -497,7 +498,7 @@ while(not env.done):
     living_room_check_flag = False
 
     if need_recollect_data:
-        audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.FUSION_ACTION)  
+        audio_data, vision_data, motion_data, transition_motion = env.step(real_time_env_ascc.FUSION_ACTION)  
         location, location_prob = get_location_by_activity_cnn(cur_time_str)
         bayes_model_location.set_location_prob(location_prob)
 
@@ -520,12 +521,12 @@ while(not env.done):
         if location == '':
             print('Location  empty:', cur_time)
             cur_time = env.get_running_time()
-            cur_time_str = cur_time.strftime(motion_env_ascc.DATE_HOUR_TIME_FORMAT)
+            cur_time_str = cur_time.strftime(real_time_env_ascc.DATE_HOUR_TIME_FORMAT)
             continue
 
     else:
         # INTERVAL_FOR_COLLECTING_DATA
-        audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.MOTION_ACTION)  
+        audio_data, vision_data, motion_data, transition_motion = env.step(real_time_env_ascc.MOTION_ACTION)  
 
         # detect transition: the end of walk activity
         motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
@@ -543,7 +544,7 @@ while(not env.done):
     heap_prob_audio_motion = []
     # if transition_motion:
     #     cur_time = env.get_running_time()
-    #     cur_time_str = cur_time.strftime(motion_env_ascc.DATE_HOUR_TIME_FORMAT)
+    #     cur_time_str = cur_time.strftime(real_time_env_ascc.DATE_HOUR_TIME_FORMAT)
     #     print('Env Running:', cur_time) 
         
     #     bayes_model_location.set_time(cur_time_str)
@@ -601,7 +602,7 @@ while(not env.done):
     #     # Bayes model prob    
 
     cur_time = env.get_running_time()
-    cur_time_str = cur_time.strftime(motion_env_ascc.DATE_HOUR_TIME_FORMAT)
+    cur_time_str = cur_time.strftime(real_time_env_ascc.DATE_HOUR_TIME_FORMAT)
     print('Env Running:', cur_time) 
 
     

@@ -35,9 +35,10 @@ import logging
 
 
 import tools_ascc
+import adl_type_constants
 
 import env_socket_type_constants
-import env_client_lib
+import ADL_HMM_BAYES.adl_env_client_lib as adl_env_client_lib
 
 
 # import pandas as pd
@@ -378,12 +379,12 @@ class EnvASCC():
 
         try:
             if p_action == FUSION_ACTION:
-                env_client_lib.cmd_mode_sending_handler(env_client_lib.IPSEND, env_client_lib.PORT,
+                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
                                                             env_socket_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_FUSION)
                 self.fusion_check_times += 1
 
             elif p_action == MOTION_ACTION:
-                env_client_lib.cmd_mode_sending_handler(env_client_lib.IPSEND, env_client_lib.PORT,
+                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
                                                             env_socket_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_MOTION)
                 self.motion_check_times += 1
         
