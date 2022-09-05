@@ -1,5 +1,5 @@
 import socket
-from service_socket_handler_wmu import *
+# from service_socket_handler_wmu import *
 import time
 import requests
 import sys
@@ -7,6 +7,8 @@ import os
 import random
 # import mysql.connector as mc
 #from SpeakResults import SpeakResults
+from datetime import datetime
+
 
 
 import struct
@@ -48,6 +50,7 @@ heartbeat = 0
 temperature = 0
 steps = 0
 
+DATE_TIME_FORMAT = '%Y%m%d%H%M%S'
 
 
 
@@ -115,6 +118,47 @@ def handler_service(conn):
 
     return 0
 
+
+def socket_motion_sending_handler(ipsend, port, current_time, file):
+    # todo open the image, get the lenght, send the lenth, send the data
+
+    PORT = port
+    IP = ipsend
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((IP, PORT))
+
+    values = (wmu_type_constants.STATE_ADL_ACTIVITY_WMU_MOTION)
+    packer = struct.Struct('I')
+    packed_data = packer.pack(values)
+    s.send(packed_data)
+
+    values = (current_time.encode())
+    packer = struct.Struct('14s')
+    packed_data = packer.pack(values)
+    s.send(packed_data)
+
+    with open(file, 'rb') as f:
+        for l in f: s.sendall(l)
+    print('Motion sent:', file)
+
+    s.close()
+
+    return 0
+
+
+def test_sending_motion(motion_file):
+    now = datetime.now()
+    dt_string = now.strftime(DATE_TIME_FORMAT)
+    print("Date and time =", dt_string)
+
+    current_time = dt_string
+    
+    try:
+        socket_motion_sending_handler(wmu_type_constants.WMU_IPSEND, wmu_type_constants.WMU_SEND_PORT, current_time, motion_file)
+    except Exception as e:
+        print('send motion file error:', motion_file, ',', e)
+
+
 def server():
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -124,13 +168,13 @@ def server():
     # socket.setdefaulttimeout(60)
     s.settimeout(0.2) # timeout for listening
 
-    ip = wmu_type_constants.WMU_IPRECEIVE
-    port = wmu_type_constants.WMU_RECEIVE_PORT
-    s.bind((ip, port))
-    print("Server established! IP:", ip)
-    print("PORT:", port)
+    # ip = wmu_type_constants.WMU_IPRECEIVE
+    # port = wmu_type_constants.WMU_RECEIVE_PORT
+    # s.bind((ip, port))
+    # print("Server established! IP:", ip)
+    # print("PORT:", port)
 
-    s.listen(connect_limit)
+    # s.listen(connect_limit)
 
     while True:
         # time out
@@ -138,6 +182,7 @@ def server():
         conn = None
         test_file = './motion.txt'
         test_sending_motion(test_file)
+        time.sleep(10)
         continue
 
         try: 

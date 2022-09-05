@@ -19,6 +19,10 @@ TEST_DIR = './test'
 ASCC_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/notice.txt'
 ASCC_DATA_RES_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/recognition_result.txt'
 
+from keras.models import load_model
+MODEL_SAVED_PATH = 'saved-model2'
+ML = load_model(MODEL_SAVED_PATH)
+
 def create_generators(train_data_dir, validation_data_dir):
     # Read Data and Augment it: Make sure to select augmentations that are appropriate to your images.
 
@@ -187,12 +191,12 @@ def write_res_into_file(file_name, res_list):
     
     return True
 
-def run():
+def run_cnn_model(file, cur_time):
     # execute this when you want to load the model
-    from keras.models import load_model
-    MODEL_SAVED_PATH = 'saved-model2'
+    # from keras.models import load_model
+    # MODEL_SAVED_PATH = 'saved-model2'
 
-    ml = load_model(MODEL_SAVED_PATH)
+    ml = ML
 
     # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, lobby:4, door:5
     class_names=['bathroom','bedroom', 'kitchen','livingroom', 'lobby', 'door']
@@ -205,70 +209,217 @@ def run():
 
     # Retreive 9 random images from directory
     
-    pre_test_dir = ''
-    while True:
-        test_dir = read_dir_name(ASCC_DATA_NOTICE_FILE)
-        # logging.info('pre_test_dir:%s', pre_test_dir)
-        logging.info('got cur test_dir:%s', test_dir)
+    # pre_test_dir = ''
+    # while True:
+    #     test_dir = read_dir_name(ASCC_DATA_NOTICE_FILE)
+    #     # logging.info('pre_test_dir:%s', pre_test_dir)
+    #     logging.info('got cur test_dir:%s', test_dir)
 
-        if pre_test_dir == test_dir:
-            time.sleep(0.4)
-            continue
+    #     if pre_test_dir == test_dir:
+    #         time.sleep(0.4)
+    #         continue
 
-        if os.path.exists(test_dir) == False:
-            print('test_dir not exist:', test_dir)
-            continue
+    #     if os.path.exists(test_dir) == False:
+    #         print('test_dir not exist:', test_dir)
+    #         continue
 
-        pre_test_dir = test_dir
+    #     pre_test_dir = test_dir
+    # /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/ascc_data/recognition_result.txt
+    index = file.rfind('/')
+    test_dir = file[0:index]
 
-        files=Path(test_dir).resolve().glob('*.*')
+    files=Path(test_dir).resolve().glob('*.*')
 
-        test_sample= get_file_count_of_dir(test_dir) 
-        #test_sample= 5
+    test_sample= get_file_count_of_dir(test_dir) 
+    #test_sample= 5
 
-        images=random.sample(list(files), test_sample)
+    images=random.sample(list(files), test_sample)
 
-        # Configure plots
-        # fig = plt.figure(figsize=(9,9))
-        # rows,cols = 3,3
-        fig = plt.figure(figsize=(36,36))
-        rows, cols = 6, 7
+    # Configure plots
+    # fig = plt.figure(figsize=(9,9))
+    # rows,cols = 3,3
+    fig = plt.figure(figsize=(36,36))
+    rows, cols = 6, 7
 
-        res = []
-        start = timer()
+    res = []
+    start = timer()
+    
+    for num,img in enumerate(images):
+        file = img
+        # print('file:', file)
+        label, prob = predict(file, ml, class_names)
+
+        # plt.subplot(rows,cols,num+1)
+        # plt.title("Pred: "+label + '(' + str(prob) + ')')
+        print("Pred: "+label + '(' + str(prob) + ')')
+
+        logging.info('cur test_dir:%s', test_dir)
+        logging.info('Pred:%s', label + '(' + str(prob) + ')')
+
+        res.append(label + '(' + str(prob) + ')')
+        # plt.axis('off')
+        # img = Image.open(img).convert('RGB')
+        # plt.imshow(img)
+        # plt.savefig("test_res.png")
+
+    end = timer()
+    print("Get_prediction time cost:", end-start)    
+    
+    write_res_into_file(ASCC_DATA_RES_FILE, res)   
+
+    # data = {DATA_TYPE : DATA_TYPE_IMAGE, DATA_FILE:ASCC_DATA_RES_FILE, DATA_CURRENT: cur_time }
+    # url = adl_env_client_lib.BASE_URL_NOTICE_RECOGNITION_RES
+    # adl_env_client_lib.notice_post_handler(url, data)
+    # print('Post the sound reconitioin event', file)  
+
+
+
+
+# if __name__ == "__main__":
+#     print('Test running:===========================================================\n')
+
+#     log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
+#     logging.info("Hello World!!!")
+#     # test()
+#     run()
+
+
+
+import adl_env_client_lib
+import asyncio
+import signal
+import socketio
+import functools
+import time
+
+
+# Update the IP Address according the target server
+IP_ADDRESS = 'http://127.0.0.1:5000'
+# Update your group ID
+GROUP_ID = 1
+
+INTERVAL = 10
+
+shutdown = False
+
+
+DATA_FILE_RECEIVED_FROM_WMU_EVENT_NAME = 'DATA_FILE_RECEIVED_FROM_WMU'
+DATA_RECOGNITION_FROM_WMU_EVENT_NAME = 'DATA_RECOGNITION_FROM_WMU'
+
+DATA_RECOGNITION_FINAL_TO_ADL_EVENT_NAME = 'DATA_RECOGNITION_TO_ADL'
+
+DATA_TYPE = 'type'
+DATA_CURRENT = 'current_time'
+DATA_FILE = 'file'
+DATA_TYPE_IMAGE = 'image'
+DATA_TYPE_SOUND = 'audio'
+DATA_TYPE_MOTION = 'motion'
+
+
+
+# For getting the score
+sio = socketio.AsyncClient()
+
+@sio.event
+async def connect():
+    print('connection established')
+
+@sio.on(DATA_FILE_RECEIVED_FROM_WMU_EVENT_NAME)
+async def on_message(data):
+    print('Got new data:', data)
+    try:
+        if data[DATA_TYPE] != DATA_TYPE_IMAGE:
+            return
         
-        for num,img in enumerate(images):
-            file = img
-            # print('file:', file)
-            label, prob = predict(file, ml, class_names)
-
-            # plt.subplot(rows,cols,num+1)
-            # plt.title("Pred: "+label + '(' + str(prob) + ')')
-            print("Pred: "+label + '(' + str(prob) + ')')
-
-            logging.info('cur test_dir:%s', test_dir)
-            logging.info('Pred:%s', label + '(' + str(prob) + ')')
-
-            res.append(label + '(' + str(prob) + ')')
-            # plt.axis('off')
-            # img = Image.open(img).convert('RGB')
-            # plt.imshow(img)
-            # plt.savefig("test_res.png")
-
-        end = timer()
-        print("Get_prediction time cost:", end-start)    
+        cur_time = data[DATA_CURRENT]
+        file = data[DATA_FILE]
+        print('cur_time:', cur_time, 'file:', file)
         
-        write_res_into_file(ASCC_DATA_RES_FILE, res)            
+        run_cnn_model(file, cur_time)
+
+    except Exception as e:
+        print('Got error:', e)
+        return
+        pass
+    event_name = DATA_RECOGNITION_FROM_WMU_EVENT_NAME
+    data = {DATA_TYPE : DATA_TYPE_IMAGE, DATA_FILE:ASCC_DATA_RES_FILE, DATA_CURRENT: cur_time }
+    await sio.emit(event_name, data)
+    print('send recognition :', data)
 
 
-if __name__ == "__main__":
-    print('Test running:===========================================================\n')
+# @sio.on(DATA_RECOGNITION_FINAL_TO_ADL_EVENT_NAME)
+# async def on_message(data):
+#     try:
+#         if data['type'] == DATA_TYPE_IMAGE:
+#             print('Get image:', data)
+#     except:
+#         pass
+#     print('Got final recognition data:', data)
 
-    log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
-    logging.info("Hello World!!!")
-    # test()
-    run()
 
+@sio.event
+async def disconnect():
+    print('disconnected from server')
+
+def stop(signame, loop):
+    global shutdown
+    shutdown = True
+
+    tasks = asyncio.all_tasks()
+    for _task in tasks:
+        _task.cancel()
+
+async def run():
+    cnt = 0
+    global shutdown
+    while not shutdown:
+        print('.', end='', flush=True)
+
+        try:
+            await asyncio.sleep(INTERVAL)
+            cnt = cnt + INTERVAL
+            print('run: ', cnt)
+            # event_name = DATA_RECOGNITION_FROM_WMU_EVENT_NAME
+            # broadcasted_data = {'type': DATA_TYPE_IMAGE, 'file': 'image0'}
+            # await sio.emit(event_name, broadcasted_data)
+        except asyncio.CancelledError as e:
+            pass
+            #print('run', 'CancelledError', flush=True)
+
+    await sio.disconnect()
+
+async def main():
+    await sio.connect(IP_ADDRESS)
+
+    loop = asyncio.get_running_loop()
+
+    for signame in {'SIGINT', 'SIGTERM'}:
+        loop.add_signal_handler(
+            getattr(signal, signame),
+            functools.partial(stop, signame, loop))
+
+    task = asyncio.create_task(run())
+    try:
+        await asyncio.gather(task)
+    except asyncio.CancelledError as e:
+        pass
+        #print('main', 'cancelledError')
+
+    print('main-END')
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
+
+# if __name__ == "__main__":
+#     print('Test running:===========================================================\n')
+
+#     log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
+#     logging.info("Hello World!!!")
+#     # test()
+#     # test_dnn()
+    # run()
+    
 
 
 

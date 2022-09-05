@@ -466,7 +466,7 @@ def object_detection(image_str, image_save_path):
 
     return res
 
-def run():
+def run_cnn_model(file, cur_time):
     image_dir = '/home/ascc/asccbot_v3/wearable_device_new_design/server/images/'
     res_dir = '/home/ascc/asccbot_v3/wearable_device_new_design/server/images_food_res/'
 
@@ -482,53 +482,56 @@ def run():
     # Retreive 9 random images from directory
     
     pre_test_dir = ''
-    while True:
-        test_dir = read_dir_name(ASCC_DATA_NOTICE_FILE)
-        # logging.info('pre_test_dir:%s', pre_test_dir)
-        logging.info('got cur test_dir:%s', test_dir)
+    # while True:
+    #     test_dir = read_dir_name(ASCC_DATA_NOTICE_FILE)
+    #     # logging.info('pre_test_dir:%s', pre_test_dir)
+    #     logging.info('got cur test_dir:%s', test_dir)
 
-        if pre_test_dir == test_dir:
-            time.sleep(1)
-            continue
+    #     if pre_test_dir == test_dir:
+    #         time.sleep(1)
+    #         continue
 
-        pre_test_dir = test_dir
+    #     pre_test_dir = test_dir
 
-        files=Path(test_dir).resolve().glob('*.*')
-        
-        try:
-            test_sample= get_file_count_of_dir(test_dir) 
-        except Exception as e:
-            print('Got error:', e)
-            continue
-        
-        #test_sample= 5
+    index = file.rfind('/')
+    test_dir = file[0:index]
 
-        images=random.sample(list(files), test_sample)
+    files=Path(test_dir).resolve().glob('*.*')
+    
+    try:
+        test_sample= get_file_count_of_dir(test_dir) 
+    except Exception as e:
+        print('Got error:', e)
+        return 
+    
+    #test_sample= 5
 
-        res = []
-        start = timer()
+    images=random.sample(list(files), test_sample)
 
-        logging.info('cur test_dir:%s', test_dir)
+    res = []
+    start = timer()
 
-        
-        for num,img in enumerate(images):
-            file = img
-            print('file:', file)
+    logging.info('cur test_dir:%s', test_dir)
 
-            tmp_res = object_detection(str(file), '_detection')
+    
+    for num,img in enumerate(images):
+        file = img
+        print('file:', file)
 
-            # plt.subplot(rows,cols,num+1)
-            # plt.title("Pred: "+label + '(' + str(prob) + ')')
-            print("Pred: ", res)
+        tmp_res = object_detection(str(file), '_detection')
 
-            logging.info('Pred:%s', tmp_res)
+        # plt.subplot(rows,cols,num+1)
+        # plt.title("Pred: "+label + '(' + str(prob) + ')')
+        print("Pred: ", res)
 
-            res.extend(tmp_res)
+        logging.info('Pred:%s', tmp_res)
 
-        write_res_into_file(ASCC_DATA_YOLOV3_RES_FILE, res) 
+        res.extend(tmp_res)
 
-        end = timer()
-        print("Get_prediction time cost:", end-start)    
+    write_res_into_file(ASCC_DATA_YOLOV3_RES_FILE, res) 
+
+    end = timer()
+    print("Get_prediction time cost:", end-start)    
 
         
 
@@ -558,12 +561,146 @@ def test():
     object_detection(test_img, test_img+'_detection')
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
+#     import log
+
+#     log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
+#     logging.info("Hello World!!!")
+
+#     # test()
+
+#     run()
+
+
+
+import adl_env_client_lib
+import asyncio
+import signal
+import socketio
+import functools
+import time
+
+
+# Update the IP Address according the target server
+IP_ADDRESS = 'http://127.0.0.1:5000'
+# Update your group ID
+GROUP_ID = 1
+
+INTERVAL = 10
+
+shutdown = False
+
+
+DATA_FILE_RECEIVED_FROM_WMU_EVENT_NAME = 'DATA_FILE_RECEIVED_FROM_WMU'
+DATA_RECOGNITION_FROM_WMU_EVENT_NAME = 'DATA_RECOGNITION_FROM_WMU'
+
+DATA_RECOGNITION_FINAL_TO_ADL_EVENT_NAME = 'DATA_RECOGNITION_TO_ADL'
+
+DATA_TYPE = 'type'
+DATA_CURRENT = 'current_time'
+DATA_FILE = 'file'
+DATA_TYPE_IMAGE = 'image'
+DATA_TYPE_SOUND = 'audio'
+DATA_TYPE_MOTION = 'motion'
+DATA_TYPE_IMAGE_YOLO = 'yolo'
+
+
+
+# For getting the score
+sio = socketio.AsyncClient()
+
+@sio.event
+async def connect():
+    print('connection established')
+
+@sio.on(DATA_FILE_RECEIVED_FROM_WMU_EVENT_NAME)
+async def on_message(data):
+    print('Got new data:', data)
+    try:
+        if data[DATA_TYPE] != DATA_TYPE_IMAGE:
+            return
+        
+        cur_time = data[DATA_CURRENT]
+        file = data[DATA_FILE]
+        print('cur_time:', cur_time, 'file:', file)
+        
+        run_cnn_model(file, cur_time)
+
+    except Exception as e:
+        print('Got error:', e)
+        return
+        pass
+    event_name = DATA_RECOGNITION_FROM_WMU_EVENT_NAME
+    data = {DATA_TYPE : DATA_TYPE_IMAGE_YOLO, DATA_FILE:ASCC_DATA_YOLOV3_RES_FILE, DATA_CURRENT: cur_time }
+    await sio.emit(event_name, data)
+    print('send recognition :', data)
+
+
+# @sio.on(DATA_RECOGNITION_FINAL_TO_ADL_EVENT_NAME)
+# async def on_message(data):
+#     try:
+#         if data['type'] == DATA_TYPE_IMAGE:
+#             print('Get image:', data)
+#     except:
+#         pass
+#     print('Got final recognition data:', data)
+
+
+@sio.event
+async def disconnect():
+    print('disconnected from server')
+
+def stop(signame, loop):
+    global shutdown
+    shutdown = True
+
+    tasks = asyncio.all_tasks()
+    for _task in tasks:
+        _task.cancel()
+
+async def run():
+    cnt = 0
+    global shutdown
+    while not shutdown:
+        print('.', end='', flush=True)
+
+        try:
+            await asyncio.sleep(INTERVAL)
+            cnt = cnt + INTERVAL
+            print('run: ', cnt)
+            # event_name = DATA_RECOGNITION_FROM_WMU_EVENT_NAME
+            # broadcasted_data = {'type': DATA_TYPE_IMAGE, 'file': 'image0'}
+            # await sio.emit(event_name, broadcasted_data)
+        except asyncio.CancelledError as e:
+            pass
+            #print('run', 'CancelledError', flush=True)
+
+    await sio.disconnect()
+
+async def main():
+    await sio.connect(IP_ADDRESS)
+
+    loop = asyncio.get_running_loop()
+
+    for signame in {'SIGINT', 'SIGTERM'}:
+        loop.add_signal_handler(
+            getattr(signal, signame),
+            functools.partial(stop, signame, loop))
+
+    task = asyncio.create_task(run())
+    try:
+        await asyncio.gather(task)
+    except asyncio.CancelledError as e:
+        pass
+        #print('main', 'cancelledError')
+
+    print('main-END')
+
+
+if __name__ == '__main__':
     import log
 
     log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
     logging.info("Hello World!!!")
 
-    # test()
-
-    run()
+    asyncio.run(main())

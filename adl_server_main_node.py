@@ -9,8 +9,11 @@ import random
 # import mysql.connector as mc
 #from SpeakResults import SpeakResults
 import struct
+import threading
 
 from timeit import default_timer as timer
+import adl_env_client_lib
+
 
 
 
@@ -20,6 +23,21 @@ import adl_type_constants, adl_utils
 gnome-terminal -x bash -c "export PYTHONPATH=/usr/local/lib/python3.7/dist-packages:$PYTHONPATH && source ~/szd-python3-env/bin/activate && rosrun voice_interface medicine_server_main_node.py"
 
 """
+
+
+DATA_FILE_RECEIVED_FROM_WMU_EVENT_NAME = 'DATA_FILE_RECEIVED_FROM_WMU'
+DATA_RECOGNITION_FROM_WMU_EVENT_NAME = 'DATA_RECOGNITION_FROM_WMU'
+
+DATA_RECOGNITION_FINAL_TO_ADL_EVENT_NAME = 'DATA_RECOGNITION_TO_ADL'
+
+DATA_TYPE = 'type'
+DATA_CURRENT = 'current_time'
+DATA_FILE = 'file'
+DATA_TYPE_IMAGE = 'image'
+DATA_TYPE_SOUND = 'audio'
+DATA_TYPE_MOTION = 'motion'
+
+
 
 STATE_HEARTBEAT = 0
 STATE_TEMPERATURE = 1
@@ -94,11 +112,37 @@ class MedicineServerMain(object):
             pass
 
         elif (state == adl_type_constants.STATE_ADL_ACTIVITY_WMU_IMAGE):
-            self.socket_image_handler(conn)
+            cur_time, file = self.socket_image_handler(conn)
+
+            # send notice to the server, and the server notice the CNN modle for recognition
+            data = {DATA_TYPE : DATA_TYPE_IMAGE, DATA_FILE:file, DATA_CURRENT: cur_time }
+            url = adl_env_client_lib.BASE_URL_NOTICE_FILES_RECEIVED
+            adl_env_client_lib.notice_post_handler(url, data)
+
+            print('Post the image event', file)
+
         elif (state == adl_type_constants.STATE_ADL_ACTIVITY_WMU_AUDIO):
-            self.socket_audio_handler(conn)
+            cur_time, file = self.socket_audio_handler(conn)
+            
+            data = {DATA_TYPE : DATA_TYPE_SOUND, DATA_FILE:file, DATA_CURRENT: cur_time }
+
+            url = adl_env_client_lib.BASE_URL_NOTICE_FILES_RECEIVED
+            adl_env_client_lib.notice_post_handler(url, data)
+
+            print('Post the audio event', file)
+
+
         elif (state == adl_type_constants.STATE_ADL_ACTIVITY_WMU_MOTION):
-            self.socket_motion_handler(conn)
+            cur_time, file = self.socket_motion_handler(conn)
+
+            data = {DATA_TYPE : DATA_TYPE_MOTION, DATA_FILE:file, DATA_CURRENT: cur_time }
+            # url = adl_env_client_lib.BASE_URL_PUSH
+            # adl_env_client_lib.notice_request_handler(url)
+
+            url = adl_env_client_lib.BASE_URL_NOTICE_FILES_RECEIVED
+            adl_env_client_lib.notice_post_handler(url, data)
+
+            print('Post the motion event', file)
 
         return 0
 
@@ -115,7 +159,11 @@ class MedicineServerMain(object):
         while True:
             conn, addr = s.accept()
 
-            self.handler_service(conn)
+            try:
+                self.handler_service(conn)
+            except Exception as e:
+                print('error:', e)
+                pass
 
             conn.close()
 
@@ -147,7 +195,7 @@ class MedicineServerMain(object):
         adl_utils.write_res_into_file(adl_type_constants.WMU_MOTION_FILE_NOTIFICATION_FILE, mf)
 
 
-        return 0
+        return current_time, mf
 
     def socket_audio_handler(self, conn):
         # cnt, time
@@ -174,7 +222,7 @@ class MedicineServerMain(object):
         adl_utils.write_res_into_file(adl_type_constants.WMU_AUDIO_FILE_NOTIFICATION_FILE, wf)
 
 
-        return 0
+        return current_time, wf
 
 
     def socket_image_handler(self, conn):
@@ -203,7 +251,7 @@ class MedicineServerMain(object):
         adl_utils.write_res_into_file(adl_type_constants.WMU_IMAGE_FILE_NOTIFICATION_FILE, image_file)
 
 
-        return 0
+        return current_time, image_file
 
 
     def socket_images_audio_hander(self, conn):
@@ -225,8 +273,28 @@ class MedicineServerMain(object):
         # audio
         self.socket_audio_handler(conn)
 
-if __name__ == "__main__":
+def server_run():
     server_node = MedicineServerMain()
     server_node.server()
+
+    return 0
+
+if __name__ == "__main__":
+
+
+    server_run()
+
+    # server = threading.Thread(target=server_run)
+    # # web_server = threading.Thread(target=web_server_run)
+
+    # server.start()
+    # # web_server.start()
+
+    # # server.join()
+    # # web_server.join() # in seconds
+    # # 
+    # print("web start")
+    # socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    
 
 

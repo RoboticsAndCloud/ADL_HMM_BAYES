@@ -3,6 +3,7 @@ import socket
 from timeit import default_timer as timer
 import struct
 import time
+import requests
 
 
 import adl_type_constants
@@ -12,11 +13,40 @@ STATE_ACTIVITY_TRIGGER_NAME = 9
 IPSEND = "192.168.1.131" # white box
 PORT = 59100 # wearable server
 
-
+BASE_URL_NOTICE_RECOGNITION_RES = 'http://127.0.0.1:5000/notice_recognition'
+BASE_URL_NOTICE_FILES_RECEIVED = 'http://127.0.0.1:5000/notice_files'
+BASE_URL_PUSH = 'http://127.0.0.1:5000/push'
 
 
 state = -1
 activeTime = 1
+
+Headers = {
+
+'Content-Type': 'application/json',
+
+'Client_ID': 'YXBpLmVmcGVyZmVjdA==',
+
+'Client_Secret': 'aVNmVzh3Vk9kM3cxQTh1OQ=='
+}
+
+
+def notice_request_handler(url):
+    try:
+        r = requests.get(url, verify = False)
+        #print(r)
+    except Exception as e:
+        print("request url error:", e)
+    return 0
+
+def notice_post_handler(url, data):
+    try:
+        r = requests.post(url, headers=Headers, json=data, verify = False)
+        #print(r)
+    except Exception as e:
+        print("post url error:", e)
+        return -1
+    return 0
 
 
 def cmd_mode_sending_handler(IP, PORT, var):
@@ -42,7 +72,7 @@ def audio_sending_handler(ipsend, port, file, type):
     s.send(packed_data)
 
     now = datetime.now()
-    dt_string = now.strftime(adl_type_constants.DATE_TIME_FORMAT    )
+    dt_string = now.strftime(adl_type_constants.DATE_TIME_FORMAT)
     print("Date and time =", dt_string)
 
     current_time = dt_string

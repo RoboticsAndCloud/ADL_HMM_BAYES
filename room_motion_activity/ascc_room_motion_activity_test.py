@@ -39,6 +39,11 @@ MOTION_ACTIVITY_MAPPING = {
 # sample rate
 Fs = 90
 
+from keras.models import load_model
+MODEL_SAVED_PATH = 'motion-saved-model'
+
+ML = load_model(MODEL_SAVED_PATH)
+
 def create_generators(train_data_dir, validation_data_dir):
     # Read Data and Augment it: Make sure to select augmentations that are appropriate to your images.
 
@@ -913,12 +918,12 @@ def write_res_into_file_converter(file_name, res_list):
     
     return True
 
-def run():
+def run_cnn_model(motion_file, cur_time):
     # execute this when you want to load the model
-    from keras.models import load_model
-    MODEL_SAVED_PATH = 'motion-saved-model'
+    # from keras.models import load_model
+    # MODEL_SAVED_PATH = 'motion-saved-model'
 
-    ml = load_model(MODEL_SAVED_PATH)
+    # ml = load_model(MODEL_SAVED_PATH)
     
     import sys, random
     from pathlib import Path
@@ -928,49 +933,57 @@ def run():
 
     # Retreive 9 random images from directory
     
-    pre_test_dir = ''
-    while True:
-        test_dir = read_dir_name(ASCC_DATA_NOTICE_FILE)
-        # logging.info('pre_test_dir:%s', pre_test_dir)
-        logging.info('got cur test_dir:%s', test_dir)
+    # pre_test_dir = ''
+    # while True:
+    #     test_dir = read_dir_name(ASCC_DATA_NOTICE_FILE)
+    #     # logging.info('pre_test_dir:%s', pre_test_dir)
+    #     logging.info('got cur test_dir:%s', test_dir)
 
-        if pre_test_dir == test_dir:
-            time.sleep(0.4)
-            continue
+    #     if pre_test_dir == test_dir:
+    #         time.sleep(0.4)
+    #         continue
 
-        pre_test_dir = test_dir
+    #     pre_test_dir = test_dir
 
-        motion_file = test_dir + '/' + MOTION_TXT
+    #     motion_file = test_dir + '/' + MOTION_TXT
 
-        res = []
+    res = []
 
-        if os.path.exists(motion_file) == False:
-            print('motion_file not exist:', motion_file)
-            continue
+    if os.path.exists(motion_file) == False:
+        print('motion_file not exist:', motion_file)
+        return
 
-        start = timer()
-        try:
-            pred_list, prob_list = get_activity_prediction(str(motion_file), act = 'Sitting', time_str = '0')
-        except Exception as e:
-            print('error:', e)
-            logging.warn('error:%s', e)
-            continue
+    start = timer()
+    try:
+        pred_list, prob_list = get_activity_prediction(str(motion_file), act = 'Sitting', time_str = '0')
+    except Exception as e:
+        print('error:', e)
+        logging.warn('error:%s', e)
+        return
 
-        for i in range(len(pred_list)):
+    for i in range(len(pred_list)):
 
-            label = MOTION_ACTIVITY_MAPPING[pred_list[i]]
-            prob = prob_list[i]
+        label = MOTION_ACTIVITY_MAPPING[pred_list[i]]
+        prob = prob_list[i]
 
-            print("Pred: "+label + '(' + str(prob) + ')')
+        print("Pred: "+label + '(' + str(prob) + ')')
 
-            logging.info('cur test_dir:%s', test_dir)
-            logging.info('Pred:%s', label + '(' + str(prob) + ')')
+        logging.info('cur motion_file:%s', motion_file)
+        logging.info('Pred:%s', label + '(' + str(prob) + ')')
 
-            res.append(label + '(' + str(prob) + ')')
-        end = timer()
-        print("Get_prediction time cost:", end-start)
+        res.append(label + '(' + str(prob) + ')')
+    end = timer()
+    print("Get_prediction time cost:", end-start)
 
-        write_res_into_file(ASCC_DATA_RES_FILE, res)            
+    # save the result in file
+    write_res_into_file(ASCC_DATA_RES_FILE, res)    
+
+    # data = {DATA_TYPE : DATA_TYPE_MOTION, DATA_FILE:ASCC_DATA_RES_FILE, DATA_CURRENT: cur_time }
+    # url = adl_env_client_lib.BASE_URL_NOTICE_RECOGNITION_RES
+    # adl_env_client_lib.notice_post_handler(url, data)
+    # print('Post the motion reconitioin event', motion_file) 
+    # 
+    #         
 
 
 MOTION_FOLDER_TEST = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/motion/test/'
@@ -1288,7 +1301,7 @@ def get_activity_by_motion_dnn(time_str, action='moiton'):
     motion_file = MOTION_FOLDER_TEST + d_act + '/' + MOTION_TXT
     get_activity_prediction(motion_file)
 
-def get_activity_prediction(motion_file, act = 'Sitting', time_str = '0'):
+def get_activity_prediction(motion_file, ml = ML, act = 'Sitting', time_str = '0'):
 
     act = act
     time = time_str  # 12585782270000
@@ -1324,10 +1337,11 @@ def get_activity_prediction(motion_file, act = 'Sitting', time_str = '0'):
     #X_test = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2], 1)
 
     # execute this when you want to load the model
-    from keras.models import load_model
-    MODEL_SAVED_PATH = 'motion-saved-model'
+    # from keras.models import load_model
+    # MODEL_SAVED_PATH = 'motion-saved-model'
 
-    model = load_model(MODEL_SAVED_PATH)
+    # model = load_model(MODEL_SAVED_PATH)
+    model = ml
 
     # model.summary()
 
@@ -1500,17 +1514,130 @@ def test_dnn():
 
     return 0
 
-if __name__ == "__main__":
-    print('Test running:===========================================================\n')
-
-    log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
-    logging.info("Hello World!!!")
-    # test()
-    # test_dnn()
-    run()
-    
+import adl_env_client_lib
+import asyncio
+import signal
+import socketio
+import functools
+import time
 
 
+# Update the IP Address according the target server
+IP_ADDRESS = 'http://127.0.0.1:5000'
+# Update your group ID
+GROUP_ID = 1
+
+INTERVAL = 10
+
+shutdown = False
 
 
+DATA_FILE_RECEIVED_FROM_WMU_EVENT_NAME = 'DATA_FILE_RECEIVED_FROM_WMU'
+DATA_RECOGNITION_FROM_WMU_EVENT_NAME = 'DATA_RECOGNITION_FROM_WMU'
+
+DATA_RECOGNITION_FINAL_TO_ADL_EVENT_NAME = 'DATA_RECOGNITION_TO_ADL'
+
+DATA_TYPE = 'type'
+DATA_CURRENT = 'current_time'
+DATA_FILE = 'file'
+DATA_TYPE_IMAGE = 'image'
+DATA_TYPE_SOUND = 'audio'
+DATA_TYPE_MOTION = 'motion'
+
+
+
+# For getting the score
+sio = socketio.AsyncClient()
+
+@sio.event
+async def connect():
+    print('connection established')
+
+@sio.on(DATA_FILE_RECEIVED_FROM_WMU_EVENT_NAME)
+async def on_message(data):
+    print('Got new data:', data)
+    try:
+        if data[DATA_TYPE] != DATA_TYPE_MOTION:
+            return
+        
+        cur_time = data[DATA_CURRENT]
+        file = data[DATA_FILE]
+        print('cur_time:', cur_time, 'file:', file)
+        
+        run_cnn_model(file, cur_time)
+
+    except Exception as e:
+        print('Got error:', e)
+        return
+        pass
+
+    event_name = DATA_RECOGNITION_FROM_WMU_EVENT_NAME
+    data = {DATA_TYPE : DATA_TYPE_MOTION, DATA_FILE:ASCC_DATA_RES_FILE, DATA_CURRENT: cur_time }
+    await sio.emit(event_name, data)
+    print('send recognition :', data)
+
+
+# @sio.on(DATA_RECOGNITION_FINAL_TO_ADL_EVENT_NAME)
+# async def on_message(data):
+#     try:
+#         if data['type'] != DATA_TYPE_MOTION:
+#             print('Get image:', data)
+#     except:
+#         pass
+#     print('Got final recognition data:', data)
+
+
+@sio.event
+async def disconnect():
+    print('disconnected from server')
+
+def stop(signame, loop):
+    global shutdown
+    shutdown = True
+
+    tasks = asyncio.all_tasks()
+    for _task in tasks:
+        _task.cancel()
+
+async def run():
+    cnt = 0
+    global shutdown
+    while not shutdown:
+        print('.', end='', flush=True)
+
+        try:
+            await asyncio.sleep(INTERVAL)
+            cnt = cnt + INTERVAL
+            print('run: ', cnt)
+            # event_name = DATA_RECOGNITION_FROM_WMU_EVENT_NAME
+            # broadcasted_data = {'type': DATA_TYPE_IMAGE, 'file': 'image0'}
+            # await sio.emit(event_name, broadcasted_data)
+        except asyncio.CancelledError as e:
+            pass
+            #print('run', 'CancelledError', flush=True)
+
+    await sio.disconnect()
+
+async def main():
+    await sio.connect(IP_ADDRESS)
+
+    loop = asyncio.get_running_loop()
+
+    for signame in {'SIGINT', 'SIGTERM'}:
+        loop.add_signal_handler(
+            getattr(signal, signame),
+            functools.partial(stop, signame, loop))
+
+    task = asyncio.create_task(run())
+    try:
+        await asyncio.gather(task)
+    except asyncio.CancelledError as e:
+        pass
+        #print('main', 'cancelledError')
+
+    print('main-END')
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
 
