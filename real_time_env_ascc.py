@@ -384,8 +384,8 @@ class EnvASCC():
                 self.fusion_check_times += 1
 
             elif p_action == MOTION_ACTION:
-                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
-                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_MOTION)
+                # adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+                #                                             adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_MOTION)
                 self.motion_check_times += 1
         
         except Exception as e:

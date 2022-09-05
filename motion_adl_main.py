@@ -60,7 +60,7 @@ g_image_object_recognition_time = ''
 
 g_stop = False
 
-CHECK_AND_WAIT_THRESHOLD = 5
+CHECK_AND_WAIT_THRESHOLD = 8
 
 
 """
@@ -768,6 +768,8 @@ def real_time_test_run():
         if need_recollect_data:
             status = env.step(real_time_env_ascc.FUSION_ACTION)
 
+            print("--------------------------------------------Running, FUSION_ACTION")
+
             # check and wait the result
             if check_and_wait_l_o_s_m_result() == False:
                 continue
@@ -831,6 +833,7 @@ def real_time_test_run():
         else:
             # INTERVAL_FOR_COLLECTING_DATA
             status = env.step(real_time_env_ascc.MOTION_ACTION)  
+            print("--------------------------------------------Running, MOTION_ACTION")
 
             # check and wait the result
             if check_and_wait_motion_result() == False:
@@ -1166,18 +1169,18 @@ def real_time_test_run():
         #         start_check_interval_time = cur_time
         #         p_check_level = p_check_level -1
 
-            if p_activity_end < -0.3:    
-                if start_check_interval_time == None:
-                    start_check_interval_time = cur_time
+            # if p_activity_end < -0.3:    
+            #     if start_check_interval_time == None:
+            #         start_check_interval_time = cur_time
 
-                start_check_interval = (cur_time - start_check_interval_time).seconds 
-                print('start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
+            #     start_check_interval = (cur_time - start_check_interval_time).seconds 
+            #     print('start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
 
-                if (int(start_check_interval) / UNCERTAIN_CHECK_INTERVAL) >= 1:
-                    need_recollect_data = True
-                    print('reset start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
-                    start_check_interval = 0
-                    start_check_interval_time = cur_time
+            #     if (int(start_check_interval) / UNCERTAIN_CHECK_INTERVAL) >= 1:
+            #         need_recollect_data = True
+            #         print('reset start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
+            #         start_check_interval = 0
+            #         start_check_interval_time = cur_time
 
         #     #     need_recollect_data = True
         #     #     p_check_level = p_check_level -1

@@ -146,7 +146,7 @@ def server():
         except socket.timeout:
             if conn is None:
                 print('conn is None, default motion')
-                #motion_data_saver()
+                motion_data_saver()
                 continue
             pass
         except:

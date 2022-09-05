@@ -30,7 +30,7 @@ WAV_PATH = "../data/audio/"
 CAM_PATH = "../data/images/"
 MO_PATH = "../data/motion/"
 
-IMAGE_CNT = 10
+IMAGE_CNT = 5
 AUDIO_DURATION = 2
 MOTION_DURATION = 3
 
@@ -54,6 +54,7 @@ import pyaudio
 
 g_picamera = PiCamera()
 g_picamera.resolution = (640, 480)
+g_picamera.rotation = 180
 
 
 
