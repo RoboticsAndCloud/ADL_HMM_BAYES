@@ -22,6 +22,8 @@ from datetime import datetime
 from datetime import timedelta
 from timeit import default_timer as timer
 
+import threading
+
 from io import BytesIO
 
 import struct
@@ -409,9 +411,18 @@ while (True):
         Speaker(file)
         state = -1
 
-    motion_data_saver()
+    # motion_data_saver()
     #state = STATE_CAMERA
-    exit(0)
+
+
+    t_photo_audio = threading.Thread(target=photo_audio_capture)
+    t_motion = threading.Thread(target=motion_data_saver)
+
+    t_photo_audio.start()
+    t_motion.start()
+
+    t_photo_audio.join(6)
+    t_motion.join(7) # in seconds
 
 
 #    (x, y, z) = accelerometer.acceleration

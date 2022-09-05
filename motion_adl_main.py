@@ -59,6 +59,8 @@ g_image_object_recognition_flag = False
 g_image_object_recognition_file = ''
 g_image_object_recognition_time = ''
 
+g_stop = False
+
 CHECK_AND_WAIT_THRESHOLD = 5
 
 
@@ -135,7 +137,7 @@ def get_object_by_activity_yolo(res_file, time_str):
 
 
     # get the results
-    res_str = read_res_from_file(res_file)
+    res_str = tools_ascc.read_res_from_file(res_file)
 
     """
     class_names=['bathroom','bedroom', 'morning_med', 'reading', 'kitchen','livingroom', 'chores', 'desk_activity', 'dining_room_activity',
@@ -455,13 +457,18 @@ def check_and_wait_l_o_s_m_result():
 
     start = timer()
     while(True):
+
+        # if g_motion_recognition_flag:
+        #     return True
+            
         if g_image_recognition_flag and g_motion_recognition_flag and g_sound_recognition_flag and g_image_object_recognition_flag:
             return True
         
         end = timer()
-        print("Get_prediction time cost:", end-start)  
 
         if (end-start) > CHECK_AND_WAIT_THRESHOLD:
+            print("Get_prediction losm time out cost:", end-start)  
+
             break
 
     return False
@@ -493,69 +500,87 @@ def check_and_wait_motion_result():
         # print("Get_prediction time cost:", end-start)  
 
         if (end-start) > CHECK_AND_WAIT_THRESHOLD:
+            print("Get_prediction moiton time out cost:", end-start)  
+
             break
 
     return False
 
 
-env = real_time_env_ascc.EnvASCC(TEST_BASE_DATE + ' 00:00:00')
-# env.reset()
-
-hmm_model = get_hmm_model()
-
-bayes_model_location = motion_adl_bayes_model.Bayes_Model_Vision_Location(hmm_model=hmm_model, simulation=False)
-bayes_model_motion = motion_adl_bayes_model.Bayes_Model_Motion(hmm_model=hmm_model, simulation=True)
-bayes_model_audio = motion_adl_bayes_model.Bayes_Model_Audio(hmm_model=hmm_model, simulation=False)
-bayes_model_object = motion_adl_bayes_model.Bayes_Model_Vision_Object(hmm_model=hmm_model, simulation=True)
 
 
-cur_activity_prob = 0
-pre_activity = ''
-cur_activity = ''
-activity_begin_time = '2009-10-16 06:00:00'
-activity_duration = 0
-
-# TODO how to record transition activities
-res_prob = {}
-rank1_res_prob = []
-rank2_res_prob = []
-rank3_res_prob = []
-
-rank1_res_prob_norm = []
-rank2_res_prob_norm = []
-rank3_res_prob_norm = []
-
-p_sitting_prob = []
-p_standing_prob = []
-p_walking_prob = []
-
-p_duration_lis =[]
-
-pre_act_list = []
-pre_act_symbol_list = []
-
-
-
-location_res = []
-audio_type_res = []
-motion_type_res = []
-object_res = []
-
-res_prob_audio_motion = []
-
-
-transition_motion_occur = []
-
-def get_pre_act_list():
-
-    return []
-
-# init
-for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
-    res_prob[act] = []
-
-object_dict = {}
 def real_time_test_run():
+
+
+    global g_image_recognition_flag
+    global g_sound_recognition_flag
+    global g_motion_recognition_flag
+
+    global g_image_recognition_file
+    global g_image_recognition_time
+    global g_sound_recognition_file
+    global g_sound_recognition_time
+    global g_motion_recognition_file
+    global g_motion_recognition_time
+
+    global g_image_object_recognition_flag
+    global g_image_object_recognition_file
+    global g_image_object_recognition_time
+
+    env = real_time_env_ascc.EnvASCC(TEST_BASE_DATE + ' 00:00:00')
+    # env.reset()
+
+    hmm_model = get_hmm_model()
+
+    bayes_model_location = motion_adl_bayes_model.Bayes_Model_Vision_Location(hmm_model=hmm_model, simulation=False)
+    bayes_model_motion = motion_adl_bayes_model.Bayes_Model_Motion(hmm_model=hmm_model, simulation=True)
+    bayes_model_audio = motion_adl_bayes_model.Bayes_Model_Audio(hmm_model=hmm_model, simulation=False)
+    bayes_model_object = motion_adl_bayes_model.Bayes_Model_Vision_Object(hmm_model=hmm_model, simulation=True)
+
+
+    cur_activity_prob = 0
+    pre_activity = ''
+    cur_activity = ''
+    activity_begin_time = '2009-10-16 06:00:00'
+    activity_duration = 0
+
+    # TODO how to record transition activities
+    res_prob = {}
+    rank1_res_prob = []
+    rank2_res_prob = []
+    rank3_res_prob = []
+
+    rank1_res_prob_norm = []
+    rank2_res_prob_norm = []
+    rank3_res_prob_norm = []
+
+    p_sitting_prob = []
+    p_standing_prob = []
+    p_walking_prob = []
+
+    p_duration_lis =[]
+
+    pre_act_list = []
+    pre_act_symbol_list = []
+
+
+
+    location_res = []
+    audio_type_res = []
+    motion_type_res = []
+    object_res = []
+
+    res_prob_audio_motion = []
+
+
+    transition_motion_occur = []
+
+    # init
+    for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
+        res_prob[act] = []
+
+    object_dict = {}
+
 
     while(pre_activity == ''):
         # open camera
@@ -597,20 +622,6 @@ def real_time_test_run():
         # audio_type = get_audio_type_by_activity(cur_activity)
         # motion_type = get_motion_type_by_activity(cur_activity)
 
-        global g_image_recognition_flag
-        global g_sound_recognition_flag
-        global g_motion_recognition_flag
-
-        global g_image_recognition_file
-        global g_image_recognition_time
-        global g_sound_recognition_file
-        global g_sound_recognition_time
-        global g_motion_recognition_file
-        global g_motion_recognition_time
-
-        global g_image_object_recognition_flag
-        global g_image_object_recognition_file
-        global g_image_object_recognition_time
 
         if check_and_wait_l_o_s_m_result() == False:
             continue
@@ -627,10 +638,10 @@ def real_time_test_run():
         object_dict = get_object_by_activity_yolo(g_image_object_recognition_file, g_image_object_recognition_time)
         # bayes_model_object.set_object_prob(object_prob)
 
-        audio_type, audio_type_prob = get_audio_type_by_activity_cnn(g_motion_recognition_file, g_motion_recognition_time)
+        audio_type, audio_type_prob = get_audio_type_by_activity_cnn(g_sound_recognition_file, g_sound_recognition_time)
         bayes_model_audio.set_audio_type_prob(float(audio_type_prob))
 
-        motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
+        motion_type, motion_type_prob = get_motion_type_by_activity_cnn(g_motion_recognition_file, cur_time_str)
         bayes_model_motion.set_motion_type_prob(motion_type_prob)
         # bayes_model_motion.set_motion_type(motion_type)
 
@@ -739,7 +750,8 @@ def real_time_test_run():
     start_check_interval_time = None
     living_room_check_times = LIVING_ROOM_CHECK_TIMES_MAX 
 
-# while(not env.done):
+
+    # while(not env.done):
     while(True):
 
         # TODO:
@@ -755,21 +767,6 @@ def real_time_test_run():
 
         if need_recollect_data:
             status = env.step(real_time_env_ascc.FUSION_ACTION)
-
-            global g_image_recognition_flag
-            global g_sound_recognition_flag
-            global g_motion_recognition_flag
-
-            global g_image_recognition_file
-            global g_image_recognition_time
-            global g_sound_recognition_file
-            global g_sound_recognition_time
-            global g_motion_recognition_file
-            global g_motion_recognition_time
-
-            global g_image_object_recognition_flag
-            global g_image_object_recognition_file
-            global g_image_object_recognition_time
 
             # check and wait the result
             if check_and_wait_l_o_s_m_result() == False:
@@ -834,10 +831,6 @@ def real_time_test_run():
         else:
             # INTERVAL_FOR_COLLECTING_DATA
             status = env.step(real_time_env_ascc.MOTION_ACTION)  
-
-            global g_motion_recognition_flag
-            global g_motion_recognition_file
-            global g_motion_recognition_time
 
             # check and wait the result
             if check_and_wait_motion_result() == False:
@@ -1303,63 +1296,68 @@ def real_time_test_run():
         audio_type_res.append([audio_type, audio_type_prob])
         motion_type_res.append([motion_type, motion_type_prob])
 
+        global g_stop
+
+        if g_stop:
+            break
+
+
+
     # while not env.done
 
 
-print("===================================================")
-# print out results
-print('rank1:', len(rank1_res_prob))
-print(rank1_res_prob)
+    print("Final res ===================================================")
+    # print out results
+    print('rank1:', len(rank1_res_prob))
+    print(rank1_res_prob)
 
-print('rank2:', len(rank2_res_prob))
-print(rank2_res_prob)
+    print('rank2:', len(rank2_res_prob))
+    print(rank2_res_prob)
 
-print('rank3:', len(rank3_res_prob))
-print(rank3_res_prob)
+    print('rank3:', len(rank3_res_prob))
+    print(rank3_res_prob)
 
-print('res_prob:', len(res_prob))
-print(res_prob)
+    print('res_prob:', len(res_prob))
+    print(res_prob)
 
-print('p_duration_lis:', len(p_duration_lis))
-print(p_duration_lis)
+    print('p_duration_lis:', len(p_duration_lis))
+    print(p_duration_lis)
 
-print('rank1_res_prob_norm:', rank1_res_prob_norm)
-print('rank2_res_prob_norm:', rank2_res_prob_norm)
-print('rank3_res_prob_norm:', rank3_res_prob_norm)
+    print('rank1_res_prob_norm:', rank1_res_prob_norm)
+    print('rank2_res_prob_norm:', rank2_res_prob_norm)
+    print('rank3_res_prob_norm:', rank3_res_prob_norm)
 
-print('location_res len:', len(location_res))
-print('location_res:', location_res)
-print('audio_type_res:', audio_type_res)
-print('motion_type_res:', motion_type_res)
+    print('location_res len:', len(location_res))
+    print('location_res:', location_res)
+    print('audio_type_res:', audio_type_res)
+    print('motion_type_res:', motion_type_res)
 
-print('transition_motion_occur len:', len(transition_motion_occur))
-print('transition_motion_occur:', transition_motion_occur)
+    print('transition_motion_occur len:', len(transition_motion_occur))
+    print('transition_motion_occur:', transition_motion_occur)
 
-print("Sensors Energy cost:", env.done_energy_cost)
-print("Sensors Time cost:", env.done_time_cost)
-print("Sensors Energy total  cost:", env.energy_cost)
-print("Sensors Time total cost:", env.time_cost)
-print("Total total_check_times:", env.total_check_times)
-print("Total motion_check_times:", env.motion_check_times)
-print("Total fusion_check_times:", env.fusion_check_times)
-end_time_of_wmu = datetime.strptime(env.done_running_time.strftime(DATE_TIME_FORMAT).split()[1], HOUR_TIME_FORMAT)
-print("Duration of Day:", (end_time_of_wmu - env.day_begin).seconds/3600.0)
+    print("Sensors Sensor Time cost:", env.sensor_time_cost)
+    print("Sensors Energy total  cost:", env.sensor_energy_cost)
+    print("Total total_check_times:", env.total_check_times)
+    print("Total motion_check_times:", env.motion_check_times)
+    print("Total fusion_check_times:", env.fusion_check_times)
+    end_time_of_wmu = datetime.strptime(env.get_current_running_time().strftime(DATE_TIME_FORMAT).split()[1], HOUR_TIME_FORMAT)
+    print("Duration of Day:", (end_time_of_wmu - env.day_begin).seconds/3600.0)
 
-# # motion probabilities during activities
-# print('p_sitting_prob:', len(p_sitting_prob))
-# print(p_sitting_prob)
+    # # motion probabilities during activities
+    # print('p_sitting_prob:', len(p_sitting_prob))
+    # print(p_sitting_prob)
 
-# print('p_standing_prob:', len(p_standing_prob))
-# print(p_standing_prob)
+    # print('p_standing_prob:', len(p_standing_prob))
+    # print(p_standing_prob)
 
-# print('p_walking_prob:', len(p_walking_prob))
-# print(p_walking_prob)
+    # print('p_walking_prob:', len(p_walking_prob))
+    # print(p_walking_prob)
 
-# todo: probability of each activities obtained from the p_duration, for example, cur_activity is 'Read', P_duration(Read) = 0.8, then p(rank2) + p(rank3) = 1-p(Read)=1- 0.8  = 0.2
+    # todo: probability of each activities obtained from the p_duration, for example, cur_activity is 'Read', P_duration(Read) = 0.8, then p(rank2) + p(rank3) = 1-p(Read)=1- 0.8  = 0.2
 
 
 
-print("===================================================")
+    print("===================================================")
 
 # if env.done:
 #     print("Activity_none_times:", env.activity_none_times)
@@ -1443,6 +1441,7 @@ DATA_TYPE_SOUND = 'audio'
 DATA_TYPE_MOTION = 'motion'
 DATA_TYPE_IMAGE_YOLO = 'yolo'
 
+STOP_ADL_SERVER = 'stop_adl_server'
 
 # For getting the score
 sio = socketio.AsyncClient()
@@ -1451,28 +1450,11 @@ sio = socketio.AsyncClient()
 async def connect():
     print('connection established')
 
-@sio.on(DATA_FILE_RECEIVED_FROM_WMU_EVENT_NAME)
+@sio.on(STOP_ADL_SERVER)
 async def on_message(data):
-    print('Got new data:', data)
-    try:
-        if data[DATA_TYPE] != DATA_TYPE_IMAGE:
-            return
-        
-        cur_time = data[DATA_CURRENT]
-        file = data[DATA_FILE]
-        print('cur_time:', cur_time, 'file:', file)
-        
-        run_cnn_model(file, cur_time)
-
-    except Exception as e:
-        print('Got error:', e)
-        return
-        pass
-    event_name = DATA_RECOGNITION_FROM_WMU_EVENT_NAME
-    data = {DATA_TYPE : DATA_TYPE_IMAGE, DATA_FILE:ASCC_DATA_RES_FILE, DATA_CURRENT: cur_time }
-    await sio.emit(event_name, data)
-    print('send recognition :', data)
-
+    print('Get STOP_ADL_SERVER notice:', data)
+    global g_stop
+    g_stop = True
 
 @sio.on(DATA_RECOGNITION_FINAL_TO_ADL_EVENT_NAME)
 async def on_message(data):
@@ -1492,7 +1474,7 @@ async def on_message(data):
             
             print('cur_time:', cur_time, 'file:', file)
 
-        if data['type'] == DATA_TYPE_IMAGE_YOLO:
+        elif data['type'] == DATA_TYPE_IMAGE_YOLO:
             print('Get image yolo recognition:', data)
             global g_image_object_recognition_flag
             global g_image_object_recognition_file
@@ -1506,6 +1488,38 @@ async def on_message(data):
             file = data[DATA_FILE]
             
             print('cur_time:', cur_time, 'file:', file)
+
+        elif data['type'] == DATA_TYPE_MOTION:
+            print('Get motion recognition:', data)
+            global g_motion_recognition_flag
+            global g_motion_recognition_file
+            global g_motion_recognition_time
+
+            g_motion_recognition_flag = True
+            g_motion_recognition_file = data[DATA_FILE]
+            g_motion_recognition_time = cur_time
+        
+            cur_time = data[DATA_CURRENT]
+            file = data[DATA_FILE]
+            
+            print('cur_time:', cur_time, 'file:', file)
+
+        elif data['type'] == DATA_TYPE_SOUND:
+            print('Get sound recognition:', data)
+            global g_sound_recognition_flag
+            global g_sound_recognition_file
+            global g_sound_recognition_time
+
+            g_sound_recognition_flag = True
+            g_sound_recognition_file = data[DATA_FILE]
+            g_sound_recognition_time = cur_time
+        
+            cur_time = data[DATA_CURRENT]
+            file = data[DATA_FILE]
+            
+            print('cur_time:', cur_time, 'file:', file)
+
+
 
     except:
         pass

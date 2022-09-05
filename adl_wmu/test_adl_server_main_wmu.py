@@ -119,6 +119,59 @@ def handler_service(conn):
     return 0
 
 
+
+def socket_image_sending_handler(ipsend, port, cnt, current_time, file):
+    # todo open the image, get the lenght, send the lenth, send the data
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((ipsend, port))
+
+    values = (wmu_type_constants.STATE_ADL_ACTIVITY_WMU_IMAGE)
+    packer = struct.Struct('I')
+    packed_data = packer.pack(values)
+    s.send(packed_data)
+
+    values = (cnt, current_time.encode())
+    packer = struct.Struct('I 14s')
+    packed_data = packer.pack(*values)
+    s.send(packed_data)
+
+    with open(file, 'rb') as f:
+        for l in f: s.sendall(l)
+    print('Image sent:', file)
+
+    s.close()
+
+    return ''
+
+
+
+def socket_audio_sending_handler(ipsend, port, current_time, file):
+    # todo open the image, get the lenght, send the lenth, send the data
+
+    PORT = port
+    IP = ipsend
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((IP, PORT))
+
+    values = (wmu_type_constants.STATE_ADL_ACTIVITY_WMU_AUDIO)
+    packer = struct.Struct('I')
+    packed_data = packer.pack(values)
+    s.send(packed_data)
+
+    values = (current_time.encode())
+    packer = struct.Struct('14s')
+    packed_data = packer.pack(values)
+    s.send(packed_data)
+
+    with open(file, 'rb') as f:
+        for l in f: s.sendall(l)
+    print('Audio sent:', file)
+
+    s.close()
+
+    return 0
+
 def socket_motion_sending_handler(ipsend, port, current_time, file):
     # todo open the image, get the lenght, send the lenth, send the data
 
@@ -159,6 +212,33 @@ def test_sending_motion(motion_file):
         print('send motion file error:', motion_file, ',', e)
 
 
+def test_sending_image(image_file):
+    now = datetime.now()
+    dt_string = now.strftime(DATE_TIME_FORMAT)
+    print("Date and time =", dt_string)
+
+    current_time = dt_string
+    cnt = 1
+    
+    try:
+        socket_image_sending_handler(wmu_type_constants.WMU_IPSEND, wmu_type_constants.WMU_SEND_PORT, cnt, current_time, image_file)
+
+    except Exception as e:
+        print('send image file error:', image_file, ',', e)
+
+def test_sending_audio(motion_file):
+    now = datetime.now()
+    dt_string = now.strftime(DATE_TIME_FORMAT)
+    print("Date and time =", dt_string)
+
+    current_time = dt_string
+    
+    try:
+        socket_audio_sending_handler(wmu_type_constants.WMU_IPSEND, wmu_type_constants.WMU_SEND_PORT, current_time, motion_file)
+    except Exception as e:
+        print('send auido file error:', motion_file, ',', e)
+
+
 def server():
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -180,9 +260,20 @@ def server():
         # time out
 
         conn = None
-        test_file = './motion.txt'
+        test_file = './test_sample/motion.txt'
         test_sending_motion(test_file)
+
+        test_file = './test_sample/kitchen/image9_rotate.jpg'
+        # test_file = './test_sample/read/image9_rotate.jpg'
+        test_sending_image(test_file)
+
+        test_file = './test_sample/quite.wav'
+        test_sending_audio(test_file)
+
+
         time.sleep(10)
+
+
         continue
 
         try: 

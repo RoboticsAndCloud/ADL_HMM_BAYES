@@ -522,13 +522,15 @@ def run_cnn_model(file, cur_time):
 
         # plt.subplot(rows,cols,num+1)
         # plt.title("Pred: "+label + '(' + str(prob) + ')')
-        print("Pred: ", res)
 
         logging.info('Pred:%s', tmp_res)
 
         res.extend(tmp_res)
 
     write_res_into_file(ASCC_DATA_YOLOV3_RES_FILE, res) 
+
+    # print("Pred: ", res)
+
 
     end = timer()
     print("Get_prediction time cost:", end-start)    
@@ -573,7 +575,6 @@ def test():
 
 
 
-import adl_env_client_lib
 import asyncio
 import signal
 import socketio

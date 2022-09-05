@@ -400,14 +400,22 @@ python ascc_room_motion_activity_test.py
 cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/room_classifier/ImageProcess
 python food_yolo_opencv.py --config yolov3.cfg --weights  yolov3.weights --class yolov3.txt
 
-2.4 Launch motion adl main 
+2.4 Launch room recogniton 
+cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/room_classifier/
+python ascc_room_activity_test.py
+
+3) Launch motion adl main 
 cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES
 python motion_adl_main.py
 
 
-3) WMU
+4) WMU
 python3 adl_server_main_wmu.py
 python3 test_adl_server_main_wmu.py
+
+5)Stop the motion_adl_main and get final result
+http://127.0.0.1:5000/stop
+
 
 
 #####################
