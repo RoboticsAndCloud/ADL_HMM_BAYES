@@ -326,11 +326,12 @@ async def connect():
 
 @sio.on(DATA_FILE_RECEIVED_FROM_WMU_EVENT_NAME)
 async def on_message(data):
-    print('Got new data:', data)
     try:
         if data[DATA_TYPE] != DATA_TYPE_IMAGE:
             return
-        
+
+        print('Got new data:', data)
+
         cur_time = data[DATA_CURRENT]
         file = data[DATA_FILE]
         print('cur_time:', cur_time, 'file:', file)

@@ -39,7 +39,6 @@ UNCERTAIN_CHECK_INTERVAL = 60 # Seconds
 
 LIVING_ROOM_CHECK_TIMES_MAX = 2
 
-new_activity_check_times = 2
 DOUBLE_CHECK = 2
 
 AUDIO_WEIGHT = 0.6
@@ -562,7 +561,8 @@ def real_time_test_run():
 
     pre_act_list = []
     pre_act_symbol_list = []
-
+    
+    new_activity_check_times = 2
 
 
     location_res = []

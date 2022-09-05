@@ -136,16 +136,16 @@ def server():
         # time out
 
         conn = None
-        test_file = './motion.txt'
-        test_sending_motion(test_file)
-        continue
+        test_file = '/home/pi/Desktop//data/motion/20220903185552//motion.txt'
+        #test_sending(test_file)
+        #continue
 
         try: 
             conn, addr = s.accept()
             print('conn:', conn)
         except socket.timeout:
             if conn is None:
-                #print('conn is None, default motion')
+                print('conn is None, default motion')
                 #motion_data_saver()
                 continue
             pass

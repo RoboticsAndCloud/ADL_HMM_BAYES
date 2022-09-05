@@ -558,7 +558,7 @@ def socket_motion_sending_handler(ipsend, port, current_time, file):
 
     return 0
 
-def test_sending_motion(motion_file):
+def test_sending(motion_file):
     now = datetime.now()
     dt_string = now.strftime(DATE_TIME_FORMAT)
     print("Date and time =", dt_string)
