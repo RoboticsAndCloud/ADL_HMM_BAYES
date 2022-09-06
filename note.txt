@@ -372,13 +372,34 @@ python food_yolo_opencv.py --config yolov3.cfg --weights  yolov3.weights --class
 cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES
 python motion_adl_main.py
 
+###########################
+ACTIVITY_BED_TO_TOILET : 1,										
+ACTIVITY_MORNING_MEDS : 2,										
+ACTIVITY_WATCH_TV : 3,										
+ACTIVITY_KITCHEN : 4,										
+ACTIVITY_CHORES : 5,										
+ACTIVITY_LEAVE_HOME : 6,										
+ACTIVITY_READ : 7,										
+ACTIVITY_GUEST_BATHROOM : 8,										
+ACTIVITY_MASTER_BATHROOM : 9,										
+ACTIVITY_DESK_ACTIVITY : 10,										
+ACTIVITY_EVE_MEDS : 11,										
+ACTIVITY_MEDITATE : 12,										
+ACTIVITY_DINING_RM_ACTIVITY : 13,										
+ACTIVITY_MASTER_BEDROOM : 14										
+										
+Bed-to-Toilet, Chores(Vacuum Cleaning), Desk_ActivitY, Guest_Bathroom,Kitchen_Activity, Leave_Home, Master_Bathroom, Meditate, Watch_TV, Sleep, Read, Morning_Meds, Master_Bedroom_Activity, Dining_Rm_Activity, Eve_Meds										
+										
+Bed-to-Toilet(1), Morning_Meds(2), Watch_TV(3), Kitchen_Activity(4), Chores(Vacuum Cleaning)(5), Leave_Home(6), Read(7), Guest_Bathroom(8), Master_Bathroom(9), Desk_Activity(10), Eve_Meds(11), Meditate(12), Dining_Rm_Activity(13), Master_Bedroom_Activity(14)										
+
 ############################
 For real-time test
 
 ##pip3 install flask
 ##pip3 install flask_socketio
 
-Env requirements: source  ~/LF_Workspace/venv3.7_energy/bin/activate
+Env requirements:
+source  ~/LF_Workspace/venv3.7_energy/bin/activate
 
 0) Launch adl_web_mq_server
 python adl_web_mq_server.py

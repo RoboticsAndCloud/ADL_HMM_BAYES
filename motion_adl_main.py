@@ -996,6 +996,10 @@ def real_time_test_run():
 
 
                 if location == constants.LOCATION_LIVINGROOM:
+
+                    # todo: if read, watch_tv, desk_activity detected, recollect data after 1 min to double check the activity
+                    # or set a delay to recollect the data, this is not good because some blurred image maybe miss recognition to living room
+
                     living_room_check_flag = True
 
                     res_object = location
