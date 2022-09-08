@@ -762,6 +762,7 @@ def real_time_test_run():
         object = ''
         motion_type = ''
         audio_type = ''
+        object_dict = {}
 
         living_room_check_flag = False
 
@@ -950,7 +951,7 @@ def real_time_test_run():
         # audio_type = get_audio_type_by_activity(cur_activity)
 
         print('location:', location)
-        print('object:', object)
+        print('object:', object_dict)
         print('audio_type:', audio_type)
         print('motion_type:', motion_type)
 
