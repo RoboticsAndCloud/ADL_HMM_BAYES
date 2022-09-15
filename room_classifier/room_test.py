@@ -120,7 +120,7 @@ def predict(file, model, to_class):
 def room_sample_plot():
     
     # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, lobby:4, door:5
-    class_names=['bathroom','bedroom', 'kitchen','livingroom', 'lobby', 'door']
+    class_names=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
 
     sample_folder = './room_samples_0831'
 
@@ -168,7 +168,7 @@ def test():
     ml = load_model(MODEL_SAVED_PATH)
     
     # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, lobby:4, door:5
-    class_names=['bathroom','bedroom', 'kitchen','livingroom', 'lobby', 'door']
+    class_names=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
 
 
     import sys, random
@@ -209,7 +209,7 @@ def get_confusion_matrix():
     y_test = []
     y_pred = []
 
-    class_names=['bathroom','bedroom', 'kitchen','livingroom', 'lobby', 'door']
+    class_names=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
 
     
     for fn in os.listdir(path):
@@ -260,7 +260,7 @@ def test_confusion_matrix(file_dir):
     ml = load_model(MODEL_SAVED_PATH)
     
     # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, lobby:4, door:5
-    class_names=['bathroom','bedroom', 'kitchen','livingroom', 'lobby', 'door']
+    class_names=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
 
 
     import sys, random
