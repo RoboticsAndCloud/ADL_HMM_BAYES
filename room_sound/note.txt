@@ -9,6 +9,23 @@ tf.contrib doesn't exist in 2.0.
 import tensorflow
 print(tensorflow.__version__)
 
+#####################################
+
+(base) ascc@ascc-XPS-8940:~/Desktop/audio.0818/quiet$ ls
+20220818095553  20220818095637  20220818095721  20220818095805  20220818095849
+20220818095601  20220818095645  20220818095729  20220818095813  20220818095857
+20220818095608  20220818095652  20220818095736  20220818095820
+20220818095615  20220818095659  20220818095743  20220818095827
+20220818095623  20220818095707  20220818095751  20220818095835
+20220818095630  20220818095714  20220818095758  20220818095842
+
+
+Process
+python3 audio_process.py
+
+
+(base) ascc@ascc-XPS-8940:~/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/room_sound/sound_dataset$ ls /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/room_sound/sound_dataset/ascc_activity_1second/audio/
+door_open_closed  drinking  eating  flush_toilet  keyboard  microwave  pouring_water_into_glass  quiet  toothbrushing  tv_news  vacuum  washing_hand
 
 #####################################
 source ~/LF_Workspace/venv3.7_energy/bin/activate

@@ -4,6 +4,9 @@ def copy_file(dir, target_dir):
     path = dir
     count = 0
     prefix = ''
+    if not os.path.exists(target_dir):
+        os.mkdir(target_dir)
+
     for fn in os.listdir(path):
         if os.path.isdir(dir + '/' + fn):
             print(fn)
@@ -69,15 +72,46 @@ def audio_file_truncate_by_dir(dir):
     path = dir
     count = 0
     prefix = ''
+    cnt = 0
     for fn in os.listdir(path):
         if os.path.isdir(dir + '/' + fn):
             source_dir = dir + '/' + fn
-            target_dir = source_dir.replace('ascc_activity', 'ascc_activity_1second')
+            target_dir = source_dir + '_1second'
             print(source_dir)
             print(target_dir)
 
             cnt = audio_file_truncate(source_dir, target_dir)
             print('Count:', cnt)
+
+            count = count + cnt
+
+    return count
+
+
+
+def audio_file_copy_truncate_by_dir(dir):
+    path = dir
+    count = 0
+    prefix = ''
+    cnt = 0
+    for fn in os.listdir(path):
+        if os.path.isdir(dir + '/' + fn):
+            source_dir = dir + '/' + fn
+            cp_dest_dir = source_dir + '_test'
+            print('cp:', source_dir)
+            print('cp:', cp_dest_dir)
+
+
+            cnt = copy_file(source_dir, cp_dest_dir)
+            print("count:", cnt)
+
+            
+            source_dir = cp_dest_dir
+            truncate_dir = source_dir + '_1second'
+            print('truncate:', source_dir)
+            print('truncate:', truncate_dir)
+            cnt = audio_file_truncate(source_dir, truncate_dir)
+            print('truncate Count:', cnt)
 
             count = count + cnt
 
@@ -106,18 +140,19 @@ if __name__ == '__main__':
     # cnt = copy_file(dir, target)
     # print("count:", cnt)
 
-    # dir = '/home/ascc/Desktop/audio.0822/quiet/'
-    # target = '/home/ascc/Desktop/audio.0822/quiet_test/'
+    # dir = '/home/ascc/Desktop/audio.0918/door/'
+    # target = '/home/ascc/Desktop/audio.0918/door_test/'
     # cnt = copy_file(dir, target)
     # print("count:", cnt)
 
 
-    source_dir =  '/home/ascc/Desktop/audio.0822/quiet_test/'
-    target_dir = '/home/ascc/Desktop/audio.0822/quiet_1sec/'
-    cnt = audio_file_truncate(source_dir, target_dir)
-    print('Count:', cnt)
+    # source_dir =  target
+    # target_dir = '/home/ascc/Desktop/audio.0918/door_1sec/'
+    # cnt = audio_file_truncate(source_dir, target_dir)
+    # print('Count:', cnt)
     
-    # audio_file_truncate_by_dir('/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity/')   
+    # audio_file_truncate_by_dir('/home/ascc/Desktop/audio.0918/')   
+    audio_file_copy_truncate_by_dir('/home/ascc/Desktop/audio.0918/')
 
 
 
