@@ -18,6 +18,8 @@ import motion_adl_bayes_model
 import tools_ascc
 import constants
 
+import tools_sql
+
 
 
 
@@ -416,7 +418,7 @@ while(pre_activity == ''):
         # p4 = bayes_model_object.get_prob(pre_act_list, act, object, 0)
 
         p4 = 1
-        # p3 = 1
+        p3 = 1
 
         p = p1*p2*p3*p4 * hmm_prob
              
@@ -441,6 +443,15 @@ while(pre_activity == ''):
     #     p_standing_prob[len(p_standing_prob)-1] = p2
     # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_WALKING:
     #     p_walking_prob[len(p_walking_prob)-1] = p2
+
+
+    activity = cur_activity
+    time = cur_time_str
+    image_source = location
+    sound_source = audio_type
+    motion_source = motion_type
+    tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source)
+    print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
 
     
     p_activity_end = motion_adl_bayes_model.get_end_of_activity_prob_by_duration(activity_duration, activity_detected)
@@ -660,7 +671,7 @@ while(not env.done):
             # p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
 
             p4 = 1
-            p3 = 1
+            # p3 = 1
             
             p_audio_motion = p2 * p3 * hmm_prob
 
@@ -716,7 +727,7 @@ while(not env.done):
 
                 # p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
                 
-            # p3 = p3 * AUDIO_WEIGHT
+            p3 = p3 * AUDIO_WEIGHT
 
                 
             
@@ -725,10 +736,10 @@ while(not env.done):
             
             print("need_recollect_data step act:", act)
             print('hmm_prob:', hmm_prob)
-            print('p1:', p1)
-            print('p2:', p2)
-            print('p3:', p3)
-            print('p4:', p4)
+            print('p1_location:', p1)
+            print('p2_motion:', p2)
+            print('p3_sound:', p3)
+            print('p4_object:', p4)
         else:
             p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
             p = p2 * hmm_prob
@@ -892,6 +903,16 @@ while(not env.done):
         need_recollect_data = True
 
     if pre_activity != cur_activity:
+
+        activity = cur_activity
+        time = cur_time_str
+        image_source = location
+        sound_source = audio_type
+        motion_source = motion_type
+        tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source)
+        print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
+
+
         if location == constants.LOCATION_LIVINGROOM and living_room_check_times > 0:
             cur_activity = pre_activity
             print('++++++++++++++ in living room, checks:', living_room_check_times, ' ', cur_time_str)
@@ -904,6 +925,7 @@ while(not env.done):
             new_activity_check_times = DOUBLE_CHECK
 
     if pre_activity != cur_activity:
+        
 
         pre_activity = cur_activity
 
