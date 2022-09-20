@@ -231,6 +231,22 @@ class Model(object):
 
         # for image recognition, we can get the reuslt for DNN, from the confusion matrix
         dnn_acc = DNN_ACC
+        if state == 'Morning_Meds':
+            if (state + '_M_0' == symbol):
+        # if state == symbol:
+            # print('equal:', state, ' ', symbol)
+                return dnn_acc 
+            else:
+                return (1-dnn_acc)/(TOTAL_ACTIVITY_CNT-1) # totally 15 activities
+
+        if state == 'Eve_Meds':
+            if (state + '_N_0' == symbol):
+        # if state == symbol:
+            # print('equal:', state, ' ', symbol)
+                return dnn_acc 
+            else:
+                return (1-dnn_acc)/(TOTAL_ACTIVITY_CNT-1) # totally 15 activities
+        
         if (state + '_M_0' == symbol) or (state + '_A_0' == symbol) or (state + '_N_0' == symbol):
         # if state == symbol:
             # print('equal:', state, ' ', symbol)

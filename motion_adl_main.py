@@ -42,6 +42,8 @@ DOUBLE_CHECK = 2
 
 AUDIO_WEIGHT = 0.6
 
+LOCATION_DIR_SPLIT_SYMBOL = ':'
+
 """
 Given the duration, return the probability that the activity may be finished
 For Example: Read, we got 20mins(5 times), 30mins(10), 40mins(25), 60mins(2),  for duration of 20mins, the probability would be 5/(5+10+25+2) = 11.90% 
@@ -179,10 +181,10 @@ def get_location_by_activity_cnn(time_str):
     # should be act : probability
     # /home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/src/
     # ascc_room_activity_test.py
-    location, prob = tools_ascc.get_activity_by_vision_dnn(time_str, action='vision')
+    location, prob, image_dir = tools_ascc.get_activity_by_vision_dnn(time_str, action='vision')
     print('get_location_by_activity_CNN time_str:', time_str, ' location:', location, ' prob:', prob)
 
-    return location, float(prob)
+    return location, float(prob), image_dir
 
 def get_motion_type_by_activity(activity):
     # motion type: sitting, standing, walking, random by the probs
@@ -372,7 +374,7 @@ while(pre_activity == ''):
     # audio_type = get_audio_type_by_activity(cur_activity)
     # motion_type = get_motion_type_by_activity(cur_activity)
 
-    location, location_prob = get_location_by_activity_cnn(cur_time_str)
+    location, location_prob, image_dir = get_location_by_activity_cnn(cur_time_str)
     bayes_model_location.set_location_prob(location_prob)
 
     object_dict = get_object_by_activity_yolo(cur_time_str)
@@ -445,14 +447,6 @@ while(pre_activity == ''):
     #     p_walking_prob[len(p_walking_prob)-1] = p2
 
 
-    activity = cur_activity
-    time = cur_time_str
-    image_source = location
-    sound_source = audio_type
-    motion_source = motion_type
-    tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source)
-    print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
-
     
     p_activity_end = motion_adl_bayes_model.get_end_of_activity_prob_by_duration(activity_duration, activity_detected)
 
@@ -484,6 +478,15 @@ while(pre_activity == ''):
     pre_activity_symbol = node.activity_res_generation()
     pre_act_symbol_list.append(pre_activity_symbol)
 
+    activity = cur_activity
+    time = cur_time_str
+    image_source = location + LOCATION_DIR_SPLIT_SYMBOL + image_dir
+    sound_source = audio_type
+    motion_source = motion_type
+    tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source)
+    print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
+
+
     # TODO top3 data
     # TODO how to get the accuracy
 
@@ -509,7 +512,7 @@ while(not env.done):
 
     if need_recollect_data:
         audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.FUSION_ACTION)  
-        location, location_prob = get_location_by_activity_cnn(cur_time_str)
+        location, location_prob, image_dir = get_location_by_activity_cnn(cur_time_str)
         bayes_model_location.set_location_prob(location_prob)
 
         object_dict = get_object_by_activity_yolo(cur_time_str)
@@ -904,14 +907,6 @@ while(not env.done):
 
     if pre_activity != cur_activity:
 
-        activity = cur_activity
-        time = cur_time_str
-        image_source = location
-        sound_source = audio_type
-        motion_source = motion_type
-        tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source)
-        print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
-
 
         if location == constants.LOCATION_LIVINGROOM and living_room_check_times > 0:
             cur_activity = pre_activity
@@ -928,6 +923,22 @@ while(not env.done):
         
 
         pre_activity = cur_activity
+        
+        
+
+        activity = cur_activity
+        time = cur_time_str
+        image_source = location + LOCATION_DIR_SPLIT_SYMBOL + image_dir
+        sound_source = audio_type
+        motion_source = motion_type
+        object_source = ''
+
+        if location == constants.LOCATION_LIVINGROOM:
+            for k in object.keys():
+                object_source = object_source + '_' + k
+
+        tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source, object_source)
+        print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
 
         pre_act_list.append(pre_activity)
 
@@ -967,6 +978,19 @@ while(not env.done):
         transition_motion = TRUE
         need_recollect_data = True
         transition_motion_occur.append(cur_time_str)
+
+        # activity = cur_activity
+        # time = cur_time_str
+        # image_source = location
+        # sound_source = audio_type
+        # motion_source = motion_type
+        # object_source = ''
+        # if location == constants.LOCATION_LIVINGROOM:
+        #     for k in object.keys():
+        #         object_source = object_source + '_' + k
+
+        # tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source, object_source)
+        # print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
 
     if living_room_check_flag == True and living_room_check_times > 0:
         print('living_room_check_flag occur:', 'times:', living_room_check_flag, ' cur motion_type:', living_room_check_times)

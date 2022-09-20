@@ -15,7 +15,7 @@ import tools_ascc
 state_list, symbol_list = tools_ascc.get_activity_for_state_list()
 # print(state_list)
 # print(len(state_list))
-
+# exit(0)
 sequences = []
 for i in range(len(state_list) -15):
     print(state_list[i])
@@ -36,6 +36,11 @@ print(sequences[1])
 
 model = hmm.train(sequences, delta=0.001, smoothing=0)
 
+
+# test_seq = ['Kitchen_Activity_M_0', 'Leave_Home_M_0', 'Guest_Bathroom_M_0', 'Read_M_0', 'Kitchen_Activity_M_0', 'Morning_Meds_M_0', 'Kitchen_Activity_M_0', 'Guest_Bathroom_A_0', 'Master_Bathroom_A_0', 'Read_A_0', 'Kitchen_Activity_A_0', 'Guest_Bathroom_A_0', 'Master_Bathroom_A_0', 'Leave_Home_A_0', 'Read_A_0', 'Kitchen_Activity_A_0', 'Master_Bedroom_Activity_A_0', 'Read_A_0', 'Guest_Bathroom_A_0', 'Kitchen_Activity_A_0', 'Watch_TV_A_0', 'Read_A_0', 'Kitchen_Activity_A_0', 'Guest_Bathroom_A_0', 'Kitchen_Activity_A_0', 'Watch_TV_A_0', 'Kitchen_Activity_A_0', 'Watch_TV_A_0', 'Guest_Bathroom_A_0', 'Kitchen_Activity_A_0', 'Watch_TV_A_0', 'Guest_Bathroom_N_0', 'Kitchen_Activity_N_0', 'Morning_Meds_N_0']
+# print(model.evaluate(test_seq))
+
+# exit(0)
 
 # correct = 0
 # incorrect = 0

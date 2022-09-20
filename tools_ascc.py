@@ -838,7 +838,7 @@ def get_activity_by_vision_dnn(time_str, action='vision', mode='map'):
 
     image_dir_name = get_exist_image_dir(time_str, action)
     if image_dir_name == '':
-        return '', -1
+        return '', -1, image_dir_name
     print('===:', image_dir_name)
     
 
@@ -864,7 +864,7 @@ def get_activity_by_vision_dnn(time_str, action='vision', mode='map'):
     print('vision_dnn res:', res_str)
 
     if res_str == '':
-        return '', -1
+        return '', -1, image_dir_name
 
     res_list = res_str.split('\t')
     res_dict = {}
@@ -911,7 +911,7 @@ def get_activity_by_vision_dnn(time_str, action='vision', mode='map'):
     else:
         res = ACTIVITY_LOWER_UPPER_CASE_MAPPING[res]
 
-    return res, max_location_prob
+    return res, max_location_prob, image_dir_name
 
 
 

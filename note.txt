@@ -347,6 +347,61 @@ p: 2.873270830070831e-114
 
 
 
+###
+
+location: Kitchen
+object: [('dining table', 7), ('cup', 6), ('person', 3), ('tv', 2), ('laptop', 1
+)]
+audio_type: drinking
+motion_type: walking
+
+
+need_recollect_data step act: Chores
+hmm_prob: 1.4022238339194502e-29
+p1_location: 1.0954854637133407
+p2_motion: 0.012154373851205057
+p3_sound: 3.2320198045060655e-150
+p4_object: 1
+motion step act: Chores
+p: 6.034350991948032e-181
+
+
+need_recollect_data step act: Kitchen_Activity
+hmm_prob: 1e-150
+p1_location: 3.6151020302540244
+p2_motion: 0.008102915900803372
+p3_sound: 0.6464039609012131
+p4_object: 1
+motion step act: Kitchen_Activity
+p: 1.893502572293073e-152
+
+
+need_recollect_data step act: Morning_Meds
+hmm_prob: 4.390560007750048e-29
+p1_location: 2.1909709274266813
+p2_motion: 4.051457950401686e-06
+p3_sound: 0.6464039609012131
+p4_object: 1
+motion step act: Morning_Meds
+p: 2.519253535903579e-34
+
+
+need_recollect_data step act: Eve_Meds
+hmm_prob: 2.6798628316106637e-29
+p1_location: 2.1909709274266813
+p2_motion: 4.051457950401686e-06
+p3_sound: 0.6464039609012131
+p4_object: 1
+motion step act: Eve_Meds
+p: 1.537674898499209e-34
+
+
+
+
+
+
+
+
 
 ### how to test in real env
 Env requirements: source  ~/LF_Workspace/venv3.7_energy/bin/activate
