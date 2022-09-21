@@ -510,6 +510,8 @@ while(not env.done):
 
     living_room_check_flag = False
 
+    object_dict = {}
+
     if need_recollect_data:
         audio_data, vision_data, motion_data, transition_motion = env.step(motion_env_ascc.FUSION_ACTION)  
         location, location_prob, image_dir = get_location_by_activity_cnn(cur_time_str)
@@ -925,7 +927,6 @@ while(not env.done):
         pre_activity = cur_activity
         
         
-
         activity = cur_activity
         time = cur_time_str
         image_source = location + LOCATION_DIR_SPLIT_SYMBOL + image_dir
@@ -934,8 +935,10 @@ while(not env.done):
         object_source = ''
 
         if location == constants.LOCATION_LIVINGROOM:
-            for k in object.keys():
-                object_source = object_source + '_' + k
+            for object, prob in object_dict:
+                object_source = object_source + '_' + object
+
+
 
         tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source, object_source)
         print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)

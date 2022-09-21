@@ -774,7 +774,7 @@ def get_activity_by_vision_yolov3(time_str, action='vision', mode='map'):
 
     image_dir_name = get_exist_image_dir(time_str, action)
     if image_dir_name == '':
-        return '', -1
+        return ''
     print('===:', image_dir_name)
     
 

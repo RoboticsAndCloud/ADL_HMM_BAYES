@@ -19,6 +19,10 @@ labels = ['door_open_closed', 'eating', 'keyboard', 'pouring_water_into_glass', 
 ASCC_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/ascc_data/notice.txt'
 ASCC_DATA_RES_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/ascc_data/recognition_result.txt'
 
+ob_folder = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/room_sound/sound_dataset/ascc_activity_1second/feature/ascc_logmel_total.npz'
+num_class = len(labels)
+mean, std = esc10_input.get_mean_std(ob_folder, 'logmel',num_class)
+
 
 def read_dir_name(file_name):
     with open(file_name, 'r') as f:
@@ -84,8 +88,7 @@ def CNN_test(test_fold, feat):
             # path = '/home/ascc/Downloads/total_sound_downsampling/cutting_food/cutting_food@4_freesound-cutting_food__538305__sound-2425__chopping-cutting.wav'
             test_feature = esc10_input.get_single_data(path)
             test_feature = np.expand_dims(test_feature, axis=-1)
-            mean = np.mean(test_feature)
-            std = np.std(test_feature)
+
             test_feature = (test_feature - mean) / std
             test_feature = test_feature.reshape(1,64,138,1)
             #print("test_feature: ",test_feature.shape)
