@@ -35,6 +35,8 @@ TEST_BASE_DATE = '2009-12-11'
 DATE_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 HOUR_TIME_FORMAT = "%H:%M:%S"
 DAY_FORMAT_STR = '%Y-%m-%d'
+FOLDER_DATE_TIME_FORMAT = '%Y%m%d%H%M%S'
+
 
 UNCERTAIN_CHECK_INTERVAL = 60 # Seconds
 
@@ -637,6 +639,7 @@ def real_time_test_run():
 
 
         if check_and_wait_l_o_s_m_result() == False:
+            # pass
             continue
 
 
@@ -762,13 +765,19 @@ def real_time_test_run():
         g_image_object_recognition_flag = False
 
 
+        cur_g_image_recognition_time = datetime.strptime(g_image_recognition_time, FOLDER_DATE_TIME_FORMAT)
+        cur_g_image_recognition_time_str = cur_g_image_recognition_time.strftime(real_time_env_ascc.DATE_HOUR_TIME_FORMAT)
         activity = cur_activity
-        time = g_image_recognition_time
-        image_source = location + LOCATION_DIR_SPLIT_SYMBOL + g_image_recognition_file
+        time = cur_g_image_recognition_time_str
+        image_source = location + LOCATION_DIR_SPLIT_SYMBOL + g_image_data_location
         sound_source = audio_type
         motion_source = motion_type
         tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source)
-        print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
+        
+
+
+
+        print('insert int to db: activity:', activity, ' cur_time:', cur_time_str, ' g_image_recognition_time:', cur_g_image_recognition_time_str)
             
         # TODO top3 data
         # TODO how to get the accuracy

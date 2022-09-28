@@ -200,7 +200,7 @@ async def on_message(data):
         pass
     
     event_name = DATA_RECOGNITION_FROM_WMU_EVENT_NAME
-    data = {DATA_TYPE : DATA_TYPE_IMAGE, DATA_FILE:ASCC_DATA_RES_FILE, DATA_CURRENT: cur_time, DATA_LOCATION: file }
+    data = {DATA_TYPE : DATA_TYPE_SOUND, DATA_FILE:ASCC_DATA_RES_FILE, DATA_CURRENT: cur_time, DATA_LOCATION: file }
 
     await sio.emit(event_name, data)
     print('send recognition :', data)

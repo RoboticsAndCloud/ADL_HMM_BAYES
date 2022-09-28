@@ -109,3 +109,15 @@ def get_data_all(test_fold, feat, number_class=12):
     print('Test Set Shape: ', test_x.shape)
 
     return train_x, train_y, test_x, test_y
+
+
+def get_mean_std(test_fold, feat,num_class):
+    file_dir = test_fold
+    data = np.load(file_dir)
+    
+    train_x=np.expand_dims(data['train_x'], axis=-1)
+
+    # z-score normalization
+    mean = np.mean(train_x)
+    std = np.std(train_x)
+    return mean, std

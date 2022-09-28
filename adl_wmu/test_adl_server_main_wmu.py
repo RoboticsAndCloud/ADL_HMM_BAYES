@@ -261,6 +261,8 @@ def server():
 
         conn = None
         test_file = './test_sample/motion.txt'
+        # test_file = './test_sample/motion_walking.txt'
+
         test_sending_motion(test_file)
 
         test_file = './test_sample/kitchen/image9_rotate.jpg'
