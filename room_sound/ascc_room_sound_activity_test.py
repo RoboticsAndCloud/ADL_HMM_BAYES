@@ -21,6 +21,11 @@ ASCC_DATA_RES_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Rec
 
 MODEL = load_model('./cnn_logmel_foldone_second.h5')
 
+ob_folder = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/room_sound/sound_dataset/ascc_activity_1second/feature/ascc_logmel_total.npz'
+num_class = len(labels)
+mean, std = esc10_input.get_mean_std(ob_folder, 'logmel',num_class)
+
+
 def read_dir_name(file_name):
     with open(file_name, 'r') as f:
         dir_name = str(f.read().strip())
@@ -85,8 +90,8 @@ def run_cnn_model(path, cur_time):
         # path = '/home/ascc/Downloads/total_sound_downsampling/cutting_food/cutting_food@4_freesound-cutting_food__538305__sound-2425__chopping-cutting.wav'
         test_feature = esc10_input.get_single_data(path)
         test_feature = np.expand_dims(test_feature, axis=-1)
-        mean = np.mean(test_feature)
-        std = np.std(test_feature)
+
+
         test_feature = (test_feature - mean) / std
         test_feature = test_feature.reshape(1,64,138,1)
         #print("test_feature: ",test_feature.shape)
@@ -164,6 +169,8 @@ DATA_TYPE_IMAGE = 'image'
 DATA_TYPE_SOUND = 'audio'
 DATA_TYPE_MOTION = 'motion'
 
+DATA_LOCATION = 'data_location'
+
 
 
 # For getting the score
@@ -175,6 +182,7 @@ async def connect():
 
 @sio.on(DATA_FILE_RECEIVED_FROM_WMU_EVENT_NAME)
 async def on_message(data):
+    file = ''
     try:
         if data[DATA_TYPE] != DATA_TYPE_SOUND:
             return
@@ -192,7 +200,8 @@ async def on_message(data):
         pass
     
     event_name = DATA_RECOGNITION_FROM_WMU_EVENT_NAME
-    data = {DATA_TYPE : DATA_TYPE_SOUND, DATA_FILE:ASCC_DATA_RES_FILE, DATA_CURRENT: cur_time }
+    data = {DATA_TYPE : DATA_TYPE_IMAGE, DATA_FILE:ASCC_DATA_RES_FILE, DATA_CURRENT: cur_time, DATA_LOCATION: file }
+
     await sio.emit(event_name, data)
     print('send recognition :', data)
 

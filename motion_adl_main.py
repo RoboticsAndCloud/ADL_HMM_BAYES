@@ -21,6 +21,7 @@ import constants
 import threading
 from timeit import default_timer as timer
 
+import tools_sql
 
 
 
@@ -41,6 +42,8 @@ LIVING_ROOM_CHECK_TIMES_MAX = 2
 
 DOUBLE_CHECK = 2
 
+LOCATION_DIR_SPLIT_SYMBOL = ':'
+
 AUDIO_WEIGHT = 0.6
 
 g_image_recognition_flag = False
@@ -58,9 +61,13 @@ g_image_object_recognition_flag = False
 g_image_object_recognition_file = ''
 g_image_object_recognition_time = ''
 
+g_image_data_location = ''
+g_motion_data_location = ''
+g_audio_data_location = ''
+
 g_stop = False
 
-CHECK_AND_WAIT_THRESHOLD = 8
+CHECK_AND_WAIT_THRESHOLD = 10
 
 
 """
@@ -454,6 +461,7 @@ def check_and_wait_l_o_s_m_result():
     global g_image_object_recognition_file
     global g_image_object_recognition_time
 
+
     start = timer()
     while(True):
 
@@ -526,6 +534,11 @@ def real_time_test_run():
     global g_image_object_recognition_file
     global g_image_object_recognition_time
 
+    global g_image_data_location
+
+    global g_motion_data_location
+    global g_audio_data_location
+
     env = real_time_env_ascc.EnvASCC(TEST_BASE_DATE + ' 00:00:00')
     # env.reset()
 
@@ -584,7 +597,7 @@ def real_time_test_run():
 
     while(pre_activity == ''):
         # open camera
-
+        print('pre_activity == empty')
         status = env.step(real_time_env_ascc.FUSION_ACTION)  # real_time_env_ascc.FUSION_ACTION?
 
         # env.running_time
@@ -655,7 +668,15 @@ def real_time_test_run():
         print('audio_type:', audio_type)
         print('motion_type:', motion_type)
 
-        
+        # activity = cur_activity
+        # time = cur_time_str
+        # image_source = location
+        # sound_source = audio_type
+        # motion_source = motion_type
+        # image_dir = g_image_recognition_file
+        # TODO: the recognition model should send the image dir file as well
+        # tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source)
+        # print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
 
         
         heap_prob = []
@@ -739,6 +760,15 @@ def real_time_test_run():
         g_motion_recognition_flag = False
         g_sound_recognition_flag = False
         g_image_object_recognition_flag = False
+
+
+        activity = cur_activity
+        time = g_image_recognition_time
+        image_source = location + LOCATION_DIR_SPLIT_SYMBOL + g_image_recognition_file
+        sound_source = audio_type
+        motion_source = motion_type
+        tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source)
+        print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
             
         # TODO top3 data
         # TODO how to get the accuracy
@@ -985,7 +1015,7 @@ def real_time_test_run():
                 # p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
 
                 p4 = 1
-                p3 = 1
+                # p3 = 1
                 
                 p_audio_motion = p2 * p3 * hmm_prob
 
@@ -1045,7 +1075,7 @@ def real_time_test_run():
 
                     # p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
                     
-                # p3 = p3 * AUDIO_WEIGHT
+                p3 = p3 * AUDIO_WEIGHT
 
                     
                 
@@ -1235,6 +1265,23 @@ def real_time_test_run():
         if pre_activity != cur_activity:
 
             pre_activity = cur_activity
+
+
+            activity = cur_activity
+            time = g_image_recognition_time
+            image_source = location + LOCATION_DIR_SPLIT_SYMBOL + g_image_data_location
+
+            sound_source = audio_type
+            motion_source = motion_type
+            object_source = ''
+
+            if location == constants.LOCATION_LIVINGROOM:
+                for object, prob in object_dict:
+                    object_source = object_source + '_' + object
+
+            tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source, object_source)
+            print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
+
 
             pre_act_list.append(pre_activity)
 
@@ -1441,6 +1488,7 @@ DATA_RECOGNITION_FROM_WMU_EVENT_NAME = 'DATA_RECOGNITION_FROM_WMU'
 
 DATA_RECOGNITION_FINAL_TO_ADL_EVENT_NAME = 'DATA_RECOGNITION_TO_ADL'
 
+
 DATA_TYPE = 'type'
 DATA_CURRENT = 'current_time'
 DATA_FILE = 'file'
@@ -1448,6 +1496,8 @@ DATA_TYPE_IMAGE = 'image'
 DATA_TYPE_SOUND = 'audio'
 DATA_TYPE_MOTION = 'motion'
 DATA_TYPE_IMAGE_YOLO = 'yolo'
+DATA_LOCATION = 'data_location'
+
 
 STOP_ADL_SERVER = 'stop_adl_server'
 
@@ -1473,14 +1523,19 @@ async def on_message(data):
             global g_image_recognition_file
             global g_image_recognition_time
 
+            global g_image_data_location
+
             g_image_recognition_flag = True
             g_image_recognition_file = data[DATA_FILE]
-            g_image_recognition_time = cur_time
         
             cur_time = data[DATA_CURRENT]
             file = data[DATA_FILE]
+            g_image_recognition_time = cur_time
+
+
+            g_image_data_location = data[DATA_LOCATION]
             
-            print('cur_time:', cur_time, 'file:', file)
+            print('cur_time:', cur_time, 'file:', g_image_data_location)
 
         elif data['type'] == DATA_TYPE_IMAGE_YOLO:
             print('Get image yolo recognition:', data)
@@ -1502,6 +1557,9 @@ async def on_message(data):
             global g_motion_recognition_flag
             global g_motion_recognition_file
             global g_motion_recognition_time
+            global g_motion_data_location
+            global g_audio_data_location
+
 
             g_motion_recognition_flag = True
             g_motion_recognition_file = data[DATA_FILE]
@@ -1510,13 +1568,16 @@ async def on_message(data):
             cur_time = data[DATA_CURRENT]
             file = data[DATA_FILE]
             
-            print('cur_time:', cur_time, 'file:', file)
+            g_motion_data_location = data[DATA_LOCATION]
+
+            print('cur_time:', cur_time, 'file:', g_motion_data_location)
 
         elif data['type'] == DATA_TYPE_SOUND:
             print('Get sound recognition:', data)
             global g_sound_recognition_flag
             global g_sound_recognition_file
             global g_sound_recognition_time
+            global g_audio_data_location
 
             g_sound_recognition_flag = True
             g_sound_recognition_file = data[DATA_FILE]
@@ -1524,8 +1585,11 @@ async def on_message(data):
         
             cur_time = data[DATA_CURRENT]
             file = data[DATA_FILE]
+
+            g_audio_data_location = data[DATA_LOCATION]
+
             
-            print('cur_time:', cur_time, 'file:', file)
+            print('cur_time:', cur_time, 'file:', g_audio_data_location)
 
 
 

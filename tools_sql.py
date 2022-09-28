@@ -20,7 +20,9 @@ import psycopg2
 import psycopg2
 from psycopg2 import Error
 
-DB_HOST = '10.227.102.26'
+DB_HOST = '10.227.99.196'
+DB_HOST = '192.168.1.134'
+
 DB_PORT = '5432'
 DB = 'YOUR_CUSTOM_USER'
 USER = 'YOUR_CUSTOM_USER'
@@ -36,13 +38,30 @@ def get_conn():
     return conn
 
 
-def insert_adl_activity_data(activity, time, image_source='', sound_source='', motion_source=''):
+# def insert_adl_activity_data(activity, time, image_source='', sound_source='', motion_source=''):
+#     try:
+#         sql = 'INSERT INTO public."adl_activity_data" (activity, time, image_source, sound_source, motion_source) values (%s, %s, %s, %s, %s)'
+#         # sql = 'INSERT INTO public."adl_activity_data" (activity, image_source) values (\'read\', \'/home/adl/test/\')'
+#         conn = get_conn()
+#         cur = conn.cursor()
+#         cur.execute(sql, (activity, time, image_source, sound_source, motion_source))
+#         cur.close()
+#         # print("Insert success")
+#     except (Exception, Error) as error:
+#         print("Error while connecting to PostgreSQL", error)
+#     finally:
+#         if (conn):
+#             cur.close()
+#             conn.close()
+#             print("PostgreSQL connection is closed")
+
+def insert_adl_activity_data(activity, time, image_source='', sound_source='', motion_source='', object_source = ''):
     try:
-        sql = 'INSERT INTO public."adl_activity_data" (activity, time, image_source, sound_source, motion_source) values (%s, %s, %s, %s, %s)'
+        sql = 'INSERT INTO public."adl_activity_data" (activity, time, image_source, sound_source, motion_source, object_source) values (%s, %s, %s, %s, %s, %s)'
         # sql = 'INSERT INTO public."adl_activity_data" (activity, image_source) values (\'read\', \'/home/adl/test/\')'
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(sql, (activity, time, image_source, sound_source, motion_source))
+        cur.execute(sql, (activity, time, image_source, sound_source, motion_source, object_source))
         cur.close()
         # print("Insert success")
     except (Exception, Error) as error:
@@ -104,7 +123,7 @@ def test():
 
         print('inster into adl_activity data')
         activity = 'Read'
-        time = '2022-09-08 15:33:20.000'
+        time = '2022-09-09 15:33:20.000'
         image_source = 'test'
         insert_adl_activity_data(activity, time, image_source='', sound_source='', motion_source='')
 

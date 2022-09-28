@@ -29,6 +29,7 @@ WMU_IMAGE_FILE_NOTIFICATION_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Acti
 MOTION_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/motion/'
 AUDIO_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/audio/'
 IMAGE_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/image/'
+IMAGE_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_Monitoring_Web/website/public/image/'
 
 
 DATE_TIME_FORMAT = '%Y%m%d%H%M%S'
@@ -36,7 +37,7 @@ DATE_TIME_FORMAT = '%Y%m%d%H%M%S'
 
 # WMU
 WMU_IPRECEIVE = "192.168.1.131" 
-# WMU_IPSEND = "10.227.100.46"
+# WMU_IPSEND = "10.227.99.196"
 WMU_IPSEND = '192.168.1.134'
 #WMU_IPRECEIVE = "192.168.1.131"
 #WMU_IPSEND = "192.168.1.126"

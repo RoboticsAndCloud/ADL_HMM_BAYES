@@ -315,6 +315,7 @@ DATA_TYPE_IMAGE = 'image'
 DATA_TYPE_SOUND = 'audio'
 DATA_TYPE_MOTION = 'motion'
 
+DATA_LOCATION = 'data_location'
 
 
 # For getting the score
@@ -326,6 +327,7 @@ async def connect():
 
 @sio.on(DATA_FILE_RECEIVED_FROM_WMU_EVENT_NAME)
 async def on_message(data):
+    file = ''
     try:
         if data[DATA_TYPE] != DATA_TYPE_IMAGE:
             return
@@ -343,7 +345,7 @@ async def on_message(data):
         return
         pass
     event_name = DATA_RECOGNITION_FROM_WMU_EVENT_NAME
-    data = {DATA_TYPE : DATA_TYPE_IMAGE, DATA_FILE:ASCC_DATA_RES_FILE, DATA_CURRENT: cur_time }
+    data = {DATA_TYPE : DATA_TYPE_IMAGE, DATA_FILE:ASCC_DATA_RES_FILE, DATA_CURRENT: cur_time, DATA_LOCATION: file }
     await sio.emit(event_name, data)
     print('send recognition :', data)
 

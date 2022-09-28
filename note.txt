@@ -410,23 +410,27 @@ python adl_server_main_node.py
 2) Launch recognition model
 2.1 Launch room sound recognition cnn algorithm 
 cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_sound
+cd /home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/room_sound
 python ascc_room_sound_activity_test.py 
 
 2.2 Launch motion recognition cnn algorithm
 cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity
-
+cd /home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/room_motion_activity
 python ascc_room_motion_activity_test.py 
 
 2.3 Launch yolo object detection
 cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/room_classifier/ImageProcess
+cd /home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/room_classifier/ImageProcess
 python food_yolo_opencv.py --config yolov3.cfg --weights  yolov3.weights --class yolov3.txt
 
 2.4 Launch room recogniton 
 cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/room_classifier/
+cd /home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/room_classifier
 python ascc_room_activity_test.py
 
 3) Launch motion adl main 
 cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES
+cd /home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/
 python motion_adl_main.py
 
 
