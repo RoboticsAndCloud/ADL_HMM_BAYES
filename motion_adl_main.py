@@ -1276,13 +1276,24 @@ def real_time_test_run():
             pre_activity = cur_activity
 
 
+            cur_g_image_recognition_time = datetime.strptime(g_image_recognition_time, FOLDER_DATE_TIME_FORMAT)
+            cur_g_image_recognition_time_str = cur_g_image_recognition_time.strftime(real_time_env_ascc.DATE_HOUR_TIME_FORMAT)
             activity = cur_activity
-            time = g_image_recognition_time
+            time = cur_g_image_recognition_time_str
             image_source = location + LOCATION_DIR_SPLIT_SYMBOL + g_image_data_location
-
             sound_source = audio_type
             motion_source = motion_type
             object_source = ''
+
+            # tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source)            
+
+            # activity = cur_activity
+            # time = cur_g_image_recognition_time_str
+            # image_source = location + LOCATION_DIR_SPLIT_SYMBOL + g_image_data_location
+
+            # sound_source = audio_type
+            # motion_source = motion_type
+            # object_source = ''
 
             if location == constants.LOCATION_LIVINGROOM:
                 for object, prob in object_dict:

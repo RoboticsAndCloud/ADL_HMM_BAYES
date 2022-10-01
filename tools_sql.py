@@ -122,10 +122,14 @@ def test():
         print("You are connected to - ", record, "\n")
 
         print('inster into adl_activity data')
-        activity = 'Read'
-        time = '2022-09-09 15:33:20.000'
-        image_source = 'test'
-        insert_adl_activity_data(activity, time, image_source='', sound_source='', motion_source='')
+        activity = 'Watch_TV'
+        time = '2022-10-01 11:40:31.000'
+        image_source = 'livingroom'
+        sound_source = 'tv_news'
+        motion_source = 'sitting'
+        object_source = '_tv'
+
+        insert_adl_activity_data(activity, time, image_source, sound_source, motion_source, object_source)
 
         res = find_all()
         print('Res find all:', res)
