@@ -1,8 +1,10 @@
+import imghdr
 from tflite_runtime.interpreter import Interpreter
 from PIL import Image
 import numpy as np
 import time
 import os
+# import tensorflow as tf
 # from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
 
 
@@ -52,8 +54,12 @@ def test():
 
     interpreter = Interpreter(model_path)
     print("Model Loaded Successfully.")
+    # Analyze the tflite model
+    #tf.lite.experimental.Analyzer.analyze(model_content=interpreter)
 
     interpreter.allocate_tensors()
+    input_details = interpreter.get_input_details()
+    print("input_details:", input_details)
     _, height, width, _ = interpreter.get_input_details()[0]['shape']
     print("Image Shape (", width, ",", height, ")")
 
@@ -65,7 +71,7 @@ def test():
     # image = Image.open(data_folder_image + "livingroom_test.jpg").convert('RGB').resize((width, height))
 
     image = Image.open(data_folder_image + "Bedroom.jpg").convert('RGB').resize((width, height))
-    image = Image.open(data_folder_image + "Kitchen.jpg").convert('RGB').resize((width, height))
+    #image = Image.open(data_folder_image + "Kitchen.jpg").convert('RGB').resize((width, height))
     # image = Image.open(data_folder_image + "Livingroom(WatchTV).jpg").convert('RGB').resize((width, height))
 
 
@@ -85,6 +91,104 @@ def test():
     print("Image Label is :", classification_label, ", with Accuracy :", np.round(prob*100, 2), "%.")
 
 
+
+def test2():
+    data_folder = "./"
+    data_folder_image = "./room_samples_0831/"
+    data_folder_image = "./room_testset/2/"  # kitchen
+
+
+    #model_path = "./home_model.tflite"
+    model_path = "./home_default_model.tflite"
+
+    # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, hallway:4, door:5
+    labels=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
+    # label_path = data_folder + "labels_home_v1.txt"
+    print("labels:", labels)
+
+    interpreter = Interpreter(model_path)
+    print("Model Loaded Successfully.")
+    # Analyze the tflite model
+    #tf.lite.experimental.Analyzer.analyze(model_content=interpreter)
+
+    interpreter.allocate_tensors()
+    input_details = interpreter.get_input_details()
+    print("input_details:", input_details)
+    _, height, width, _ = interpreter.get_input_details()[0]['shape']
+    print("Image Shape (", width, ",", height, ")")
+
+    # Load an image to be classified.
+    #image = Image.open(data_folder + "test.jpg").convert('RGB').resize((width, height))
+    # image = Image.open(data_folder_image + "bathroom2.jpg").convert('RGB').resize((width, height))
+    # image = Image.open(data_folder_image + "bedroom3.jpg").convert('RGB').resize((width, height))
+    # image = Image.open(data_folder_image + "kitchen_test.jpg").convert('RGB').resize((width, height))
+    # image = Image.open(data_folder_image + "livingroom_test.jpg").convert('RGB').resize((width, height))
+
+    # image = Image.open(data_folder_image + "Bedroom.jpg").convert('RGB').resize((width, height))
+    #image = Image.open(data_folder_image + "Kitchen.jpg").convert('RGB').resize((width, height))
+    # image = Image.open(data_folder_image + "Livingroom(WatchTV).jpg").convert('RGB').resize((width, height))
+
+
+    import sys, random
+    from pathlib import Path
+    from PIL import Image
+    import matplotlib.pyplot as plt
+
+
+    # Retreive 9 random images from directory
+
+    files=Path(data_folder_image).resolve().glob('*.*')
+    test_sample= get_file_count_of_dir(data_folder_image)
+
+    images=random.sample(list(files), test_sample)
+
+    # Configure plots
+    fig = plt.figure(figsize=(9,9))
+    rows,cols = 3,3
+    fig = plt.figure(figsize=(36,36))
+    rows, cols = 9, 9
+
+    predict_res = []
+    cnt = 0
+
+    for num,img in enumerate(images):
+            file = img
+            image = Image.open(img).convert('RGB').resize((width, height))
+            # Classify the image.
+            time1 = time.time()
+            label_id, prob = classify_image(interpreter, image)
+            print("label id:", label_id)
+            time2 = time.time()
+            classification_time = np.round(time2-time1, 3)
+            print("Classificaiton Time =", classification_time, "seconds.")
+
+                # Return the classification label of the image.
+            classification_label = labels[label_id]
+            print("file:", img)
+            print("Image Label is :", classification_label, ", with Accuracy :", np.round(prob*100, 2), "%.")
+            print("--------------------------------------------------------------------------------")
+
+            plt.subplot(rows,cols,num+1)
+            plt.title("Pred: "+classification_label + '(' + str(prob) + ')')
+            # print("Pred: "+classification_label + '(' + str(prob) + ')')
+            plt.axis('off')
+            img = Image.open(img).convert('RGB')
+            plt.imshow(img)
+            plt.savefig("test_res.png")
+
+
+            predict_res.append(classification_label)
+
+    return predict_res
+
+
+
+    # Read class labels.
+    # labels = load_labels(label_path)
+
+
+
+
 def get_file_count_of_dir(dir, prefix=''):
     path = dir
     count = 0
@@ -102,7 +206,7 @@ def get_file_count_of_dir(dir, prefix=''):
 
 
 def get_confusion_matrix():
-    dir = './room_testset/'
+    dir = './room_testset/'  # ./tf_testset
     path = dir
     y_test = []
     y_pred = []
@@ -259,4 +363,6 @@ def test_confusion_matrix(file_dir):
 
 
 # test()
-get_confusion_matrix()
+test2()
+
+#get_confusion_matrix()

@@ -14,8 +14,14 @@ def representative_data_gen():
 # Convert the model
 saved_model_dir = './home-model'
 converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir) # path to the SavedModel directory
-
 converter.optimizations = [tf.lite.Optimize.DEFAULT]
+res_model = 'home_default_model.tflite'
+
+# try
+#converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir) # path to the SavedModel directory
+#converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_SIZE]
+#res_model = 'home_for_size_model.tflite'
+
 
 
 #converter.optimizations = [tf.lite.Optimize.DEFAULT]
@@ -46,5 +52,5 @@ converter.optimizations = [tf.lite.Optimize.DEFAULT]
 tflite_model = converter.convert()
 
 # Save the model.
-with open('home_int8_model.tflite', 'wb') as f:
+with open(res_model, 'wb') as f:
   f.write(tflite_model)

@@ -31,3 +31,10 @@ ValueError: representative_dataset is required when specifying TFLITE_BUILTINS_I
 
 
 pip install tflite-runtime
+
+
+############# tensorflow model
+
+Total params: 20,873,774
+Trainable params: 4,763,142
+Non-trainable params: 16,110,632
