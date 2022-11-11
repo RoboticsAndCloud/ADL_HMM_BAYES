@@ -9,6 +9,8 @@ import os
 IMG_WIDTH, IMG_HEIGHT = 299, 299 # set this according to keras documentation, each model has its own size
 BATCH_SIZE = 200 # decrease this if your computer explodes
 TEST_DIR = './test'
+TEST_DIR = "./room_samples_0831/"
+
 
 def create_generators(train_data_dir, validation_data_dir):
     # Read Data and Augment it: Make sure to select augmentations that are appropriate to your images.
@@ -166,6 +168,8 @@ def test():
     MODEL_SAVED_PATH = 'saved-model2'
 
     ml = load_model(MODEL_SAVED_PATH)
+    ml.summary()
+
     
     # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, lobby:4, door:5
     class_names=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
@@ -192,7 +196,7 @@ def test():
 
     for num,img in enumerate(images):
             file = img
-            # print('file:', file)
+            print('file:', file)
             label = predict(file, ml, class_names)
 
             plt.subplot(rows,cols,num+1)
@@ -212,7 +216,11 @@ def get_confusion_matrix():
     class_names=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
 
     
-    for fn in os.listdir(path):
+    #for fn in os.listdir(path):
+    for room in class_names:
+        print(dir + '/' + room)
+        fn = str(class_names.index(room))
+
         if os.path.isdir(dir + '/' + fn):
             print(fn)
             test_dir = dir + '/' + fn
@@ -246,7 +254,7 @@ def get_confusion_matrix():
     print('y_test:', y_test)
 
     plt.figure()
-    mat = confusion_matrix(y_test, y_pred)
+    mat = confusion_matrix(y_test, y_pred, labels=class_names)
     cm = plot_confusion_matrix(conf_mat=mat, class_names=class_names, show_normed=True, figsize=(7,7))
     plt.show()
     plt.savefig("room_cm.png")
@@ -317,7 +325,7 @@ def test_confusion_matrix(file_dir):
 
 if __name__ == "__main__":
     print('Test running:===========================================================\n')
-    # test()
+    #test()
     # room_sample_plot()
     get_confusion_matrix()
     # test_confusion_matrix('./room_dataset/test/1')
