@@ -218,6 +218,8 @@ def get_confusion_matrix():
 
     class_names=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
 
+    accurate_count = 0
+    total_count = 0
     
     for room in class_names:
         print(dir + '/' + room)
@@ -228,6 +230,7 @@ def get_confusion_matrix():
             test_dir = dir + '/' + fn
             sample_cnt = get_file_count_of_dir(test_dir)
             print('sample cnt:', sample_cnt)
+            total_count += sample_cnt
             
             test_truth_label = []
             for i in range(sample_cnt):
@@ -242,6 +245,9 @@ def get_confusion_matrix():
 
             predict_res = test_confusion_matrix(test_dir)
             print('len(predict_res):', len(predict_res))
+            for index in range(len(predict_res)):
+                if predict_res[index] == test_truth_label[index]:
+                    accurate_count += 1
             y_pred.extend(predict_res)
 
 
@@ -254,6 +260,9 @@ def get_confusion_matrix():
     print('y_pred:', y_pred)
     print('y_test len:', len(y_test))
     print('y_test:', y_test)
+
+    print('accurate_count:', accurate_count, ' total_count:', total_count)
+    print('test accuracy:', accurate_count * 1.0 / total_count)
 
     plt.figure()
     mat = confusion_matrix(y_test, y_pred, labels=class_names)
