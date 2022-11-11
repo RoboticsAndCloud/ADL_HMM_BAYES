@@ -46,6 +46,7 @@ def test():
 
     #model_path = "./home_model.tflite"
     model_path = "./home_default_model.tflite"
+    model_path = "./home_16_size_model.tflite"
 
     # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, hallway:4, door:5
     labels=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
@@ -96,10 +97,14 @@ def test2():
     data_folder = "./"
     data_folder_image = "./room_samples_0831/"
     data_folder_image = "./room_testset/2/"  # kitchen
+    data_folder_image = "./room_testset/5/"  # door
+    data_folder_image = "./room_testset/1/"  # bed
+    data_folder_image = "./room_testset/3/"  # livingroom
 
 
     #model_path = "./home_model.tflite"
     model_path = "./home_default_model.tflite"
+    model_path = "./home_16_size_model.tflite"
 
     # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, hallway:4, door:5
     labels=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
@@ -214,7 +219,10 @@ def get_confusion_matrix():
     class_names=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
 
     
-    for fn in os.listdir(path):
+    for room in class_names:
+        print(dir + '/' + room)
+        fn = str(class_names.index(room))
+
         if os.path.isdir(dir + '/' + fn):
             print(fn)
             test_dir = dir + '/' + fn
@@ -248,7 +256,7 @@ def get_confusion_matrix():
     print('y_test:', y_test)
 
     plt.figure()
-    mat = confusion_matrix(y_test, y_pred)
+    mat = confusion_matrix(y_test, y_pred, labels=class_names)
     cm = plot_confusion_matrix(conf_mat=mat, class_names=class_names, show_normed=True, figsize=(7,7))
     plt.show()
     plt.savefig("room_cm.png")
@@ -315,6 +323,7 @@ def predict(file, model, to_class, width, height):
 def test_confusion_matrix(file_dir):
         #model_path = "./home_model.tflite"
     model_path = "./home_default_model.tflite"
+    model_path = "./home_16_size_model.tflite"
 
     # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, hallway:4, door:5
     labels=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
@@ -362,7 +371,7 @@ def test_confusion_matrix(file_dir):
     return predict_res
 
 
-# test()
-test2()
+#test()
+#test2()
 
-#get_confusion_matrix()
+get_confusion_matrix()
