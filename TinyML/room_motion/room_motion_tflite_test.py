@@ -218,6 +218,8 @@ X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
 print('x_train shape:', X_train[0].shape)
 print('X_test shape:', X_test[0].shape)
 print('X_test len:', len(X_test))
+print('y_test len:', len(y_test))
+
 # tmp_xtest = X_test[0]
 # tmp_ytest = y_test[0]
 # print('tmp_xtest:', tmp_xtest)
@@ -327,36 +329,95 @@ def get_file_count_of_dir(dir, prefix=''):
     return count
 
 
+def predict_tflite(test_motion_data):
+
+
+    model_path = MOTION_TFLITE_MODEL
+
+    # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, hallway:4, door:5
+    # labels=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
+    # # label_path = data_folder + "labels_home_v1.txt"
+    # print("labels:", labels)
+
+
+    interpreter = Interpreter(model_path)
+    print("Model Loaded Successfully.")
+
+    interpreter.allocate_tensors()
+
+    shape = interpreter.get_input_details()[0]['shape']
+    print("interpreter input Shape:", shape)
+
+
+
+    # set_input_tensor(interpreter, image)
+    input_index = interpreter.get_input_details()[0]['index']
+
+    
+    # todo for loop to get the result
+    test_motion = np.expand_dims(test_motion_data, axis=0).astype(np.float32)
+    print("test_motion_shape:", test_motion.shape)
+
+
+    interpreter.set_tensor(input_index, test_motion)
+
+
+
+    time1 = time.time()
+    interpreter.invoke()
+    time2 = time.time()
+    print("time2:", time2)
+    classification_time = np.round(time2-time1, 3)
+    print("invoken Time =", classification_time, "seconds.")
+
+    output_details = interpreter.get_output_details()
+    # print("output details:", output_details)
+    output_details = interpreter.get_output_details()[0]
+    # print("output2 details:", output_details)
+    output = np.squeeze(interpreter.get_tensor(output_details['index']))
+    print('output1:', output)
+    prediction_classes = np.argmax(output)
+    print('prediction_classes:', prediction_classes, " ", LABELS[prediction_classes])
+
+    return prediction_classes
+
 def get_confusion_matrix():
     dir = './room_testset/'  # ./tf_testset
     path = dir
-    y_test = []
+    global y_test, X_test
+    y_test = y_test
     y_pred = []
 
+    print('X_test shape:', X_test.shape)
     class_names = LABELS
 
+
+    for d in X_test:
+        print('d shape:', d.shape)
+        pre = predict_tflite(d)
+        y_pred.append(pre)
     
-    for fn in os.listdir(path):
-        if os.path.isdir(dir + '/' + fn):
-            print(fn)
-            test_dir = dir + '/' + fn
-            sample_cnt = get_file_count_of_dir(test_dir)
-            print('sample cnt:', sample_cnt)
+    # for fn in os.listdir(path):
+    #     if os.path.isdir(dir + '/' + fn):
+    #         print(fn)
+    #         test_dir = dir + '/' + fn
+    #         sample_cnt = get_file_count_of_dir(test_dir)
+    #         print('sample cnt:', sample_cnt)
             
-            test_truth_label = []
-            for i in range(sample_cnt):
-                index = int(fn)
-                print('test lable:', class_names[index])
-                test_truth_label.append(class_names[index])
+    #         test_truth_label = []
+    #         for i in range(sample_cnt):
+    #             index = int(fn)
+    #             print('test lable:', class_names[index])
+    #             test_truth_label.append(class_names[index])
                 
 
-            y_test.extend(test_truth_label)
-            print('len test_truth_label:', len(test_truth_label))
-            print('len y_test:', len(y_test))
+    #         y_test.extend(test_truth_label)
+    #         print('len test_truth_label:', len(test_truth_label))
+    #         print('len y_test:', len(y_test))
 
-            predict_res = test_confusion_matrix(test_dir)
-            print('len(predict_res):', len(predict_res))
-            y_pred.extend(predict_res)
+    #         predict_res = test_confusion_matrix(test_dir)
+    #         print('len(predict_res):', len(predict_res))
+    #         y_pred.extend(predict_res)
 
 
     import matplotlib.pyplot as plt
@@ -373,7 +434,7 @@ def get_confusion_matrix():
     mat = confusion_matrix(y_test, y_pred)
     cm = plot_confusion_matrix(conf_mat=mat, class_names=class_names, show_normed=True, figsize=(7,7))
     plt.show()
-    plt.savefig("room_cm.png")
+    plt.savefig("room_tflite_cm.png")
 
 
 # makes the prediction of the file path image passed as parameter 
@@ -832,9 +893,9 @@ def get_activity_prediction(motion_file, act = 'Sitting', time_str = '0'):
 # get_activity_by_motion_dnn('20220802155756', 'Stand' ) # 4, g
 # get_activity_by_motion_dnn('20220802163654', 'walking') # 5, g
 # get_activity_by_motion_dnn('20220802164744', 'jogging') # 0, g
-get_activity_by_motion_dnn('20220802161356', 'Laying') # 1, g
+# get_activity_by_motion_dnn('20220802161356', 'Laying') # 1, g
 
 print("labels:")
 print(LABELS)
 # test()
-# get_confusion_matrix()
+get_confusion_matrix()
