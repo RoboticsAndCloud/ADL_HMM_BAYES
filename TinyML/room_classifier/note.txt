@@ -38,3 +38,8 @@ pip install tflite-runtime
 Total params: 20,873,774
 Trainable params: 4,763,142
 Non-trainable params: 16,110,632
+
+
+####
+1.tflite model: using room_classifier_train_tflite_by_model_maker.py to generate
+2.Xepthion to train the model, it is good
