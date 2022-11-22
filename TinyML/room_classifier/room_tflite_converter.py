@@ -13,17 +13,22 @@ def representative_data_gen():
 
 # Convert the model
 saved_model_dir = './home-model'
+saved_model_dir = './saved-model_onlinedataset'
 
-#converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir) # path to the SavedModel directory
-#converter.optimizations = [tf.lite.Optimize.DEFAULT]
-#res_model = 'home_default_model.tflite'
+converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir) # path to the SavedModel directory
+res_model = 'home_model_default_onlinedataset.tflite'
+
+# converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir) # path to the SavedModel directory
+# converter.optimizations = [tf.lite.Optimize.DEFAULT]
+# #res_model = 'home_default_model.tflite'
+# res_model = 'home_model_default_onlinedataset.tflite'
 
 # try
 # Refer: https://www.tensorflow.org/lite/performance/post_training_float16_quant
-converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir) # path to the SavedModel directory
-converter.optimizations = [tf.lite.Optimize.DEFAULT]
-converter.target_spec.supported_types = [tf.float16]
-res_model = 'home_16_size_model.tflite'
+#converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir) # path to the SavedModel directory
+#converter.optimizations = [tf.lite.Optimize.DEFAULT]
+#converter.target_spec.supported_types = [tf.float16]
+#res_model = 'home_16_size_model.tflite'
 
 
 

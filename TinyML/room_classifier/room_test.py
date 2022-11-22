@@ -5,12 +5,13 @@ from keras.layers import Input, Flatten, Dense, GlobalAveragePooling2D
 from keras.models import Model
 from keras.applications.xception import Xception, preprocess_input, decode_predictions
 import os
+import time
 
 IMG_WIDTH, IMG_HEIGHT = 299, 299 # set this according to keras documentation, each model has its own size
 IMG_WIDTH, IMG_HEIGHT = 224, 224 # set this according to keras documentation, each model has its own size
 
 BATCH_SIZE = 200 # decrease this if your computer explodes
-TEST_DIR = './test'
+TEST_DIR = './room_samples_0831/'
 
 def create_generators(train_data_dir, validation_data_dir):
     # Read Data and Augment it: Make sure to select augmentations that are appropriate to your images.
@@ -165,7 +166,7 @@ def room_sample_plot():
 def test():
     # execute this when you want to load the model
     from keras.models import load_model
-    MODEL_SAVED_PATH = 'saved-model2'
+    MODEL_SAVED_PATH = 'saved-model_onlinedataset'
 
     ml = load_model(MODEL_SAVED_PATH)
     
@@ -194,8 +195,12 @@ def test():
 
     for num,img in enumerate(images):
             file = img
-            # print('file:', file)
+            print('file:', file)
+            time1 = time.time()
             label = predict(file, ml, class_names)
+            time2 = time.time()
+            classification_time = np.round(time2-time1, 3)
+            print("Classificaiton Time =", classification_time, "seconds.")
 
             plt.subplot(rows,cols,num+1)
             plt.title("Pred: "+label)
@@ -206,7 +211,7 @@ def test():
             plt.savefig("test_res.png")
 
 def get_confusion_matrix():
-    dir = './dataset_online/test/'
+    dir = './room_ascc_dataset/test/'
     path = dir
     y_test = []
     y_pred = []
@@ -251,7 +256,7 @@ def get_confusion_matrix():
     mat = confusion_matrix(y_test, y_pred, labels=class_names)
     cm = plot_confusion_matrix(conf_mat=mat, class_names=class_names, show_normed=True, figsize=(7,7))
     plt.show()
-    plt.savefig("room_cm_onlinedataset_mnet.png")
+    plt.savefig("room_cm_ascc_mv2net.png")
 
 
 

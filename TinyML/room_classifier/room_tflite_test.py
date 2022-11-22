@@ -46,7 +46,7 @@ def test():
 
     #model_path = "./home_model.tflite"
     model_path = "./home_default_model.tflite"
-    model_path = "./home_16_size_model.tflite"
+    model_path = "./ascc_efficientNet_model_default.tflite"
 
     # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, hallway:4, door:5
     labels=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
@@ -104,7 +104,7 @@ def test2():
 
     #model_path = "./home_model.tflite"
     model_path = "./home_default_model.tflite"
-    model_path = "./home_16_size_model.tflite"
+    model_path = "./ascc_efficientNet_model_default.tflite"
 
     # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, hallway:4, door:5
     labels=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
@@ -212,6 +212,8 @@ def get_file_count_of_dir(dir, prefix=''):
 
 def get_confusion_matrix():
     dir = './room_testset/'  # ./tf_testset
+    dir = './dataset_online/test/'  # ./tf_testset
+    dir = './room_ascc_dataset/test/'
     path = dir
     y_test = []
     y_pred = []
@@ -268,7 +270,7 @@ def get_confusion_matrix():
     mat = confusion_matrix(y_test, y_pred, labels=class_names)
     cm = plot_confusion_matrix(conf_mat=mat, class_names=class_names, show_normed=True, figsize=(7,7))
     plt.show()
-    plt.savefig("room_cm.png")
+    plt.savefig("room_cm_tflite_online_mnetv2.png")
 
 
 # makes the prediction of the file path image passed as parameter 
@@ -330,9 +332,12 @@ def predict(file, model, to_class, width, height):
 
 
 def test_confusion_matrix(file_dir):
-        #model_path = "./home_model.tflite"
-    model_path = "./home_default_model.tflite"
+    #model_path = "./home_model.tflite"
+    #model_path = "./home_default_model.tflite"
     model_path = "./home_16_size_model.tflite"
+    model_path = "./home_model_default_onlinedataset.tflite"
+    model_path = "./ascc_efficientNet_model_default.tflite"
+    model_path = "./ascc_mobilev2_model_default.tflite"
 
     # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, hallway:4, door:5
     labels=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
@@ -381,6 +386,6 @@ def test_confusion_matrix(file_dir):
 
 
 #test()
-#test2()
+# test2()
 
 get_confusion_matrix()

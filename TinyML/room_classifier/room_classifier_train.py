@@ -8,6 +8,9 @@ from keras.applications.xception import Xception, preprocess_input, decode_predi
 from keras.applications.mobilenet_v2 import MobileNetV2
 from keras.applications.efficientnet_v2 import EfficientNetV2L, EfficientNetV2S
 
+from keras.applications.efficientnet import EfficientNetB4
+from keras.applications.resnet import ResNet50
+
 import matplotlib.pyplot as plt
 
 
@@ -49,8 +52,8 @@ def create_generators(train_data_dir, validation_data_dir):
 
 def create_model(num_classes):
         # base_model = MobileNetV2(input_shape=(IMG_WIDTH, IMG_HEIGHT, 3), weights='imagenet', include_top=False)
-        base_model = EfficientNetV2S(input_shape=(IMG_WIDTH, IMG_HEIGHT, 3), weights='imagenet', include_top=False)
-
+        base_model = Xception(input_shape=(IMG_WIDTH, IMG_HEIGHT, 3), weights='imagenet', include_top=False) # good
+        # base_model = ResNet50(input_shape=(IMG_WIDTH, IMG_HEIGHT, 3), weights='imagenet', include_top=False)
         # Top Model Block
         x = base_model.output
         x = GlobalAveragePooling2D()(x)

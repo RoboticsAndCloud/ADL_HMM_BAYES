@@ -31,8 +31,8 @@ for i, (image, label) in enumerate(data.gen_dataset().unbatch().take(25)):
 plt.show()
 
 
-model = image_classifier.create(train_data, validation_data = validation_data, epochs = 20)  # default EfficientNet-Lite0.
-# model = image_classifier.create(train_data, model_spec=model_spec.get('mobilenet_v2', epochs = 20), validation_data=validation_data)
+# model = image_classifier.create(train_data, validation_data = validation_data, epochs = 20)  # default EfficientNet-Lite0.
+model = image_classifier.create(train_data, model_spec=model_spec.get('mobilenet_v2'), validation_data=validation_data, epochs = 10)
 
 
 model.summary()
