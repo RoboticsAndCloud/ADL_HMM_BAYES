@@ -483,7 +483,7 @@ while(pre_activity == ''):
     image_source = location + LOCATION_DIR_SPLIT_SYMBOL + image_dir
     sound_source = audio_type
     motion_source = motion_type
-    tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source)
+    #tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source)
     print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
 
 
@@ -940,7 +940,7 @@ while(not env.done):
 
 
 
-        tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source, object_source)
+        #tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source, object_source)
         print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
 
         pre_act_list.append(pre_activity)

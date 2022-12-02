@@ -407,23 +407,23 @@ p: 1.537674898499209e-34
 Env requirements: source  ~/LF_Workspace/venv3.7_energy/bin/activate
 
 1. Launch room recognition cnn algorithm
-cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/room_classifier
-python ascc_room_activity_test.py
+cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2_Tiny/ADL_HMM_BAYES/TinyML/Rspi_test/room_location
+python ascc_room_activity_tiny_test.py
 
 2. Launch room sound recognition cnn algorithm 
-cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/room_sound
-python ascc_room_sound_activity_test.py 
+cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2_Tiny/ADL_HMM_BAYES/TinyML/Rspi_test/room_sound
+python ascc_room_sound_activity_tiny_test.py
 
 3. Launch motion recognition cnn algorithm
-cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/room_motion_activity
-
-python ascc_room_motion_activity_test.py 
+cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2_Tiny/ADL_HMM_BAYES/TinyML/Rspi_test/room_motion
+python ascc_room_motion_activity_tiny_test.py
 
 4. Launch yolo object detection
+#  !pip install "opencv-python-headless<4.3"
 cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/room_classifier/ImageProcess
 python food_yolo_opencv.py --config yolov3.cfg --weights  yolov3.weights --class yolov3.txt
 
 5. Launch motion adl main 
-cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/
+cd /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2_Tiny/ADL_HMM_BAYES
 python motion_adl_main.py
 

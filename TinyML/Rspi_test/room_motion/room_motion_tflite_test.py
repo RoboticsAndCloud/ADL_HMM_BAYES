@@ -191,7 +191,7 @@ def get_frames(df, frame_size, hop_size):
 
     # Bring the segments into a better shape
     frames = np.asarray(frames).reshape(-1, frame_size, N_FEATURES)
-    # print('frame shape:', frames.shape)
+    print('frame shape:', frames.shape)
     labels = np.asarray(labels)
 
     return frames, labels

@@ -1059,16 +1059,16 @@ class EnvASCC():
 
             if 'audio' in action_str:
                 energy_consum = energy_consum + (ENERGY_RECORDING_MIC - ENERGY_STANDBY) * AUDIO_RECORDING_TIME_COST   # 30
-                energy_consum = energy_consum + AUDIO_FILE_SIZE / WIFI_BANDWIDTH_SPEED * (ENERGY_TX - ENERGY_STANDBY) # 50
-                time_cost = time_cost + AUDIO_FILE_SIZE / WIFI_BANDWIDTH_SPEED
+                #energy_consum = energy_consum + AUDIO_FILE_SIZE / WIFI_BANDWIDTH_SPEED * (ENERGY_TX - ENERGY_STANDBY) # 50
+                #time_cost = time_cost + AUDIO_FILE_SIZE / WIFI_BANDWIDTH_SPEED
 
             if 'vision' in action_str:
                 energy_consum = energy_consum + 0  #  ignore the image taking energy as it need less energy
-                energy_consum = energy_consum + IMAGE_SIZE * IMAGE_COUNT / WIFI_BANDWIDTH_SPEED * (ENERGY_TX - ENERGY_STANDBY)
-                time_cost = time_cost + IMAGE_SIZE * IMAGE_COUNT / WIFI_BANDWIDTH_SPEED
+                #energy_consum = energy_consum + IMAGE_SIZE * IMAGE_COUNT / WIFI_BANDWIDTH_SPEED * (ENERGY_TX - ENERGY_STANDBY)
+                #time_cost = time_cost + IMAGE_SIZE * IMAGE_COUNT / WIFI_BANDWIDTH_SPEED
 
-            energy_consum = ACCELEROMETER_DATA_SIZE / WIFI_BANDWIDTH_SPEED * (ENERGY_TX - ENERGY_STANDBY)
-            time_cost = time_cost + ACCELEROMETER_DATA_SIZE / WIFI_BANDWIDTH_SPEED
+            #energy_consum = ACCELEROMETER_DATA_SIZE / WIFI_BANDWIDTH_SPEED * (ENERGY_TX - ENERGY_STANDBY)
+            #time_cost = time_cost + ACCELEROMETER_DATA_SIZE / WIFI_BANDWIDTH_SPEED
 
             time_cost = time_cost # do not need interval, just use sensors active time
 
@@ -1076,7 +1076,7 @@ class EnvASCC():
 
             return energy_consum, time_cost
 
-    def energy_time_cost(self, action):
+    def energy_time_cost_useless(self, action):
         """
         Calculate the energy and time cost
         :param action:
