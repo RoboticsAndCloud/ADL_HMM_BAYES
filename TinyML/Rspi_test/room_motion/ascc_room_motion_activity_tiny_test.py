@@ -1,8 +1,8 @@
 import numpy as np
-from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
-from keras.layers import Input, Flatten, Dense, GlobalAveragePooling2D
-from keras.models import Model
-from keras.applications.xception import Xception, preprocess_input, decode_predictions
+#from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
+#from keras.layers import Input, Flatten, Dense, GlobalAveragePooling2D
+#from keras.models import Model
+#from keras.applications.xception import Xception, preprocess_input, decode_predictions
 import os
 import time
 from timeit import default_timer as timer
@@ -25,7 +25,7 @@ TEST_DIR = './test'
 ASCC_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/ascc_data/notice.txt'
 ASCC_DATA_RES_FILE = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/ascc_data/recognition_result.txt'
 
-DATA_SET_FILE = 'ascc_dataset/ascc_v1_raw.txt'
+DATA_SET_FILE = './ascc_v1_raw.txt'
 
 MOTION_ACTIVITY_MAPPING = {
     0: 'jogging',
@@ -915,10 +915,7 @@ def write_res_into_file_converter(file_name, res_list):
 
 def run():
     # execute this when you want to load the model
-    from keras.models import load_model
-    MODEL_SAVED_PATH = 'motion-saved-model'
 
-    ml = load_model(MODEL_SAVED_PATH)
     
     import sys, random
     from pathlib import Path
@@ -956,17 +953,19 @@ def run():
             logging.warn('error:%s', e)
             continue
 
-        for i in range(len(pred_list)):
+        # todo
+        #for i in range(len(pred_list)):
+        print("pred_list:", pred_list)
 
-            label = MOTION_ACTIVITY_MAPPING[pred_list[i]]
-            prob = prob_list[i]
+        label = MOTION_ACTIVITY_MAPPING[pred_list]
+        prob = prob_list
 
-            print("Pred: "+label + '(' + str(prob) + ')')
+        print("Pred: "+label + '(' + str(prob) + ')')
 
-            logging.info('cur test_dir:%s', test_dir)
-            logging.info('Pred:%s', label + '(' + str(prob) + ')')
+        logging.info('cur test_dir:%s', test_dir)
+        logging.info('Pred:%s', label + '(' + str(prob) + ')')
 
-            res.append(label + '(' + str(prob) + ')')
+        res.append(label + '(' + str(prob) + ')')
         end = timer()
         print("Get_prediction time cost:", end-start)
 
@@ -1164,8 +1163,123 @@ def get_data_scaler():
 
 
 
-
 def get_data_from_motion_file(motion_file):
+
+    pd.read_csv(motion_file)
+    file = open(motion_file)
+
+    lines = file.readlines()
+
+    processedList = []
+
+    for i, line in enumerate(lines):
+        try:
+            line = line.split(',')
+            last = line[5].split(';')[0]
+            last = last.strip()
+            if last == '':
+                break;
+            temp = [line[0], line[1], line[2], line[3], line[4], last]
+            processedList.append(temp)
+        except:
+            print('Error at line number: ', i)
+
+
+    # print('len processedList:', len(processedList))
+
+    columns = ['user', 'activity', 'time', 'x', 'y', 'z']
+    data = pd.DataFrame(data = processedList, columns = columns)
+    # data.head()
+    # data.shape
+    # data.info()
+
+
+    data.isnull().sum()
+    data['activity'].value_counts()
+    data['x'] = data['x'].astype('float')
+    data['y'] = data['y'].astype('float')
+    data['z'] = data['z'].astype('float')
+
+
+    # data.info()
+
+
+
+    activities = data['activity'].value_counts().index
+    # print('activities:', activities)
+
+
+    df = data.drop(['user', 'time'], axis = 1).copy()
+    # print('df.head:', df.head())
+
+    # print('counts:', df['activity'].value_counts())
+    sd = sorted(df['activity'].value_counts().items(), key=sorter_take_count, reverse=False)
+    # print('sd:', sd)
+
+
+
+    min_count = sd[0][1] #15606 # ASCC dataset
+    # min_count = 3555 # for WISDM dataset
+
+    Walking = df[df['activity']=='Walking'].head(min_count).copy()
+    Jogging = df[df['activity']=='Jogging'].head(min_count).copy()
+    Laying = df[df['activity']=='Laying'].head(min_count).copy()
+    Squating = df[df['activity']=='Squating'].head(min_count).copy()
+    Sitting = df[df['activity']=='Sitting'].head(min_count).copy()
+    Standing = df[df['activity']=='Standing'].copy()
+
+    balanced_data = pd.DataFrame()
+    balanced_data = balanced_data.append([Walking, Jogging, Laying, Squating, Sitting, Standing])
+    # balanced_data.shape
+
+    balanced_data['activity'].value_counts()
+
+    # print('balanced_data:', balanced_data)
+    # print(balanced_data.head())
+
+    from sklearn.preprocessing import LabelEncoder
+
+    label = LabelEncoder()
+    balanced_data['label'] = label.fit_transform(balanced_data['activity'])
+    # print('head:',balanced_data.head())
+    # print('================ label mapping')
+    #print(balanced_data.values.tolist())
+
+    # print('label:',label.classes_)
+    X = balanced_data[['x', 'y', 'z']]
+    y = balanced_data['label']
+
+    #scaler = StandardScaler()
+    scaler = get_data_scaler()
+    # print('scaler: mean, var', scaler.mean_, ' ', scaler.var_)
+    X = scaler.transform(X)
+
+
+    scaled_X = pd.DataFrame(data = X, columns = ['x', 'y', 'z'])
+    scaled_X['label'] = y.values
+
+    # scaled_X
+
+    import scipy.stats as stats
+
+    frame_size = Fs*2 # 80
+    hop_size = Fs*2 # 40
+
+
+
+    X, y = get_frames(scaled_X, frame_size, hop_size)
+    # print('X:', X.shape)
+    # print('y:', y.shape)
+
+    # X.shape: (520, 285, 3)
+    # y.shape: (520,)
+
+    return X, y
+
+
+
+
+def get_data_from_motion_filexx(motion_file):
 
     pd.read_csv(motion_file)
     file = open(motion_file)
@@ -1306,12 +1420,10 @@ def get_activity_prediction(motion_file, act = 'Sitting', time_str = '0'):
 
     X, y = get_data_from_motion_file(target)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.8, random_state = 0, stratify = y)
-
-    X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2], 1)
+  
+    X_test = X
     X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
 
-  
     print('X_test shape:', X_test.shape)
 
     # exit(0)
@@ -1360,6 +1472,7 @@ def get_activity_prediction(motion_file, act = 'Sitting', time_str = '0'):
     print('prediction_classes:', prediction_classes, " ", LABELS[prediction_classes])
 
     y_pred =  LABELS[prediction_classes]
+    y_pred =  prediction_classes
     prob = output[prediction_classes]
 
     print('prediction_classes:', prediction_classes, " ",y_pred, ' prob:', prob)
@@ -1379,89 +1492,6 @@ def get_activity_prediction(motion_file, act = 'Sitting', time_str = '0'):
     return y_pred, prob
 
 
-# get data from motion_file
-def get_activity_by_motion_dnn_back(time_str, action='moiton'):
-
-    d_act = time_str
-
-    # # image_dir_name = get_exist_image_dir(time_str, action)
-    motion_file = MOTION_FOLDER_TEST + d_act + '/' + MOTION_TXT
-
-    t_data_list = []
-    t_arr = []
-
-    frame_size = Fs*2 # 80
-    hop_size = Fs*2 # 40
-
-    # x_train shape: (300, 3, 1)
-    shape_len = frame_size
-    N_FEATURES = 3
-
-
-    with open(motion_file, 'r') as f:
-        for index, line in enumerate(f):
-            # print("Line {}: {}".format(index, line.strip()))
-
-            s_str = str(line.strip())
-            xyz_arr = s_str.split('\t')
-
-            x = float(xyz_arr[0])
-            y = float(xyz_arr[1])
-            z = float(xyz_arr[2])
-
-            
-
-            t_arr = []
-
-            t_arr.append(x)
-            t_arr.append(y)
-            t_arr.append(z)
-
-            t_data_list.append(t_arr)
-
-        f.close()
-
-    print('len t_data_list:', len(t_data_list))
-
-    n = shape_len
-    chunks = [t_data_list[i:i+n] for i in range(0, len(t_data_list), n)]
-
-    # execute this when you want to load the model
-    from keras.models import load_model
-    MODEL_SAVED_PATH = 'motion-saved-model'
-
-    model = load_model(MODEL_SAVED_PATH)
-    scaler = get_data_scaler()
-    print('scaler: mean, var', scaler.mean_, ' ', scaler.var_)
-
-    for i in range(len(chunks)):
-        if len(chunks[i]) != shape_len:
-            continue
-
-        frames = []
-
-        frames_xyz = chunks[i]
-
-        frames_xyz = scaler.transform(frames_xyz)
-
-        frames.append(frames_xyz)
-        frames = np.asarray(frames).reshape(-1, frame_size, N_FEATURES)
-
-        X_test = []
-        X_test.append(frames)
-
-        X_test = np.asarray(X_test).reshape(-1, frame_size, N_FEATURES)
-        # print('X_test shape:', X_test.shape)
-        X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
-        
-
-        print('i:',i )
-        # print('len:', len(X_test[0]))
-        # print('X_test:', X_test)
-        predict_x=model.predict(X_test)
-        y_pred=np.argmax(predict_x,axis=1)
-        print('pred:', y_pred)
-        # assert(y_pred == 4)
 
 '''
 MOTION_ACTIVITY_MAPPING = {

@@ -4,8 +4,8 @@
 @github: https://github.com/JasonZhang156/Sound-Recognition-Tutorial
 """
 
-from keras.models import load_model
-import tensorflow as tf
+#from keras.models import load_model
+#import tensorflow as tf
 import esc10_input
 import numpy as np
 import os
@@ -100,8 +100,9 @@ def predict_tflite(test_data):
     print('output1:', output)
     prediction_classes = np.argmax(output)
     print('prediction_classes:', prediction_classes, " ", labels[prediction_classes])
+    pred = labels[prediction_classes]
 
-    return prediction_classes, output[prediction_classes]
+    return pred, output[prediction_classes]
 
 
 
@@ -111,7 +112,7 @@ def CNN_test(test_fold, feat):
     :param test_fold: test fold of 5-fold cross validation
     :param feat: which feature to use
     """
-    model = load_model('./cnn_logmel_foldone_second.h5')
+    #model = load_model('./cnn_logmel_foldone_second.h5')
 
     # 读取测试数据
     # _, _, test_features, test_labels = esc10_input.get_data(test_fold, feat)
@@ -150,15 +151,15 @@ def CNN_test(test_fold, feat):
             # 导入训练好的模型
             pre, val = predict_tflite(test_data=test_feature)
 
-            # print('pre:', pre, ' val:', val)
+            print('pre:', pre, ' val:', val)
             print(pre + '(' + str(val) + ')')
             t2 = time.time()
-            print("Get_prediction time cost:", np.round(t2-t1, 3))   
+            print("Get_prediction time cost try:", np.round(t2-t1, 3))   
 
             
             res = pre + '(' + str(val) + ')'
-        except:
-            print("ERROR........")
+        except Exception as e:
+            print("ERROR........", e)
             res = ''
 
     
@@ -181,7 +182,7 @@ def CNN_test(test_fold, feat):
 
 
 if __name__ == '__main__':
-    use_gpu()  # 使用GPU
+    #use_gpu()  # 使用GPU
 
     acc = CNN_test(1, 'logmel')
 
