@@ -259,7 +259,8 @@ ACTIVITY_LOCATION_MAPPING = {
     'leaving_home': constants.LOCATION_DOOR,
     'door': constants.LOCATION_DOOR,
     'meditate': constants.LOCATION_BEDROOM,
-    'lobby': constants.LOCATION_LOBBY
+    'lobby': constants.LOCATION_LOBBY,
+    'hallway':constants.LOCATION_LOBBY
 }
 
 
@@ -276,7 +277,9 @@ ACTIVITY_LOWER_UPPER_CASE_MAPPING = {
     'eve_med': constants.ACTIVITY_EVE_MEDS,
     'leaving_home': constants.ACTIVITY_LEAVE_HOME,
     'meditate': constants.ACTIVITY_MEDITATE,
-    'lobby': constants.LOCATION_LOBBY # non activity here
+    'lobby': constants.LOCATION_LOBBY, # non activity here
+    'hallway':constants.LOCATION_LOBBY
+
 }
 
 # labels = ['door_open_closed', 'eating', 'keyboard', 'pouring_water_into_glass', 'toothbrushing', 'vacuum',
@@ -662,7 +665,7 @@ def get_activity_by_motion_dnn(time_str, action='vision'):
     write_notice_into_file(ASCC_MOTION_DATA_NOTICE_FILE, motion_dir_name)
 
     # wait for the result, 2-5 seconds, todo: test how long should wait, how to improve the speed
-    time.sleep(1)
+    time.sleep(2)
 
     # get the results
     res_str = read_res_from_file(ASCC_MOTION_DATA_RES_FILE)
