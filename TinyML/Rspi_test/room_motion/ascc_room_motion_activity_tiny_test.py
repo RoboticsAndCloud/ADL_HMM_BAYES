@@ -22,8 +22,8 @@ IMG_WIDTH, IMG_HEIGHT = 299, 299 # set this according to keras documentation, ea
 BATCH_SIZE = 200 # decrease this if your computer explodes
 TEST_DIR = './test'
 
-ASCC_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/ascc_data/notice.txt'
-ASCC_DATA_RES_FILE = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/ascc_data/recognition_result.txt'
+ASCC_DATA_NOTICE_FILE = '/home/pi/TinyML/ADL_HMM_BAYES/TinyML/Rspi_test/room_motion/notice.txt'
+ASCC_DATA_RES_FILE = '/home/pi/TinyML/ADL_HMM_BAYES/TinyML/Rspi_test/room_motion/recognition_result.txt'
 
 DATA_SET_FILE = './ascc_v1_raw.txt'
 
@@ -956,6 +956,8 @@ def run():
         # todo
         #for i in range(len(pred_list)):
         print("pred_list:", pred_list)
+        end = timer()
+        print("Get_pred list time cost:", end-start)
 
         label = MOTION_ACTIVITY_MAPPING[pred_list]
         prob = prob_list
@@ -1162,8 +1164,10 @@ def get_data_scaler():
 
 
 
+ASCC_SCALER = get_data_scaler()
 
 def get_data_from_motion_file(motion_file):
+    time1 = time.time()
 
     pd.read_csv(motion_file)
     file = open(motion_file)
@@ -1186,6 +1190,9 @@ def get_data_from_motion_file(motion_file):
 
 
     # print('len processedList:', len(processedList))
+    time2 = time.time()
+    classification_time = np.round(time2-time1, 3)
+    print("reading from motion time  =", classification_time, "seconds.")
 
     columns = ['user', 'activity', 'time', 'x', 'y', 'z']
     data = pd.DataFrame(data = processedList, columns = columns)
@@ -1215,6 +1222,9 @@ def get_data_from_motion_file(motion_file):
     # print('counts:', df['activity'].value_counts())
     sd = sorted(df['activity'].value_counts().items(), key=sorter_take_count, reverse=False)
     # print('sd:', sd)
+    time2 = time.time()
+    classification_time = np.round(time2-time1, 3)
+    print("sorted from motion time  =", classification_time, "seconds.")
 
 
 
@@ -1249,14 +1259,30 @@ def get_data_from_motion_file(motion_file):
     X = balanced_data[['x', 'y', 'z']]
     y = balanced_data['label']
 
+    time2 = time.time()
+    classification_time = np.round(time2-time1, 3)
+    print("before scaler from motion time  =", classification_time, "seconds.")
+
     #scaler = StandardScaler()
-    scaler = get_data_scaler()
+    #scaler = get_data_scaler()
+    scaler = ASCC_SCALER
+    time2 = time.time()
+    classification_time = np.round(time2-time1, 3)
+    print("get_data scaler from motion time  =", classification_time, "seconds.")
+
     # print('scaler: mean, var', scaler.mean_, ' ', scaler.var_)
     X = scaler.transform(X)
 
+    time2 = time.time()
+    classification_time = np.round(time2-time1, 3)
+    print("scaler.transform from motion time  =", classification_time, "seconds.")
 
     scaled_X = pd.DataFrame(data = X, columns = ['x', 'y', 'z'])
     scaled_X['label'] = y.values
+
+    time2 = time.time()
+    classification_time = np.round(time2-time1, 3)
+    print("balanced from motion time  =", classification_time, "seconds.")
 
     # scaled_X
 
@@ -1415,16 +1441,26 @@ def get_activity_prediction(motion_file, act = 'Sitting', time_str = '0'):
     target = TARGET_FILE
     user = 'ascc'
 
+    time1 = time.time()
     c_len = convert(act, int(time_str), motion_file, target, user)
-    # print('convert len:', c_len)
+    time2 = time.time()
+    classification_time = np.round(time2-time1, 3)
+    print("converting Time =", classification_time, "seconds.")
+    print('convert len:', c_len)
 
     X, y = get_data_from_motion_file(target)
+    time2 = time.time()
+    classification_time = np.round(time2-time1, 3)
+    print("getdata_from_motionfile time  =", classification_time, "seconds.")
 
   
     X_test = X
     X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
 
     print('X_test shape:', X_test.shape)
+    time2 = time.time()
+    classification_time = np.round(time2-time1, 3)
+    print("reshape  time  =", classification_time, "seconds.")
 
     # exit(0)
 
@@ -1434,6 +1470,9 @@ def get_activity_prediction(motion_file, act = 'Sitting', time_str = '0'):
     # labels=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
     # # label_path = data_folder + "labels_home_v1.txt"
     # print("labels:", labels)
+    time2 = time.time()
+    classification_time = np.round(time2-time1, 3)
+    print("converting Time =", classification_time, "seconds.")
 
 
     interpreter = Interpreter(model_path)
@@ -1462,7 +1501,7 @@ def get_activity_prediction(motion_file, act = 'Sitting', time_str = '0'):
     classification_time = np.round(time2-time1, 3)
     print("invoken Time =", classification_time, "seconds.")
 
-    output_details = interpreter.get_output_details()
+    #output_details = interpreter.get_output_details()
     # print("output details:", output_details)
     output_details = interpreter.get_output_details()[0]
     # print("output2 details:", output_details)
@@ -1476,6 +1515,10 @@ def get_activity_prediction(motion_file, act = 'Sitting', time_str = '0'):
     prob = output[prediction_classes]
 
     print('prediction_classes:', prediction_classes, " ",y_pred, ' prob:', prob)
+    time3 = time.time()
+    print("time3:", time3)
+    classification_time = np.round(time3-time1, 3)
+    print("classification after invoken Time =", classification_time, "seconds.")
 
     # predict_x=model.predict(X_test)
     # y_pred=np.argmax(predict_x,axis=1)
