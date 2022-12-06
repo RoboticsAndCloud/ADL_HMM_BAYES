@@ -22,8 +22,8 @@ TEST_DIR = './test'
 TEST_DIR = './room_testset/2/' # kitchen
 TEST_DIR = './room_testset/3/' # living
 
-ASCC_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/notice.txt'
-ASCC_DATA_RES_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/recognition_result.txt'
+ASCC_DATA_NOTICE_FILE = '/home/pi/TinyML/ADL_HMM_BAYES/TinyML/Rspi_test/room_location/notice.txt'
+ASCC_DATA_RES_FILE = '/home/pi/TinyML/ADL_HMM_BAYES/TinyML/Rspi_test/room_location/recognition_result.txt'
 
 def create_generators(train_data_dir, validation_data_dir):
     # Read Data and Augment it: Make sure to select augmentations that are appropriate to your images.
@@ -267,7 +267,11 @@ def run():
     
     pre_test_dir = ''
     while True:
-        test_dir = read_dir_name(ASCC_DATA_NOTICE_FILE)
+        try:
+            test_dir = read_dir_name(ASCC_DATA_NOTICE_FILE)
+        except Exception as e:
+            print("got error:", e)
+            continue
         # logging.info('pre_test_dir:%s', pre_test_dir)
         logging.info('got cur test_dir:%s', test_dir)
 

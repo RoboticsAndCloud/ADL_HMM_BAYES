@@ -927,7 +927,10 @@ def run():
     
     pre_test_dir = ''
     while True:
-        test_dir = read_dir_name(ASCC_DATA_NOTICE_FILE)
+        try:
+            test_dir = read_dir_name(ASCC_DATA_NOTICE_FILE)
+        except:
+            continue
         # logging.info('pre_test_dir:%s', pre_test_dir)
         logging.info('got cur test_dir:%s', test_dir)
 
