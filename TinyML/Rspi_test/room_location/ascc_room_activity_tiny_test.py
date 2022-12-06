@@ -237,6 +237,11 @@ def write_res_into_file(file_name, res_list):
     
     return True
 
+import sys, random
+from pathlib import Path
+from PIL import Image
+import matplotlib.pyplot as plt
+
 def run():
     # execute this when you want to load the model
     model_path = "./ascc_efficientNet_model_default.tflite"
@@ -257,10 +262,6 @@ def run():
     class_names=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
 
 
-    import sys, random
-    from pathlib import Path
-    from PIL import Image
-    import matplotlib.pyplot as plt
 
 
     # Retreive 9 random images from directory
@@ -295,8 +296,8 @@ def run():
         # Configure plots
         # fig = plt.figure(figsize=(9,9))
         # rows,cols = 3,3
-        fig = plt.figure(figsize=(36,36))
-        rows, cols = 6, 7
+        #fig = plt.figure(figsize=(36,36))
+        #rows, cols = 6, 7
 
         res = []
         start = timer()
