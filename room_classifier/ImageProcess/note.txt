@@ -10,4 +10,10 @@ python yolo_opencv.py --image ~/Desktop/test/read.jpg --config yolov3.cfg --weig
 
 python food_yolo_opencv.py --config yolov3.cfg --weights  yolov3.weights --class yolov3.txt
 
+
+# the yolo_opencv.py code changed a bit
+# refer to:https://github.com/opencv/opencv/issues/20923
+python yolo_opencv.py --image ~/Desktop/test/desk3.jpg --config yolov3.cfg --weights  yolov3.weights --class yolov3.txt
+
+
 https://github.com/arunponnusamy/object-detection-opencv
