@@ -76,7 +76,9 @@ steps = 0
 #CAM_PATH = adl_type_constants.IMAGE_FILE_SAVED_FOLDER
 MOTION_PATH = ""
 WAV_PATH = ""
-CAM_PATH = "/home/ascc/LF_Workspace/Bayes_model/Watch/Data/"
+MOTION_PATH = "/home/ascc/LF_Workspace/Bayes_model/Watch/Data/Motion/"
+WAV_PATH = "/home/ascc/LF_Workspace/Bayes_model/Watch/Data/Audio/"
+CAM_PATH = "/home/ascc/LF_Workspace/Bayes_model/Watch/Data/Image/"
 
 IMAGE_CNT = 10
 DATE_TIME_FORMAT = '%Y%m%d%H%M%S'
@@ -245,7 +247,6 @@ class MedicineServerMain(object):
         unpacked_data = unpacker.unpack(data)
         data = unpacked_data
 
-        print("socket image handlerdata:", data[0])
         #cnt = data[0]
         cnt = int.from_bytes(cnt_byte, "big")
         current_time = data[1].decode()
