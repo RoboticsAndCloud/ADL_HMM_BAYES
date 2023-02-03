@@ -79,11 +79,25 @@ def get_file_count_of_dir(dir, prefix=''):
     return count
 
 
+# def get_output_layers(net):
+
+#     layer_names = net.getLayerNames()
+
+#     output_layers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+
+#     return output_layers
+
 def get_output_layers(net):
 
     layer_names = net.getLayerNames()
+    # print("layer_names:", len(layer_names))
+    # print("net.getUnconnectedOutLayers()", net.getUnconnectedOutLayers())
+    # for i in net.getUnconnectedOutLayers():
+    #     print("i[0]:", i)
 
-    output_layers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+    #output_layers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+    output_layers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers()]
+
 
     return output_layers
 
@@ -411,6 +425,7 @@ def object_detection(image_str, image_save_path):
 
     outs = net.forward(get_output_layers(net))
 
+
     class_ids = []
     confidences = []
     boxes = []
@@ -441,7 +456,7 @@ def object_detection(image_str, image_save_path):
     res = []
 
     for i in indices:
-        i = i[0]
+        i = i
         box = boxes[i]
         x = box[0]
         y = box[1]
@@ -515,8 +530,12 @@ def run():
             file = img
             print('file:', file)
 
-            tmp_res = object_detection(str(file), '_detection')
+            try:
+                tmp_res = object_detection(str(file), '_detection')
 
+            except Exception as e:
+                print('Got 1 error:', e)
+                continue
             # plt.subplot(rows,cols,num+1)
             # plt.title("Pred: "+label + '(' + str(prob) + ')')
             print("Pred: ", res)
