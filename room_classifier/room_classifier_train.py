@@ -116,7 +116,7 @@ def predict(file, model, to_class):
     return to_class[index]
     
 
-DIR = "/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/room_classifier/room_dataset/"
+DIR = "/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/room_dataset/"
 IMG_WIDTH, IMG_HEIGHT = 299, 299 # set this according to keras documentation, each model has its own size
 BATCH_SIZE = 200 # decrease this if your computer explodes
 
