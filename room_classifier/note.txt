@@ -23,3 +23,9 @@ tensorflow= 2.8.0
 
 Train:Found 2810 images belonging to 12 classes., each 234
 Validate:Found 868 images belonging to 12 classes.
+
+
+
+###########################3
+robot image
+3/3 [==============================] - 30s 10s/step - loss: 0.0461 - accuracy: 0.9881 - val_loss: 0.1374 - val_accuracy: 0.9597
