@@ -35,9 +35,11 @@ class DQNAgent:
  
     def _build_model(self):
         model = Sequential() 
-        model.add(Dense(32, activation="relu",
+        model.add(Dense(256, activation="relu",
                         input_dim=self.state_size))
-        model.add(Dense(32, activation="relu"))
+        model.add(Dense(256, activation="relu"))
+        model.add(Dense(256, activation="relu"))
+        # model.add(Dense(32, activation="relu"))
         model.add(Dense(self.action_size, activation="linear"))
         model.compile(loss="mse",
                      optimizer=Adam(lr=self.learning_rate))
@@ -76,12 +78,14 @@ agent = DQNAgent(state_size, action_size)
 
 for e in range(n_episodes):
     state = env.reset()
+    env.render()
     state = np.reshape(state, [1, state_size])
 
     done = False 
     time = 0
+    episode_reward = 0
     while not done:
-        #env.render()
+        env.render()
         action = agent.act(state)
         next_state, reward, done, _ = env.step(action)
         reward = reward if not done else -10
@@ -91,9 +95,12 @@ for e in range(n_episodes):
         if done:
             print("episode: {}/{}, score: {}, e: {:.2}"
                 .format(e, n_episodes-1, time, agent.epsilon))
+            print("episode_reward:", episode_reward)
         time += 1
+        episode_reward += reward
     if len(agent.memory) > batch_size:
         agent.train(batch_size) 
+        print("train")
     if e % 50 == 0:
         agent.save(output_dir + "weights_"
                 + "{:04d}".format(e) + ".hdf5")
