@@ -15,13 +15,15 @@ from gym import wrappers, logger
 
 import matplotlib.pyplot as plt
 
-def plot(rewards):
+MODEL_SAVED_PATH = 'dqn-saved-model'
+
+def plot(rewards, figure = 'reward.png'):
     plt.figure(figsize=(20,5))
     plt.plot(rewards)
     plt.xlabel("Episode")
     plt.ylabel("Rewards")
-    plt.legend()
-    plt.savefig('reward.png')
+    # plt.legend()
+    plt.savefig(figure)
 
     # plt.show()
     plt.clf()
@@ -31,7 +33,7 @@ class DQNAgent:
     def __init__(self,
                  state_space, 
                  action_space, 
-                 episodes=500):
+                 episodes=500, epsilon = 1.0):
         """DQN Agent on CartPole-v0 environment
 
         Arguments:
@@ -48,7 +50,7 @@ class DQNAgent:
         self.gamma = 0.9
 
         # initially 90% exploration, 10% exploitation
-        self.epsilon = 1.0
+        self.epsilon = epsilon
         # iteratively applying decay til 
         # 10% exploration/90% exploitation
         self.epsilon_min = 0.1
@@ -96,7 +98,15 @@ class DQNAgent:
     def save_weights(self):
         """save Q Network params to a file"""
         self.q_model.save_weights(self.weights_file)
+        self.q_model.save(MODEL_SAVED_PATH)
 
+    def load_weights(self):
+        """save Q Network params to a file"""
+        # self.q_model.load_weights(self.weights_file)
+        from keras.models import load_model
+        self.q_model = load_model(MODEL_SAVED_PATH)
+        self.q_model.summary()
+        print('load weights')
 
     def update_weights(self):
         """copy trained Q Network params to target Q Network"""
@@ -253,10 +263,113 @@ class DDQNAgent(DQNAgent):
         q_value *= self.gamma
         q_value += reward
         return q_value
+    
+
+
+def test_model():
+
+    # the number of trials without falling over
+    win_trials = 1000
+
+    # the CartPole-v0 is considered solved if 
+    # for 100 consecutive trials, he cart pole has not 
+    # fallen over and it has achieved an average 
+    # reward of 195.0 
+    # a reward of +1 is provided for every timestep 
+    # the pole remains upright
+    win_reward = { 'CartPole-v0' : 195.0 }
+
+    env_id = 'CartPole-v0'
+    # stores the reward per episode
+    scores = deque(maxlen=win_trials)
+
+    logger.setLevel(logger.ERROR)
+    env = gym.make(env_id)
+
+    outdir = "/tmp/dqn-%s" % env_id
+
+    env = wrappers.Monitor(env,
+                               directory=outdir,
+                               video_callable=False,
+                               force=True)
+
+    env.seed(0)
+
+    # instantiate the DQN/DDQN agent
+    agent = DQNAgent(env.observation_space, env.action_space, epsilon = 0.01)
+    agent.load_weights()
+
+    # should be solved in this number of episodes
+    episode_count = 10
+    state_size = env.observation_space.shape[0]
+    batch_size = 64
+
+    # by default, CartPole-v0 has max episode steps = 200
+    # you can use this to experiment beyond 200
+    # env._max_episode_steps = 4000
+
+    # Q-Learning sampling and fitting
+    for episode in range(episode_count):
+        state = env.reset()
+        state = np.reshape(state, [1, state_size])
+        done = False
+        total_reward = 0
+        times = 0
+        while not done:
+            env.render()
+
+            # in CartPole-v0, action=0 is left and action=1 is right
+            action = agent.act(state)
+            next_state, reward, done, _ = env.step(action)
+            # in CartPole-v0:
+            # state = [pos, vel, theta, angular speed]
+            next_state = np.reshape(next_state, [1, state_size])
+            # store every experience unit in replay buffer
+            # agent.remember(state, action, reward, next_state, done)
+            state = next_state
+            total_reward += reward
+            times += 1
+
+            if done:
+                print("episode: {}/{}, score: {}, e: {:.2}"
+                .format(episode, episode_count-1, times, agent.epsilon))
+                print("episode_reward:", total_reward)
+
+
+        # call experience relay
+        # if len(agent.memory) >= batch_size:
+        #     agent.replay(batch_size)
+    
+        scores.append(total_reward)
+
+        # plot rewards 
+        plot(scores, 'test_reward.png')
+        mean_score = np.mean(scores)
+        # if mean_score >= win_reward[args.env_id] \
+        #         and episode >= win_trials:
+        #     print("Solved in episode %d: \
+        #            Mean survival = %0.2lf in %d episodes"
+        #           % (episode, mean_score, win_trials))
+        #     print("Epsilon: ", agent.epsilon)
+        #     agent.save_weights()
+        #     break
+        # if (episode + 1) % win_trials == 0:
+        #     print("Episode %d: Mean survival = \
+        #            %0.2lf in %d episodes" %
+        #           ((episode + 1), mean_score, win_trials))
+            
+    # agent.save_weights()
+
+    # close the env and write monitor result info to disk
+    env.close() 
+    exit(0)
 
 
 
 if __name__ == '__main__':
+    test_model()
+
+
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('env_id',
                         nargs='?',
@@ -273,7 +386,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # the number of trials without falling over
-    win_trials = 100
+    win_trials = 1000
 
     # the CartPole-v0 is considered solved if 
     # for 100 consecutive trials, he cart pole has not 
@@ -307,9 +420,13 @@ if __name__ == '__main__':
         agent = DDQNAgent(env.observation_space, env.action_space)
     else:
         agent = DQNAgent(env.observation_space, env.action_space)
+        print("dqn")
+        # exit(0)
 
+    
+    # agent.load_weights()
     # should be solved in this number of episodes
-    episode_count = 1000
+    episode_count = 500
     state_size = env.observation_space.shape[0]
     batch_size = 64
 
@@ -366,6 +483,8 @@ if __name__ == '__main__':
             print("Episode %d: Mean survival = \
                    %0.2lf in %d episodes" %
                   ((episode + 1), mean_score, win_trials))
+            
+    agent.save_weights()
 
     # close the env and write monitor result info to disk
     env.close() 
