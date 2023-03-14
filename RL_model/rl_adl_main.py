@@ -21,7 +21,7 @@ import tools_ascc
 import constants
 
 import tools_sql
-
+import matplotlib.pyplot as plt
 
 
 
@@ -66,6 +66,16 @@ For Example: Read, we got 20mins(5 times), 30mins(10), 40mins(25), 60mins(2),  f
 
 #     return prob
 
+def plot(rewards, figure = "reward.png"):
+    plt.figure(figsize=(20,5))
+    plt.plot(rewards)
+    plt.xlabel("Episode")
+    plt.ylabel("Rewards")
+    # plt.legend()
+    plt.savefig(figure)
+
+    # plt.show()
+    plt.clf()
 
 def sorter_take_count(elem):
     # print('elem:', elem)
@@ -805,8 +815,7 @@ for episode in range(episode_count):
 
     total_reward = 0
 
-
-
+    rank_res = []
     # reinforcement learning part
     while(not env.done):
 
@@ -835,6 +844,8 @@ for episode in range(episode_count):
 
         detected_activity = get_activity_by_action(action)
         ground_truth_activity = get_activity_by_time_str(cur_time_str) # TODO
+
+        rank_res.append((detected_activity, '1', cur_time_str))
         
         reward_accuracy = 0
 
@@ -1392,9 +1403,11 @@ for episode in range(episode_count):
         scores.append(total_reward)
 
         # plot rewards 
-        plot(scores)
+        plot(scores, "rl_reward.png")
 
     # while not env.done
+print("rank res", rank_res)
+# end episode for
 
 
 print("===================================================")
