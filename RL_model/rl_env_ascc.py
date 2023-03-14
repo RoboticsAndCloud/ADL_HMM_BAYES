@@ -113,10 +113,9 @@ MOTION_TRIGGERRED_ACTION = 1
 
 INTERVAL_FOR_COLLECTING_DATA = 10 # Seconds
 
-# AUDIO_ACTION = 0
-# VISION_ACTION = 1
-# MOTION_ACTION = 2
-# FUSION_ACTION = 3
+WMU_AUDIO_ACTION = 0
+WMU_VISION_ACTION = 1
+WMU_FUSION_ACTION = 2
 
 WMU_audio = "WMU_audio"
 WMU_vision = "WMU_vision"
@@ -139,6 +138,21 @@ RL_ACTION_DICT = {
     6: Robot_WMU_fusion,
     7: Nothing
 }
+
+MOTION_RECORD_TIME = 2 # 2 seconds for motion data collection
+# todo: time cost for recognition:  image: 1.15 for 10 images, audio:0.1, motion: 1.14, totally: 2.5
+ACTION_INTERVAL_DICT = {
+    0: 1,  # "audio",
+    1: 1.0/3, #"vision",
+    2: 1, # fusion  # multi-thread, audio, vision simultanously
+    3: 0, # robot
+    4: 0,
+    5: 0,
+    6: 1, # Robot_WMU_fusion
+    7: 0
+}
+
+
 
 PRIVACY_LOCATION_LIST = [constants.LOCATION_BEDROOM, constants.LOCATION_BATHROOM]
 
@@ -183,15 +197,7 @@ ACTION_DICT = {
 }
 
 
-# todo: time cost for recognition:  image: 1.15 for 10 images, audio:0.1, motion: 1.14, totally: 2.5
-ACTION_INTERVAL_DICT = {
-    0: 1,  # "audio",
-    1: 1.0/3, #"vision",
-    2: 2, #"motion"
-    3: 2, # fusion  # multi-thread, simultanously
-    4: 0, # robot
-    5: 0 # Do nothing
-}
+
 
 # ACTION_INTERVAL_DICT = {
 #     0: 1.1,  # "audio",
@@ -619,8 +625,8 @@ class EnvASCC():
         motion_triggerred_flag = False
 
         motion_interval = 3 # 3 seconds to detect the motion activity
-        if action == MOTION_ACTION or action == FUSION_ACTION:
-            motion_triggerred_flag, self.motion_triggered_interval = self.check_motion_action(action, motion_interval)
+        # if action == MOTION_ACTION or action == FUSION_ACTION:
+        #     motion_triggerred_flag, self.motion_triggered_interval = self.check_motion_action(action, motion_interval)
 
 
         self.runing_time_action_dict_motion[running_time_str] = action
@@ -641,7 +647,7 @@ class EnvASCC():
         self.time_cost = self.time_cost + sensors_time_cost 
         self.energy_cost = self.energy_cost + sensors_power_consumption
 
-        self.running_time = self.get_current_running_time(interval)
+        self.running_time = self.get_current_running_time(interval+ MOTION_RECORD_TIME)
 
 
         if not self.done:
@@ -685,9 +691,9 @@ class EnvASCC():
         self.res_hit_plus_miss_event_dict = merge_dicts(self.res_hit_event_dict, self.res_random_event_dict)
 
 
-        if RL_ACTION_DICT[action].contains(WMU_audio):
+        if WMU_audio in RL_ACTION_DICT[action]:
             self.wmu_mic_times += 1
-        if RL_ACTION_DICT[action].contains(WMU_vision):
+        if WMU_vision in RL_ACTION_DICT[action]:
             self.wmu_cam_times += 1
             
         return '', '', '', motion_triggerred_flag
@@ -699,9 +705,9 @@ class EnvASCC():
 
     def get_reward_energy(self, action):
         reward = 0
-        if RL_ACTION_DICT[action].contains(WMU_audio):
-             reward = reward + 0.3
-        if RL_ACTION_DICT[action].contains(WMU_vision):
+        if WMU_audio in RL_ACTION_DICT[action]:
+             reward = reward + 0.6
+        if WMU_vision in RL_ACTION_DICT[action]:
              reward = reward + 1
 
         return reward

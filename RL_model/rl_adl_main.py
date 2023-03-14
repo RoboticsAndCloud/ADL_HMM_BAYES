@@ -20,9 +20,9 @@ import motion_adl_bayes_model
 import tools_ascc
 import constants
 
-import tools_sql
+# import tools_sql
 import matplotlib.pyplot as plt
-
+import numpy as np
 
 
 
@@ -76,6 +76,20 @@ def plot(rewards, figure = "reward.png"):
 
     # plt.show()
     plt.clf()
+
+def plot(rewards1, rewards2, label1 = "r1", label2 = "r2"):
+    plt.figure(figsize=(20,5))
+    plt.plot(rewards1, label=label1)
+    plt.plot(rewards2, label=label1)
+
+    plt.xlabel("Episode")
+    plt.ylabel("Times")
+    plt.legend()
+    plt.savefig('multi_trigger_times.png')
+
+    plt.show()
+    plt.clf()
+
 
 def sorter_take_count(elem):
     # print('elem:', elem)
@@ -602,35 +616,24 @@ def get_activity_by_action(action):
 
 
 
-    pre_activity = top3_prob[0][0]
+    # pre_activity = top3_prob[0][0]
     cur_activity = top3_prob[0][0]
-    activity_begin_time = cur_time
-
-    pre_act_list.append(pre_activity)
-
-    node = tools_ascc.Activity_Node_Observable(pre_activity, tools_ascc.get_activity_type(cur_time_str), 0)
-    pre_activity_symbol = node.activity_res_generation()
-    pre_act_symbol_list.append(pre_activity_symbol)
-
-    activity = cur_activity
-    time = cur_time_str
-    image_source = location + LOCATION_DIR_SPLIT_SYMBOL + image_dir
-    sound_source = audio_type
-    motion_source = motion_type
-    # tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source)
-    # print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
-
-    tools_ascc.get_activity_duration_by_date()
+    # activity_begin_time = cur_time
 
     return cur_activity
+
+
 
 for episode in range(episode_count):
 
     object_dict = {}
+    env.reset()
+    rank_res = []
+
     while(pre_activity == ''):
         # open camera
 
-        audio_data, vision_data, motion_data, transition_motion = env.step(rl_env_ascc.FUSION_ACTION)  # rl_env_ascc.FUSION_ACTION?
+        audio_data, vision_data, motion_data, transition_motion = env.step(rl_env_ascc.WMU_FUSION_ACTION)
 
         # env.running_time
         # test_time_str = '2009-12-11 12:58:33'
@@ -643,125 +646,13 @@ for episode in range(episode_count):
         bayes_model_audio.set_time(cur_time_str)
         bayes_model_object.set_time(cur_time_str)
 
-        # todo change to str
-
-        # cur_activity, cur_beginning_activity, cur_end_activity = \
-        #     bayes_model_location.get_activity_from_dataset_by_time(cur_time_str)
-
-        # print('cur_time:', cur_time, ' cur_activity:', cur_activity)
-        # exit(0)
-
-        """
-        2009-12-11 08:42:03.000082	M021	ON	Sleep end
-        2009-12-11 08:42:04.000066	M028	ON
-        2009-12-11 08:42:06.000089	M020	ON
-        """
-        # if cur_activity == None or cur_activity == '':
-        #     continue
-
-
-        # detect activity, cur_activity, pre_activity
-        # Bayes model
-        # location = get_location_by_activity(cur_activity)
-        # object = get_object_by_activity(cur_activity)
-        # audio_type = get_audio_type_by_activity(cur_activity)
-        # motion_type = get_motion_type_by_activity(cur_activity)
-
-        location, location_prob, image_dir = get_location_by_activity_cnn(cur_time_str)
-        bayes_model_location.set_location_prob(location_prob)
-
-        object_dict = get_object_by_activity_yolo(cur_time_str)
-        # bayes_model_object.set_object_prob(object_prob)
-
-        audio_type, audio_type_prob = get_audio_type_by_activity_cnn(cur_time_str)
-        bayes_model_audio.set_audio_type_prob(float(audio_type_prob))
-
-        motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
-        bayes_model_motion.set_motion_type_prob(motion_type_prob)
-        # bayes_model_motion.set_motion_type(motion_type)
-
-        location_res.append([location, location_prob])
-        audio_type_res.append([audio_type, audio_type_prob])
-        motion_type_res.append([motion_type, motion_type_prob])
-        # object_res.append([object, object_prob])
-
-        print('location:', location)
-        print('object:', object_dict)
-        print('audio_type:', audio_type)
-        print('motion_type:', motion_type)
-
+        detected_activity = get_activity_by_action(rl_env_ascc.WMU_FUSION_ACTION)
         
         
-        heap_prob = []
-        heap_prob_audio_motion = []
-
-        p2_res_dict = {}
-
-        for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
-            # hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
-            hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
-
-
-            p1 = bayes_model_location.get_prob(pre_act_list, act, location, 0)
-            
-            #  bayes_model_location.prob_of_location_under_act(location, act) \
-                #  * motion_adl_bayes_model.HMM_START_MATRIX[act] /(bayes_model_location.prob_of_location_under_all_acts(location)) * bayes_model_location.prob_of_location_using_vision(location, act)
-            
-            p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, 0)
-            p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, 0)
-            # p4 = bayes_model_object.get_prob(pre_act_list, act, object, 0)
-
-            p4 = 1
-            p3 = 1
-
-            p = p1*p2*p3*p4 * hmm_prob
-                
-            res_prob[act].append(p)
-            heap_prob.append((act, p, cur_time_str))
-
-            p2_res_dict[act] = p2
-            
-        print('heap_prob:', heap_prob)
-        top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
-        print('top3_prob:', top3_prob)
-
+        rank_res.append((detected_activity, '1', cur_time_str))
         
-        activity_detected = top3_prob[0][0]
-        
-        # p_sitting_prob.append(0)
-        # p_standing_prob.append(0)
-        # p_walking_prob.append(0)
-        # if motion_type == motion_adl_bayes_model.MOTION_TYPE_SITTING:
-        #     p_sitting_prob[len(p_sitting_prob)-1] = p2
-        # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_STANDING:
-        #     p_standing_prob[len(p_standing_prob)-1] = p2
-        # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_WALKING:
-        #     p_walking_prob[len(p_walking_prob)-1] = p2
-
-
-        
-        p_activity_end = motion_adl_bayes_model.get_end_of_activity_prob_by_duration(activity_duration, activity_detected)
-
-        p_duration_lis.append(p_activity_end)
-
-
-        rank1_res_prob.append(top3_prob[0])
-        rank2_res_prob.append(top3_prob[1])
-        rank3_res_prob.append(top3_prob[2])
-
-        rank1_res_prob_norm.append(p_activity_end)
-        p_rank2 = (1-p_activity_end) * (rank2_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
-        rank2_res_prob_norm.append(p_rank2)
-        p_rank3 = (1-p_activity_end) * (rank3_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
-        rank3_res_prob_norm.append(p_rank3)
-        print('rank1_res_prob_norm:', rank1_res_prob_norm)
-        print('rank2_res_prob_norm:', rank2_res_prob_norm)
-        print('rank3_res_prob_norm:', rank3_res_prob_norm)
-
-
-
-        pre_activity = top3_prob[0][0]
-        cur_activity = top3_prob[0][0]
+        pre_activity = detected_activity
+        cur_activity = detected_activity
         activity_begin_time = cur_time
 
         pre_act_list.append(pre_activity)
@@ -769,42 +660,24 @@ for episode in range(episode_count):
         node = tools_ascc.Activity_Node_Observable(pre_activity, tools_ascc.get_activity_type(cur_time_str), 0)
         pre_activity_symbol = node.activity_res_generation()
         pre_act_symbol_list.append(pre_activity_symbol)
-
-        activity = cur_activity
-        time = cur_time_str
-        image_source = location + LOCATION_DIR_SPLIT_SYMBOL + image_dir
-        sound_source = audio_type
-        motion_source = motion_type
-        # tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source)
-        # print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
-
-
-        # TODO top3 data
-        # TODO how to get the accuracy
-
-    need_recollect_data = False
-    p_check_level = 4
-    start_check_interval = 0
-    p_less_than_threshold_check_cnt = 0
-    start_check_interval_time = None
-    living_room_check_times = LIVING_ROOM_CHECK_TIMES_MAX 
-
-
-
-
+        
+    motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
     motion_feature = motion_feature_extractor(motion_type) # [0, 0, 0, 0, 0, 1]
     battery_feature = [0, 0]
-    adl_hidden_feature = [1, 2, 4, 5, 5, 5]
+    adl_hidden_feature = [1, 2, 4, 5, 5, 5]  # to be done
 
-    features = motion_feature
-    features.extend(battery_feature)
-    features.extend(motion_feature)
-    print("features:", features)
+    # features = motion_feature
+    # features.extend(battery_feature)
+    # features.extend(motion_feature)
+    state = motion_feature + battery_feature + motion_feature
+    state_size = len(state)
+    state = np.reshape(state, [1, state_size])
+    print("features:", state)
 
     actions = []
 
     import rl_ascc_dqn
-    agent = rl_ascc_dqn.DQNAgent(len(features), len(actions))
+    agent = rl_ascc_dqn.DQNAgent(state.size, len(actions))
 
     # state = env.reset()
 
@@ -814,8 +687,12 @@ for episode in range(episode_count):
     state = cur_motion_feature + battery_feature + previous_motion_feature
 
     total_reward = 0
+    total_wmu_cam_trigger_times = 0
+    total_wmu_mic_trigger_times = 0
 
-    rank_res = []
+    
+    activity_rank_hit_times = 0
+    activity_rank_empty_times = 0
     # reinforcement learning part
     while(not env.done):
 
@@ -850,11 +727,13 @@ for episode in range(episode_count):
         reward_accuracy = 0
 
         if detected_activity == ground_truth_activity:
+            activity_rank_hit_times += 1
             if detected_activity != pre_activity:
                 reward_accuracy = 1
             else:
                 reward_accuracy = 0
         elif ground_truth_activity == '':
+            activity_rank_empty_times += 1
             reward_accuracy = 0
         else:
             reward_accuracy = -1
@@ -867,7 +746,12 @@ for episode in range(episode_count):
         if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Nothing:
             reward_accuracy = 0
 
-        
+        if pre_activity != detected_activity:
+            pre_act_list.append(pre_activity)
+            node = tools_ascc.Activity_Node_Observable(pre_activity, tools_ascc.get_activity_type(cur_time_str), 0)
+            pre_activity_symbol = node.activity_res_generation()
+            pre_act_symbol_list.append(pre_activity_symbol)
+            pre_activity = detected_activity
         
 
         reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
@@ -882,6 +766,7 @@ for episode in range(episode_count):
         next_motion_feature = motion_feature_extractor(motion_type)
         
         next_state = next_motion_feature + battery_feature + previous_motion_feature
+        next_state = np.reshape(next_state, [1, state_size])
 
         agent.remember(state, action, reward, next_state, env.done)
         state = next_state
@@ -893,615 +778,30 @@ for episode in range(episode_count):
             .format(episode, episode_count-1, total_reward, agent.epsilon))
 
 
-
-        
-
-
-        # if need_recollect_data:
-        #     audio_data, vision_data, motion_data, transition_motion = env.step(rl_env_ascc.FUSION_ACTION)  
-        #     location, location_prob, image_dir = get_location_by_activity_cnn(cur_time_str)
-        #     bayes_model_location.set_location_prob(location_prob)
-
-        #     object_dict = get_object_by_activity_yolo(cur_time_str)
-        #     # bayes_model_object.set_object_prob(object_prob)
-        #     object = object_dict
-
-        #     audio_type, audio_type_prob = get_audio_type_by_activity_cnn(cur_time_str)
-        #     bayes_model_audio.set_audio_type_prob(audio_type_prob)
-
-        #     motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
-        #     bayes_model_motion.set_motion_type_prob(motion_type_prob)
-        #     # bayes_model_motion.set_motion_type(motion_type)
-
-
-        #     location_res.append([location, location_prob])
-        #     audio_type_res.append([audio_type, audio_type_prob])
-        #     # motion_type_res.append([motion_type, motion_type_prob])
-
-        #     if location == '':
-        #         print('Location  empty:', cur_time)
-        #         cur_time = env.get_running_time()
-        #         cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
-        #         continue
-
-        # else:
-        #     # INTERVAL_FOR_COLLECTING_DATA
-        #     audio_data, vision_data, motion_data, transition_motion = env.step(rl_env_ascc.MOTION_ACTION)  
-
-        #     # detect transition: the end of walk activity
-        #     motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
-        #     bayes_model_motion.set_motion_type_prob(motion_type_prob)
-
-        #     location_res.append(['', ''])
-        #     audio_type_res.append(['', ''])
-        #     # motion_type_res.append([motion_type, motion_type_prob])
-
-
-
-
-
-        heap_prob = []
-        heap_prob_audio_motion = []
-        # if transition_motion:
-        #     cur_time = env.get_running_time()
-        #     cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
-        #     print('Env Running:', cur_time) 
-            
-        #     bayes_model_location.set_time(cur_time_str)
-        #     bayes_model_motion.set_time(cur_time_str)
-        #     bayes_model_audio.set_time(cur_time_str)
-        #     bayes_model_object.set_time(cur_time_str)
-
-        #     cur_activity, cur_beginning_activity, cur_end_activity = \
-        #         bayes_model_location.get_activity_from_dataset_by_time(cur_time_str)
-                
-        #     if cur_activity == None or cur_activity == '' or cur_activity == 'Sleep':
-        #         continue
-
-        #     location = get_location_by_activity(cur_activity)
-        #     object = get_object_by_activity(cur_activity)
-        #     audio_type = get_audio_type_by_activity(cur_activity)
-        #     motion_type = get_motion_type_by_activity(cur_activity)
-
-        #     print('location:', location)
-        #     print('object:', object)
-        #     print('audio_type:', audio_type)
-        #     print('motion_type:', motion_type)
-
-        #     # if pre_activity != cur_activity:
-        #     #     activity_begin_time = cur_time
-            
-        #     activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
-
-
-        #     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
-        #         print("transition step act:", act)
-        #         hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
-
-        #         p1 = bayes_model_location.get_prob(pre_act_list, act, location, activity_duration)
-        #         p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
-        #         p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
-        #         p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
-
-        #         p = p1*p2*p3*p4 * hmm_prob
-                
-        #         print("transition step act:", act)
-        #         print('p1:', p1)
-        #         print('p2:', p2)
-        #         print('p3:', p3)
-        #         print('p4:', p4)
-        #         print('p:', p)
-        #         print("======================================================")
-
-        #         res_prob[act].append(p) 
-        #         heap_prob.append((act, p, cur_time_str))
-
-        # else:
-        #     # motion data  or audio data
-        #     # new activity
-        #     # Bayes model prob    
-
-        cur_time = env.get_running_time()
-        cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
-        print('Env Running:', cur_time) 
-
-        
-
-        bayes_model_location.set_time(cur_time_str)
-        bayes_model_motion.set_time(cur_time_str)
-        bayes_model_audio.set_time(cur_time_str)
-        # bayes_model_object.set_time(cur_time_str)
-
-        # cur_activity, cur_beginning_activity, cur_end_activity = \
-        #     bayes_model_location.get_activity_from_dataset_by_time(cur_time_str)
-
-        # if cur_activity == None or cur_activity == '' or cur_activity == 'Sleep':
-        #     continue
-        
-        activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
-        # prob_of_activity_by_duration = get_end_of_activity_prob_by_duration(activity_duration, cur_activity)
-
-        # location = get_location_by_activity(cur_activity)
-        # object = get_object_by_activity(cur_activity)
-        # motion_type = get_motion_type_by_activity(cur_activity)
-        # audio_type = get_audio_type_by_activity(cur_activity)
-
-        print('location:', location)
-        print('object:', object)
-        print('audio_type:', audio_type)
-        print('motion_type:', motion_type)
-
-        # # TODO: get the probability of motion type from motion_type = get_motion_type_by_activity(cur_activity)
-        # p_sitting_prob.append(0)
-        # p_standing_prob.append(0)
-        # p_walking_prob.append(0)
-        
-        # if motion_type == motion_adl_bayes_model.MOTION_TYPE_SITTING:
-        #     p_sitting_prob[len(p_sitting_prob)-1] = p2
-        # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_STANDING:
-        #     p_standing_prob[len(p_standing_prob)-1] = p2
-        # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_WALKING:
-        #     p_walking_prob[len(p_walking_prob)-1] = p2
-
-
-
-        for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
-            print("motion step act:", act)
-            # hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
-
-            hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
-
-
-            print('hmm_prob:', hmm_prob)
-
-            if need_recollect_data:
-                p1 = bayes_model_location.get_prob(pre_act_list, act, location, activity_duration)
-                p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
-                p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
-                p4 = bayes_model_object.get_prob(pre_act_list, act, object, activity_duration)
-
-                # p4 = 1
-                # p3 = 1
-                
-                p_audio_motion = p2 * p3 * hmm_prob
-
-                # todo, in the living room, we can collect audio data more times (3 -r times), to confirm the activity
-                # or, we can get object activity
-                # object == constants.OBJECT_BOOK
-                #if audio_type == constants.AUDIO_TYPE_ENV:
-            
-
-
-                if location == constants.LOCATION_LIVINGROOM:
-                    living_room_check_flag = True
-
-                    res_object = location
-                    res_object_p = constants.MIN_Prob
-                    
-                    object_laptop_flag = False
-                    object_book_flag = False
-                    for object, prob in object_dict:
-                        if object == constants.OBJECT_LAPTOP:
-                            object_laptop_flag = True
-                        elif object == constants.OBJECT_BOOK:
-                            object_book_flag = True
-
-
-                    for object, prob in object_dict:
-                        print('in living room:', object, ' cur_time_str:', cur_time_str)
-                        if object == constants.OBJECT_LAPTOP:
-                            res_object = object
-                            res_object_p = prob
-                            bayes_model_object.set_object_prob(res_object_p)
-                            p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
-                            break
-                        elif object == constants.OBJECT_BOOK:
-
-                            if object_laptop_flag == True:
-                                continue
-
-                            res_object = object
-                            res_object_p = prob
-                            bayes_model_object.set_object_prob(res_object_p)
-                            p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
-
-
-                        elif object == constants.OBJECT_TV:
-                            if object_book_flag == True or object_laptop_flag == True:
-                                continue
-                            
-                            res_object = object
-                            res_object_p = prob
-                            bayes_model_object.set_object_prob(res_object_p)
-                            p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
-
-                    # p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, activity_duration)
-                    
-                p3 = p3 * AUDIO_WEIGHT
-
-                p1 = 1
-                p4 = 1
-                    
-                
-                p = p1*p2*p3*p4 * hmm_prob
-
-                
-                print("need_recollect_data step act:", act)
-                print('hmm_prob:', hmm_prob)
-                print('p1_location:', p1)
-                print('p2_motion:', p2)
-                print('p3_sound:', p3)
-                print('p4_object:', p4)
-            else:
-                p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, activity_duration)
-                p = p2 * hmm_prob
-
-                p_audio_motion = p
-
-                
-            print("motion step act:", act)
-            print('p:', p)
-            print("======================================================")
-
-            res_prob[act].append(p) 
-            heap_prob.append((act, p, cur_time_str))
-
-            heap_prob_audio_motion.append((act, p_audio_motion, cur_time_str))
-
-
-
-
-        top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
-        activity_detected = top3_prob[0][0]
-
-        top3_prob_audio_motion = sorted(heap_prob_audio_motion, key=sorter_take_count,reverse=True)[:3]
-
-
-        # # TODO: get the probability of motion type from motion_type = get_motion_type_by_activity(cur_activity)
-        # p_sitting_prob.append(0)
-        # p_standing_prob.append(0)
-        # p_walking_prob.append(0)
-        
-        # if motion_type == motion_adl_bayes_model.MOTION_TYPE_SITTING:
-        #     p_sitting_prob[len(p_sitting_prob)-1] = p2
-        # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_STANDING:
-        #     p_standing_prob[len(p_standing_prob)-1] = p2
-        # elif motion_type == motion_adl_bayes_model.MOTION_TYPE_WALKING:
-        #     p_walking_prob[len(p_walking_prob)-1] = p2
-
-
-    
-
-
-        print('pre_act_list:', pre_act_list)
-        print('pre_act_symbol_list:', pre_act_symbol_list)
-        print('heap_prob:', heap_prob)
-        top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
-        print('#########top3_prob:', top3_prob)
-        # TODO: normalization for the top3 prob
-        # if top3_prob[0] < threshold:
-        #     need_recollect_data = True
-
-        rank1_res_prob.append(top3_prob[0])
-        rank2_res_prob.append(top3_prob[1])
-        rank3_res_prob.append(top3_prob[2])
-
-        # tmp_r0 = top3_prob[0][1]
-        # tmp_r1 = top3_prob[1][1]
-        # tmp_r2 = top3_prob[2][1]
-
-        # tmp_p0_norm = 1.0 * (tmp_r0 + 1e-200) /(tmp_r0 + tmp_r1 + tmp_r2 + 3* 1e-200)
-        # tmp_p1_norm = 1.0 * (tmp_r1+ 1e-200) /(tmp_r0 + tmp_r1 + tmp_r2 + 3* 1e-200)
-        # tmp_p2_norm = 1.0 * (tmp_r2 + 1e-200)/(tmp_r0 + tmp_r1 + tmp_r2 + 3* 1e-200)
-
-        # rank1_res_prob_norm.append(tmp_r0)
-        # rank2_res_prob_norm.append(tmp_p1_norm)
-        # rank3_res_prob_norm.append(tmp_p2_norm)
-        
-        # After got the new activity, We use the duration of the activity to predict the probability
-        # Another way is to use the prob in top3 list and calculate the probability, but the probability of top1 is always 1, for example:
-        # #########top3_prob: [('Kitchen_Activity', 0.0040946136848312, '2009-12-11 12:19:39'), ('Read', 6.066726746069896e-35, '2009-12-11 12:19:39'), ('Guest_Bathroom', 1.8050356738103724e-35, '2009-12-11 12:19:39')]
-        rank1_res_prob_norm.append(p_activity_end)
-        p_rank2 = (1-p_activity_end) * (rank2_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
-        rank2_res_prob_norm.append(p_rank2)
-        p_rank3 = (1-p_activity_end) * (rank3_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
-        rank3_res_prob_norm.append(p_rank3)
-
-
-        print('#########top3_prob_audio_motion:', top3_prob_audio_motion)
-        tmp_r0 = top3_prob_audio_motion[0][1]
-        tmp_r1 = top3_prob_audio_motion[1][1]
-        tmp_r2 = top3_prob_audio_motion[2][1]
-
-        tmp_p0_norm = 1.0 * (tmp_r0 + 1e-200) /(tmp_r0 + tmp_r1 + tmp_r2 + 3* 1e-200)
-        tmp_p1_norm = 1.0 * (tmp_r1+ 1e-200) /(tmp_r0 + tmp_r1 + tmp_r2 + 3* 1e-200)
-        tmp_p2_norm = 1.0 * (tmp_r2 + 1e-200)/(tmp_r0 + tmp_r1 + tmp_r2 + 3* 1e-200)
-        print('#########top3_prob_audio_motion: r1, r2, r3:', tmp_p0_norm, " ", tmp_p1_norm, " ", tmp_p2_norm)
-
-        if need_recollect_data == True:
-            if top3_prob[0][0] != top3_prob_audio_motion[0][0]:
-                print('########audio motion vs audio vision motion not equal')
-            else:
-                print('########audio motion vs audio vision motion equal')
-
-
-        need_recollect_data = False
-        
-        p_activity_end = motion_adl_bayes_model.get_end_of_activity_prob_by_duration(activity_duration, activity_detected)
-
-        p_duration_lis.append(p_activity_end)
-
-
-
-        if activity_detected == pre_activity:
-        # if activity_detected == activity_detected:
-
-            print('p_activity_end:', p_activity_end)
-        #     # todo if p_activity_end < 0.2, audio,vision+motion
-        #     if (p_activity_end < 0.4) and (p_check_level == 4):
-        #         start_check_interval_time = cur_time
-        #         need_recollect_data = True
-        #         p_check_level = p_check_level -1
-        #     if (p_activity_end < 0.3) and (p_check_level == 3):
-        #         start_check_interval_time = cur_time
-        #         need_recollect_data = True
-        #         p_check_level = p_check_level -1
-        #     if (p_activity_end < 0.2) and (p_check_level == 2):
-        #         start_check_interval_time = cur_time
-        #         p_check_level = p_check_level -1
-
-            if p_activity_end < 0.9:    
-                if start_check_interval_time == None:
-                    start_check_interval_time = cur_time
-
-                start_check_interval = (cur_time - start_check_interval_time).seconds 
-                print('start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
-
-                if (int(start_check_interval) / UNCERTAIN_CHECK_INTERVAL) >= 1:
-                    need_recollect_data = True
-                    print('reset start_check_interval:', start_check_interval, ' start_check_interval_time:', start_check_interval_time)
-                    start_check_interval = 0
-                    start_check_interval_time = cur_time
-
-        #     #     need_recollect_data = True
-        #     #     p_check_level = p_check_level -1
-        #     # if (p_activity_end < 0.1) and (p_check_level == 1):
-        #     #     need_recollect_data = True
-        #     #     p_check_level = p_check_level -1
-        #     # if (p_activity_end < 0.05) and (p_check_level == 0):
-        #     #     need_recollect_data = True
-        #     #     p_check_level = p_check_level -1
-        #     # if (p_activity_end < 0.01):
-        #     #     need_recollect_data = True
-        #     #     p_check_level = p_check_level -1
-        #     print("############need_recollect_data p_check_level:", need_recollect_data, ' ', p_check_level)
-        #     if need_recollect_data:
-        #         p_less_than_threshold_check_cnt = p_less_than_threshold_check_cnt + 1
-
-
-
-        # todo, if rank1 - rank2 < 0.001, p= p+ p*p_audio, to get a more accurate res
-        #        
-        cur_activity = top3_prob[0][0]
-
-        if location == constants.LOCATION_LOBBY:
-            cur_activity = pre_activity
-            print('++++++++++++++Around lobby,', cur_time_str)
-
-        # if living_room_check_times == MAX:
-        # 
-
-        # incase the wrong prediction from HMM model
-        if location == '' and cur_activity != pre_activity:
-            cur_activity = pre_activity
-            need_recollect_data = True
-
-        if pre_activity != cur_activity:
-
-
-            if location == constants.LOCATION_LIVINGROOM and living_room_check_times > 0:
-                cur_activity = pre_activity
-                print('++++++++++++++ in living room, checks:', living_room_check_times, ' ', cur_time_str)
-
-            if new_activity_check_times == DOUBLE_CHECK:
-                cur_activity = pre_activity
-                new_activity_check_times = new_activity_check_times - 1
-                need_recollect_data = TRUE
-            else:
-                new_activity_check_times = DOUBLE_CHECK
-
-        if pre_activity != cur_activity:
-            
-
-            pre_activity = cur_activity
-            
-            
-            activity = cur_activity
-            time = cur_time_str
-            image_source = location + LOCATION_DIR_SPLIT_SYMBOL + image_dir
-            sound_source = audio_type
-            motion_source = motion_type
-            object_source = ''
-
-            if location == constants.LOCATION_LIVINGROOM:
-                for object, prob in object_dict:
-                    object_source = object_source + '_' + object
-
-
-
-            # tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source, object_source)
-            # print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
-
-            pre_act_list.append(pre_activity)
-
-            node = tools_ascc.Activity_Node_Observable(pre_activity, tools_ascc.get_activity_type(cur_time_str), 0)
-            pre_activity_symbol = node.activity_res_generation()
-            pre_act_symbol_list.append(pre_activity_symbol)
-
-            activity_begin_time = cur_time
-            need_recollect_data = False
-            p_check_level = 4
-            start_check_interval_time = None
-            start_check_interval = 0
-
-            # when new activity occrs, double check that, the model will generate the new next activity, we need to confirm again
-            # need_recollect_data = True
-
-
-        
-        if len(rank1_res_prob) % 1000 == 0:
-            print("===================================================")
-            # print out results
-            print('rank1:')
-            print(rank1_res_prob)
-
-            print('rank2:')
-            print(rank2_res_prob)
-
-            print('rank3:')
-            print(rank3_res_prob)
-
-            print('res_prob:')
-            print(res_prob)
-
-        print('last motion type:', motion_type_res[-1], ' cur motion_type:', motion_type)
-        if (motion_type_res[-1][0] == motion_adl_bayes_model.MOTION_TYPE_WALKING) and (motion_type != motion_adl_bayes_model.MOTION_TYPE_WALKING):
-            print('Transition occur:', 'last motion type:', motion_type_res[-1], ' cur motion_type:', motion_type)
-            transition_motion = TRUE
-            need_recollect_data = True
-            transition_motion_occur.append(cur_time_str)
-
-            # activity = cur_activity
-            # time = cur_time_str
-            # image_source = location
-            # sound_source = audio_type
-            # motion_source = motion_type
-            # object_source = ''
-            # if location == constants.LOCATION_LIVINGROOM:
-            #     for k in object.keys():
-            #         object_source = object_source + '_' + k
-
-            # tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source, object_source)
-            # print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
-
-        if living_room_check_flag == True and living_room_check_times > 0:
-            print('living_room_check_flag occur:', 'times:', living_room_check_flag, ' cur motion_type:', living_room_check_times)
-            living_room_check_times = living_room_check_times -1
-            need_recollect_data = True
-        else:
-            living_room_check_times = LIVING_ROOM_CHECK_TIMES_MAX
-            living_room_check_flag = False
-
-
-        location_res.append([location, location_prob])
-        audio_type_res.append([audio_type, audio_type_prob])
-        motion_type_res.append([motion_type, motion_type_prob])
-
     if len(agent.memory) >= batch_size:
         agent.replay(batch_size)
     
-        scores.append(total_reward)
+    scores.append(total_reward)
+    # plot rewards 
+    plot(scores, "rl_reward.png")
 
-        # plot rewards 
-        plot(scores, "rl_reward.png")
+    total_wmu_cam_trigger_times.append(env.wmu_cam_times)
+    total_wmu_mic_trigger_times.append(env.wmu_mic_times)
+    plot(total_wmu_cam_trigger_times, total_wmu_mic_trigger_times, label1="camera", label2="microphone")
 
+    print("rank res", rank_res)
+    print("hit times:{}, empty times:{}, total times:{}".format(activity_rank_hit_times, activity_rank_empty_times, len(rank_res)))
+    print("hit ratio:", activity_rank_hit_times*1.0/len(rank_res), "hit_empty ratio:", (activity_rank_hit_times + activity_rank_empty_times)*1.0/len(rank_res))
+
+    # plot(total_wmu_cam_trigger_times, "wmu_cam_times.png")
+    # plot(total_wmu_mic_trigger_times, "wmu_mic_times.png")
     # while not env.done
+
+
+print("===================================================")
 print("rank res", rank_res)
 # end episode for
 
 
 print("===================================================")
-# print out results
-print('rank1:', len(rank1_res_prob))
-print(rank1_res_prob)
 
-print('rank2:', len(rank2_res_prob))
-print(rank2_res_prob)
-
-print('rank3:', len(rank3_res_prob))
-print(rank3_res_prob)
-
-print('res_prob:', len(res_prob))
-print(res_prob)
-
-print('p_duration_lis:', len(p_duration_lis))
-print(p_duration_lis)
-
-print('rank1_res_prob_norm:', rank1_res_prob_norm)
-print('rank2_res_prob_norm:', rank2_res_prob_norm)
-print('rank3_res_prob_norm:', rank3_res_prob_norm)
-
-print('location_res len:', len(location_res))
-print('location_res:', location_res)
-print('audio_type_res:', audio_type_res)
-print('motion_type_res:', motion_type_res)
-
-print('transition_motion_occur len:', len(transition_motion_occur))
-print('transition_motion_occur:', transition_motion_occur)
-print('p_less_than_threshold_check_cnt(uncertain when p < 0.4, 0.3, 0.2):', p_less_than_threshold_check_cnt)
-
-# # motion probabilities during activities
-# print('p_sitting_prob:', len(p_sitting_prob))
-# print(p_sitting_prob)
-
-# print('p_standing_prob:', len(p_standing_prob))
-# print(p_standing_prob)
-
-# print('p_walking_prob:', len(p_walking_prob))
-# print(p_walking_prob)
-
-# todo: probability of each activities obtained from the p_duration, for example, cur_activity is 'Read', P_duration(Read) = 0.8, then p(rank2) + p(rank3) = 1-p(Read)=1- 0.8  = 0.2
-
-
-
-print("===================================================")
-
-if env.done:
-    print("Activity_none_times:", env.activity_none_times)
-    print("Expected_activity_none_times:", env.expected_activity_none_times)
-    print("Hit times:", env.done_hit_event_times)
-    print("Miss times:", env.done_missed_event_times)
-    print("Random Miss times:", env.done_random_miss_event_times)
-    print("Middle times:", env.done_middle_event_times)
-    print("Penalty times:", env.done_penalty_times)
-    print("Uncertain times:", env.done_uncertain_times)
-    print("Total times:", env.done_totol_check_times)
-    print("Residual power:", env.done_residual_power)
-    print("Beginning event times:", env.done_beginning_event_times)
-    print("Endding event times:", env.done_end_event_times)
-    print("Middle event times:", env.done_middle_event_times)
-    print("Day End Running time:", env.done_running_time)
-    print("Reward:", env.done_reward)
-    print("Done status:", env.done)
-    print("Sensors Energy cost:", env.done_energy_cost)
-    print("Sensors Time cost:", env.done_time_cost)
-    print("Sensors Energy total  cost:", env.energy_cost)
-    print("Sensors Time total cost:", env.time_cost)
-    print("Total Time cost:", env.done_total_time_cost)
-    print("Motion_triggered_times:", env.motion_triggered_times)
-    print("Hit_activity_check_times", env.hit_activity_check_times)
-    end_time_of_wmu = datetime.strptime(env.done_running_time.strftime(DATE_TIME_FORMAT).split()[1], HOUR_TIME_FORMAT)
-    print("Duration of Day:", (end_time_of_wmu - env.day_begin).seconds/3600.0)
-
-end_time_of_wmu = datetime.strptime(env.done_running_time.strftime(DATE_TIME_FORMAT).split()[1], HOUR_TIME_FORMAT)
-print("Duration of Day:", (end_time_of_wmu - env.day_begin).seconds/3600.0)
-
-
-print("Display information:")
-# env.display_action_counter()
-# env.display_info()
-print("===================================================")
-
-print("Activity_none_times \t Expected_activity_none_times \t Hit times \t Miss times \
-    \t Random Miss times \t Penalty times \t Uncertain times \t Total times \
-    \t Residual power \t Beginning event times \t Endding event times \t Middle event times \
-    \t Day End Running time \t Done status \t Duration of Day \t DoneReward \t Reward  \
-    \t Sensors energy cost \t Sensors time cost \t total time cost \t Motion_triggered_times \t Hit_activity_check_times \t motion_activity_cnt \t")
-
-print(env.activity_none_times, '\t', env.expected_activity_none_times, '\t',env.done_hit_event_times, '\t', env.done_missed_event_times, \
-    '\t', env.done_random_miss_event_times, '\t', env.done_penalty_times, '\t', env.done_uncertain_times, '\t', env.done_totol_check_times, \
-    '\t', env.done_residual_power, '\t', env.done_beginning_event_times, '\t', env.done_end_event_times, '\t', env.done_middle_event_times, \
-    '\t', env.done_running_time, '\t', env.done, '\t', (end_time_of_wmu - env.day_begin).seconds/3600.0, '\t', 0, '\t', 0, \
-    '\t', env.done_energy_cost, '\t', env.done_time_cost, "\t", env.done_total_time_cost, "\t", env.motion_triggered_times, '\t', env.hit_activity_check_times, '\t',env.motion_activity_cnt)
-
-print("===================================================")
