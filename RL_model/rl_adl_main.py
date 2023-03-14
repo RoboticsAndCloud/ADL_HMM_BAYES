@@ -737,7 +737,6 @@ for episode in range(episode_count):
         # env check the action and the cost time
         env.step(action)
 
-        print('Env Running (after step):', cur_time_str, " evn.runing:", env.get_running_time()) 
 
         reward_energy = env.get_reward_energy(action)
         reward_privacy = env.get_reward_privacy(action, cur_time_str)
@@ -746,7 +745,6 @@ for episode in range(episode_count):
         detected_activity = ground_truth_activity
         reward_accuracy = 0
 
-        print("Env truth activity:", ground_truth_activity)
 
         if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion \
             or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_audio or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision:
@@ -781,7 +779,11 @@ for episode in range(episode_count):
         
 
         reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
-        print("Env reward:", reward, " reward_accuracy,", reward_energy, ", ", reward_privacy)
+        print("Env state:", state)
+        print("Env action: ", action, " ", rl_env_ascc.RL_ACTION_DICT[action])
+        print("Env reward:", reward, " accuracy|energy|privacy:", reward_accuracy, ", ", reward_energy, ", ", reward_privacy)
+        print("Env truth activity:", ground_truth_activity)
+        print('Env Running (after step):', cur_time_str, " evn.runing:", env.get_running_time()) 
 
         wmu_mic_times, wmu_cam_times = env.get_wmu_sensor_trigger_times()
         battery_feature = [wmu_mic_times, wmu_cam_times]
