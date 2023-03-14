@@ -95,6 +95,88 @@ def get_hmm_model():
 
     return model
 
+
+day_time_str = '2009-12-11'
+day_begin ='08:45:00'
+
+
+activity_date_dict, activity_begin_dict, activity_end_dict, \
+        activity_begin_list, activity_end_list  = tools_ascc.get_activity_date(day_time_str)
+
+def get_activity_by_time_str(activity_time_str):
+
+    
+
+    day_begin, day_end = tools_ascc.get_day_begin_end(activity_date_dict,
+                                            activity_begin_dict, activity_end_dict)
+
+    hit_activity_check_times = 0
+
+    print("=====================================")
+    print("Date:", day_time_str)
+    print("activity_begin_dict", len(activity_begin_dict))
+    print("activity_end_dict", len(activity_end_dict))
+
+    motion_activity_cnt = 0
+    import collections
+    output_dict = {}
+    output_dict2 = {}  # timestamp is at the beginning
+
+    output_miss_event_dict = {}
+
+    last_hit_time_list = []
+    last_miss_time_set = set()
+    print("Activity", "\t", "Start", "\t", "End", "\t", "Duration")
+
+    for key in activity_begin_dict.keys():
+        time_list_begin = activity_begin_dict[key]
+        time_list_end = activity_end_dict[key]
+        if key == 'Sleep':
+            time_list_begin = time_list_begin[:-1]
+            time_list_end = time_list_end[1:]
+        for t_i in range(len(time_list_begin)):
+            a_begin = datetime.strptime(time_list_begin[t_i], tools_ascc.DATE_HOUR_TIME_FORMAT)
+            try:
+                a_end = datetime.strptime(time_list_end[t_i], tools_ascc.DATE_HOUR_TIME_FORMAT)
+            except:
+                print("End list not good", len(time_list_begin), len(time_list_end))
+                break
+
+            duration = (a_end - a_begin).seconds * 1.0 /60
+
+
+            # each day start after getting up (sleep end), ignore the activies before the time of 'sleep end'
+            tmp_a_end = datetime.strptime(time_list_begin[t_i].split()[1], HOUR_TIME_FORMAT)
+            if tmp_a_end < day_begin:
+                print("A end < day begin, ignore:", a_end, day_begin)
+                break
+
+            motion_activity_cnt = motion_activity_cnt + 1
+
+            if duration > 0:
+                tmp_str = key + "\t" + time_list_begin[t_i] + "\t" + time_list_end[t_i] + "\t" + str(duration)
+                tmp_str2 = time_list_begin[t_i] + "\t" + time_list_end[t_i] + "\t" + key + "\t" + str(duration)
+
+                output_dict[time_list_begin[t_i]] = tmp_str
+                output_dict2[time_list_begin[t_i]] = tmp_str2
+
+
+
+                k_time = activity_time_str
+                hit_time = datetime.strptime(k_time, tools_ascc.DATE_HOUR_TIME_FORMAT)
+                if hit_time >= a_begin and hit_time <= a_end:
+                    hit_activity_check_times = hit_activity_check_times + 1
+                    ## Note: in dict, the time is out off order
+                    last_hit_time_list.append(hit_time)
+                    # print("#####:hit time:", hit_time, key)
+                    return key
+       
+    return ''
+
+
+
+
+
 def get_object_by_activity(activity):
     # book, medicine, laptop, plates & fork & food, toilet
     print('object activity:', activity)
@@ -183,10 +265,10 @@ def get_location_by_activity_cnn(time_str):
     # should be act : probability
     # /home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/src/
     # ascc_room_activity_test.py
-    location, prob, image_dir = tools_ascc.get_activity_by_vision_dnn(time_str, action='vision')
+    location, prob = tools_ascc.get_activity_by_vision_dnn(time_str, action='vision')
     print('get_location_by_activity_CNN time_str:', time_str, ' location:', location, ' prob:', prob)
 
-    return location, float(prob), image_dir
+    return location, float(prob)
 
 def get_motion_type_by_activity(activity):
     # motion type: sitting, standing, walking, random by the probs
@@ -387,7 +469,7 @@ def get_activity_by_action(action):
     bayes_model_object.set_time(cur_time_str)
 
 
-    location, location_prob, image_dir = get_location_by_activity_cnn(cur_time_str)
+    location, location_prob = get_location_by_activity_cnn(cur_time_str)
     bayes_model_location.set_location_prob(location_prob)
 
     object_dict = get_object_by_activity_yolo(cur_time_str)
@@ -749,10 +831,10 @@ for episode in range(episode_count):
 
         # TODO: calulate the reward based on accuracy, privacy, energy
         reward_energy = env.get_reward_energy(action)
-        reward_privacy = env.get_reward_privacy(action)
+        reward_privacy = env.get_reward_privacy(action, cur_time_str)
 
         detected_activity = get_activity_by_action(action)
-        ground_truth_activity = tools_ascc.get_activity_by_day_str(); # TODO
+        ground_truth_activity = get_activity_by_time_str(cur_time_str) # TODO
         
         reward_accuracy = 0
 
@@ -761,9 +843,12 @@ for episode in range(episode_count):
                 reward_accuracy = 1
             else:
                 reward_accuracy = 0
+        elif ground_truth_activity == '':
+            reward_accuracy = 0
         else:
             reward_accuracy = -1
 
+        pre_activity = ground_truth_activity
 
         if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion:
             reward_accuracy = 1
@@ -771,21 +856,26 @@ for episode in range(episode_count):
         if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Nothing:
             reward_accuracy = 0
 
+        
+        
 
-
-        reward = reward_accuracy*w_accuracy - reward_energy*w_energy + reward_privacy*w_privacy
+        reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
 
         wmu_mic_times, wmu_cam_times = env.get_wmu_sensor_trigger_times()
         battery_feature = [wmu_mic_times, wmu_cam_times]
 
+        # after the action, time changes and motion changes
+        cur_time = env.get_running_time()
+        cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
         motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
-        cur_motion_feature = motion_feature_extractor(motion_type)
+        next_motion_feature = motion_feature_extractor(motion_type)
         
-        next_state = cur_motion_feature + battery_feature + previous_motion_feature
+        next_state = next_motion_feature + battery_feature + previous_motion_feature
 
         agent.remember(state, action, reward, next_state, env.done)
         state = next_state
         total_reward += reward
+        previous_motion_feature = next_motion_feature
 
         if env.done:
             print("episode: {}/{}, episode_reward: {}, e: {:.2}"

@@ -28,7 +28,7 @@ from PIL import Image
 from datetime import datetime
 from datetime import timedelta
 
-
+import constants
 import tools_ascc
 
 
@@ -120,9 +120,12 @@ INTERVAL_FOR_COLLECTING_DATA = 10 # Seconds
 
 WMU_audio = "WMU_audio"
 WMU_vision = "WMU_vision"
-WMU_fusion = "WMU_fusion"
-Robot_audio_vision = "Robot_audio_vision"
-Robot_WMU_fusion = "Robot_WMU_fusion"
+WMU_fusion = WMU_audio + WMU_vision
+Robot_audio_vision = "Robot_fusion"
+Robot_WMU_audio = Robot_audio_vision + WMU_audio
+Robot_WMU_vision = Robot_audio_vision + WMU_vision
+Robot_WMU_fusion = Robot_audio_vision + WMU_fusion
+
 Nothing = "Nothing"
 
 
@@ -131,9 +134,13 @@ RL_ACTION_DICT = {
     1: WMU_vision, 
     2: WMU_fusion,  
     3: Robot_audio_vision,
-    4: Robot_WMU_fusion, # robot and WMU both capture data
-    5: Nothing
+    4: Robot_WMU_audio, # robot and WMU both capture data
+    5: Robot_WMU_vision,
+    6: Robot_WMU_fusion,
+    7: Nothing
 }
+
+PRIVACY_LOCATION_LIST = [constants.LOCATION_BEDROOM, constants.LOCATION_BATHROOM]
 
 
 # action map
@@ -479,7 +486,8 @@ class EnvASCC():
         self.motion_triggered_interval = 0
         self.motion_triggered_times = 0
 
-        #todo self.begin_event_times:
+        self.wmu_mic_times = 0
+        self.wmu_cam_times = 0
 
         # Reset the running time to day_begin
         self.reset()
@@ -556,6 +564,9 @@ class EnvASCC():
         self.runing_time_action_dict_motion = {}
 
         self.motion_triggered_times = 0
+
+        self.wmu_mic_times = 0
+        self.wmu_cam_times = 0
 
         next_state_ = [train_running_time / STATE_TIME_TRANS, (self.activity / 100)]
         # next_state_ = [train_running_time, self.initial_state, self.residual_power]
@@ -673,10 +684,36 @@ class EnvASCC():
 
         self.res_hit_plus_miss_event_dict = merge_dicts(self.res_hit_event_dict, self.res_random_event_dict)
 
-        return '', '', '', motion_triggerred_flag
 
-    def get_reward_energy():
+        if RL_ACTION_DICT[action].contains(WMU_audio):
+            self.wmu_mic_times += 1
+        if RL_ACTION_DICT[action].contains(WMU_vision):
+            self.wmu_cam_times += 1
+            
+        return '', '', '', motion_triggerred_flag
+    
+    
+    def get_wmu_sensor_trigger_times(self):
+
+        return self.wmu_mic_times, self.wmu_cam_times
+
+    def get_reward_energy(self, action):
         reward = 0
+        if RL_ACTION_DICT[action].contains(WMU_audio):
+             reward = reward + 0.3
+        if RL_ACTION_DICT[action].contains(WMU_vision):
+             reward = reward + 1
+
+        return reward
+    
+    def get_reward_privacy(self, action, time_str):
+
+        reward = 0
+        location, prob = tools_ascc.get_activity_by_vision_dnn(time_str, action='vision')
+        print('get_location_by_activity_CNN time_str:', time_str, ' location:', location, ' prob:', prob)
+
+        if location in PRIVACY_LOCATION_LIST:
+            reward = reward + 1
 
         return reward
 
