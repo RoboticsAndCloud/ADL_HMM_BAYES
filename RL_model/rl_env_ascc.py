@@ -139,7 +139,7 @@ RL_ACTION_DICT = {
     7: Nothing
 }
 
-MOTION_RECORD_TIME = 2 # 2 seconds for motion data collection
+MOTION_RECORD_TIME = 2.3 # 2 seconds for motion data collection
 # todo: time cost for recognition:  image: 1.15 for 10 images, audio:0.1, motion: 1.14, totally: 2.5
 ACTION_INTERVAL_DICT = {
     0: 1,  # "audio",

@@ -641,13 +641,13 @@ def get_activity_by_motion_dnn(time_str, action='vision'):
     
     date_format_str = '%Y-%m-%d %H:%M:%S'
     if DEBUG:
-        print("get_activity time_str:", time_str)
+        print("get_activity_by_motion_dnn:", time_str)
     d_act = datetime.strptime(time_str, date_format_str)
 
     image_dir_name = get_exist_image_dir(time_str, action)
     if image_dir_name == '':
         return [], []
-    print('===:', image_dir_name)
+    # print('===:', image_dir_name)
 
     motion_dir_name = image_dir_name.replace('Image', 'Motion')
     # /home/ascc/LF_Workspace/ReinforcementLearning/ASCC_Energy_Consumption/ASCC-RL-Algorithms_New_Reward_Test_Part/ascc_activity_real_data_0309//Image/2009-12-11-08-45-15/

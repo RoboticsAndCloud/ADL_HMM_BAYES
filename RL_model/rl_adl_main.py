@@ -136,10 +136,10 @@ def get_activity_by_time_str(activity_time_str):
 
     hit_activity_check_times = 0
 
-    print("=====================================")
-    print("Date:", day_time_str)
-    print("activity_begin_dict", len(activity_begin_dict))
-    print("activity_end_dict", len(activity_end_dict))
+    # print("=====================================")
+    # print("Date:", day_time_str)
+    # print("activity_begin_dict", len(activity_begin_dict))
+    # print("activity_end_dict", len(activity_end_dict))
 
     motion_activity_cnt = 0
     import collections
@@ -497,7 +497,7 @@ def get_activity_by_action(cur_time_str, action):
     audio_type = ""
     motion_type = ""
 
-    
+
     if action == 1 or action == 2 or action == 5 or action == 6:
         location, location_prob = get_location_by_activity_cnn(cur_time_str)
         bayes_model_location.set_location_prob(location_prob)
@@ -781,7 +781,7 @@ for episode in range(episode_count):
         
 
         reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
-        print("Env reward:", reward)
+        print("Env reward:", reward, " reward_accuracy,", reward_energy, ", ", reward_privacy)
 
         wmu_mic_times, wmu_cam_times = env.get_wmu_sensor_trigger_times()
         battery_feature = [wmu_mic_times, wmu_cam_times]
@@ -813,7 +813,8 @@ for episode in range(episode_count):
             print("Rewards:", total_reward)
             print("")
 
-            print("===================================================")
+        print("===================================================")
+
 
 
     if len(agent.memory) >= batch_size:
