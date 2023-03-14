@@ -187,14 +187,14 @@ Interval (Secconds)
 #     2: "audio_vision with 0 interval"
 # }
 
-ACTION_DICT = {
-    0: "audio with 1 interval",  # "audio",
-    1: "vision with 1/3 interval", #"vision",
-    2: "motion with 2 interval", #"motion"
-    3: "audio vision (fusion) with 2+1/3 interval",  # "fusion",
+# ACTION_DICT = {
+#     0: "audio with 1 interval",  # "audio",
+#     1: "vision with 1/3 interval", #"vision",
+#     2: "motion with 2 interval", #"motion"
+#     3: "audio vision (fusion) with 2+1/3 interval",  # "fusion",
 
 
-}
+# }
 
 
 
@@ -633,19 +633,19 @@ class EnvASCC():
 
         self.action_count_store(action)
 
-        sensors_power_consumption, sensors_time_cost = self.sensors_energy_time_cost(action)
+        # sensors_power_consumption, sensors_time_cost = self.sensors_energy_time_cost(action)
 
-        if DEBUG:
-            print("Step--p_action power_consumption:", sensors_power_consumption, " time cost:", sensors_time_cost)
+        # if DEBUG:
+        #     print("Step--p_action power_consumption:", sensors_power_consumption, " time cost:", sensors_time_cost)
 
         done = False
 
         # power restriction
-        self.residual_power = self.residual_power - sensors_power_consumption
+        # self.residual_power = self.residual_power - sensors_power_consumption
 
 
-        self.time_cost = self.time_cost + sensors_time_cost 
-        self.energy_cost = self.energy_cost + sensors_power_consumption
+        # self.time_cost = self.time_cost + sensors_time_cost 
+        # self.energy_cost = self.energy_cost + sensors_power_consumption
 
         self.running_time = self.get_current_running_time(interval+ MOTION_RECORD_TIME)
 
@@ -654,9 +654,9 @@ class EnvASCC():
             # self.done_reward = reward
             self.done_residual_power = self.residual_power
             self.done_running_time = self.running_time
-            self.done_time_cost = self.done_time_cost + sensors_time_cost
-            self.done_energy_cost = self.done_energy_cost + sensors_power_consumption
-            self.done_total_time_cost = self.done_total_time_cost + sensors_time_cost
+            # self.done_time_cost = self.done_time_cost + sensors_time_cost
+            # self.done_energy_cost = self.done_energy_cost + sensors_power_consumption
+            # self.done_total_time_cost = self.done_total_time_cost + sensors_time_cost
 
         if self.residual_power <= 0:
             done = True #  Battery is dead
@@ -664,7 +664,7 @@ class EnvASCC():
             # print("Done = True, self.residual_power: ", self.residual_power)
         
 
-        self.running_time = self.get_current_running_time(sensors_time_cost)
+        # self.running_time = self.get_current_running_time(sensors_time_cost)
 
         if not self.done:
             self.done_running_time = self.running_time

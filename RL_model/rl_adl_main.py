@@ -405,7 +405,7 @@ def motion_feature_extractor(motion_type):
     from keras.utils import to_categorical
     output_matrix = to_categorical(class_vector, num_classes = 6, dtype ="int32")
 
-    print(output_matrix)
+    # print(output_matrix)
     # [[0 0 0 0 0 1]]
 
     return output_matrix[0]
@@ -669,6 +669,8 @@ for episode in range(episode_count):
     # features = motion_feature
     # features.extend(battery_feature)
     # features.extend(motion_feature)
+    # print("features:", features)
+    motion_feature = list(motion_feature)
     state = motion_feature + battery_feature + motion_feature
     state_size = len(state)
     state = np.reshape(state, [1, state_size])
@@ -676,8 +678,10 @@ for episode in range(episode_count):
 
     actions = []
 
+    action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
+
     import rl_ascc_dqn
-    agent = rl_ascc_dqn.DQNAgent(state.size, len(actions))
+    agent = rl_ascc_dqn.DQNAgent(state.size, action_space)
 
     # state = env.reset()
 
@@ -710,41 +714,46 @@ for episode in range(episode_count):
         object_dict = {}
 
         # agent chose an action based on the state
+        print('Env Running:', cur_time) 
         action = agent.act(state)
+        print("Env state:", state)
+        print("Env action: ", action, " ", rl_env_ascc.RL_ACTION_DICT[action])
 
         # env check the action and the cost time
         env.step(action)
 
-        # TODO: calulate the reward based on accuracy, privacy, energy
         reward_energy = env.get_reward_energy(action)
         reward_privacy = env.get_reward_privacy(action, cur_time_str)
 
-        detected_activity = get_activity_by_action(action)
         ground_truth_activity = get_activity_by_time_str(cur_time_str) # TODO
-
-        rank_res.append((detected_activity, '1', cur_time_str))
-        
+        detected_activity = ground_truth_activity
         reward_accuracy = 0
 
-        if detected_activity == ground_truth_activity:
-            activity_rank_hit_times += 1
-            if detected_activity != pre_activity:
-                reward_accuracy = 1
-            else:
-                reward_accuracy = 0
-        elif ground_truth_activity == '':
-            activity_rank_empty_times += 1
-            reward_accuracy = 0
-        else:
-            reward_accuracy = -1
+        print("Env truth activity:", ground_truth_activity)
 
-        pre_activity = ground_truth_activity
-
-        if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion:
+        if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion \
+            or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_audio or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision:
             reward_accuracy = 1
+        else:
+            detected_activity = get_activity_by_action(action)
+
+            if detected_activity == ground_truth_activity:
+                activity_rank_hit_times += 1
+                if detected_activity != pre_activity:
+                    reward_accuracy = 1
+                else:
+                    reward_accuracy = 0
+            elif ground_truth_activity == '':
+                activity_rank_empty_times += 1
+                reward_accuracy = 0
+            else:
+                reward_accuracy = -1
 
         if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Nothing:
             reward_accuracy = 0
+
+        rank_res.append((detected_activity, '1', cur_time_str))
+        pre_activity = ground_truth_activity
 
         if pre_activity != detected_activity:
             pre_act_list.append(pre_activity)
@@ -755,6 +764,7 @@ for episode in range(episode_count):
         
 
         reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
+        print("Env reward:", reward)
 
         wmu_mic_times, wmu_cam_times = env.get_wmu_sensor_trigger_times()
         battery_feature = [wmu_mic_times, wmu_cam_times]
@@ -764,7 +774,8 @@ for episode in range(episode_count):
         cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
         motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
         next_motion_feature = motion_feature_extractor(motion_type)
-        
+
+        next_motion_feature = list(next_motion_feature)
         next_state = next_motion_feature + battery_feature + previous_motion_feature
         next_state = np.reshape(next_state, [1, state_size])
 
@@ -776,6 +787,16 @@ for episode in range(episode_count):
         if env.done:
             print("episode: {}/{}, episode_reward: {}, e: {:.2}"
             .format(episode, episode_count-1, total_reward, agent.epsilon))
+
+        if env.totol_check_times % 30 == 0:
+            print("===================================================")
+            print("total check times:", env.totol_check_times)
+            print("Env wmu mic trigger times:", env.wmu_mic_times)
+            print("Env wmu cam trigger times:", env.wmu_cam_times)
+            print("Rewards:", total_reward)
+            print("")
+
+            print("===================================================")
 
 
     if len(agent.memory) >= batch_size:
@@ -803,5 +824,5 @@ print("rank res", rank_res)
 # end episode for
 
 
-print("===================================================")
+
 
