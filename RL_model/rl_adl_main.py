@@ -751,6 +751,9 @@ for episode in range(episode_count):
             reward_accuracy = 1
         else:
             detected_activity = get_activity_by_action(cur_time_str, action)
+            print("detected_activity:", detected_activity)
+            print("pre_activity:", pre_activity)
+
 
             if detected_activity == ground_truth_activity:
                 activity_rank_hit_times += 1

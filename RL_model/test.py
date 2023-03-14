@@ -16,6 +16,30 @@ from gym import wrappers, logger
 import matplotlib.pyplot as plt
 
 
+def plot(rewards):
+    plt.figure(figsize=(20,5))
+    plt.plot(rewards)
+    plt.xlabel("Episode")
+    plt.ylabel("Rewards")
+    # plt.legend()
+    plt.savefig('reward.png')
+
+    # plt.show()
+    plt.clf()
+
+def plot(rewards1, rewards2):
+    plt.figure(figsize=(20,5))
+    plt.plot(rewards1, label='rewards1')
+    plt.plot(rewards2, label='rewards2')
+
+    plt.xlabel("Episode")
+    plt.ylabel("Rewards")
+    plt.legend()
+    plt.savefig('multi_reward.png')
+
+    plt.show()
+    plt.clf()
+
 def motion_feature_extractor():
     motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
 
@@ -45,12 +69,16 @@ MOTION_ACTIVITY_MAPPING = {
     5: 'walking'
 }
 
+# r1 = [1,2,3,4,5,6]
+# r2 = [3,4,5,6,7]
+# plot(r1, r2)
+
 motion_feature = [0, 0, 0, 0, 0, 1]
 battery_feature = [1, 3]
 adl_hidden_feature = [1, 2, 4, 5, 5, 5]
 
-# features = motion_feature
-# features.extend(battery_feature)
+features = motion_feature
+features.extend(battery_feature)
 state = motion_feature + battery_feature + motion_feature
 print("features:", state)
 
@@ -89,15 +117,41 @@ output_matrix = to_categorical(class_vector, num_classes = 6, dtype ="int32")
 print(output_matrix)
 # [[0 0 0 0 0 1]]
 
+motion_feature = list(output_matrix[0])
+state = motion_feature + battery_feature + motion_feature
+
+print("features:", state)
+print(type(state))
+
+state = np.reshape(state, [1, len(state)])
+print("features:", state)
+print("features size:", state.size)
+
+WMU_audio = "WMU_audio"
+WMU_vision = "WMU_vision"
+WMU_fusion = WMU_audio + WMU_vision
+Robot_audio_vision = "Robot_fusion"
+Robot_WMU_audio = Robot_audio_vision + WMU_audio
+Robot_WMU_vision = Robot_audio_vision + WMU_vision
+Robot_WMU_fusion = Robot_audio_vision + WMU_fusion
+
+Nothing = "Nothing"
+
+RL_ACTION_DICT = {
+    0: WMU_audio,  
+    1: WMU_vision, 
+    2: WMU_fusion,  
+    3: Robot_audio_vision,
+    4: Robot_WMU_audio, # robot and WMU both capture data
+    5: Robot_WMU_vision,
+    6: Robot_WMU_fusion,
+    7: Nothing
+}
+
+action_space = list(RL_ACTION_DICT.keys())
+print(action_space)
+print(random.sample(action_space,1))
+
+
 exit(0)
 
-def plot(rewards):
-    plt.figure(figsize=(20,5))
-    plt.plot(rewards)
-    plt.xlabel("Episode")
-    plt.ylabel("Rewards")
-    # plt.legend()
-    plt.savefig('reward.png')
-
-    # plt.show()
-    plt.clf()
