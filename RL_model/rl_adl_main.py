@@ -480,11 +480,11 @@ w_privacy = 1 - w_accuracy - w_energy
 # 1 = w_accuracy + w_energy + w_privacy
 
 
-def get_activity_by_action(action):
+def get_activity_by_action(cur_time_str, action):
     # env.running_time
     # test_time_str = '2009-12-11 12:58:33'
-    cur_time = env.get_running_time()
-    cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
+    # cur_time = env.get_running_time()
+    # cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
     print('cur_time:', cur_time)
     
     bayes_model_location.set_time(cur_time_str)
@@ -492,23 +492,32 @@ def get_activity_by_action(action):
     bayes_model_audio.set_time(cur_time_str)
     bayes_model_object.set_time(cur_time_str)
 
+    location = ""
+    object_dict = ""
+    audio_type = ""
+    motion_type = ""
 
-    location, location_prob = get_location_by_activity_cnn(cur_time_str)
-    bayes_model_location.set_location_prob(location_prob)
+    
+    if action == 1 or action == 2 or action == 5 or action == 6:
+        location, location_prob = get_location_by_activity_cnn(cur_time_str)
+        bayes_model_location.set_location_prob(location_prob)
 
-    object_dict = get_object_by_activity_yolo(cur_time_str)
+        location_res.append([location, location_prob])
+
+        
+        object_dict = get_object_by_activity_yolo(cur_time_str)
     # bayes_model_object.set_object_prob(object_prob)
 
-    audio_type, audio_type_prob = get_audio_type_by_activity_cnn(cur_time_str)
-    bayes_model_audio.set_audio_type_prob(float(audio_type_prob))
+    if action == 0 or action == 2 or action == 4 or action == 6:
+        audio_type, audio_type_prob = get_audio_type_by_activity_cnn(cur_time_str)
+        bayes_model_audio.set_audio_type_prob(float(audio_type_prob))
+        audio_type_res.append([audio_type, audio_type_prob])
 
     motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
     bayes_model_motion.set_motion_type_prob(motion_type_prob)
-    # bayes_model_motion.set_motion_type(motion_type)
-
-    location_res.append([location, location_prob])
-    audio_type_res.append([audio_type, audio_type_prob])
     motion_type_res.append([motion_type, motion_type_prob])
+
+    
     # object_res.append([object, object_prob])
 
     print('location:', location)
@@ -523,20 +532,30 @@ def get_activity_by_action(action):
 
     p2_res_dict = {}
 
+    # RL_ACTION_DICT = {
+    # 0: WMU_audio,  
+    # 1: WMU_vision, 
+    # 2: WMU_fusion,  
+    # 3: Robot_audio_vision,
+    # 4: Robot_WMU_audio, # robot and WMU both capture data
+    # 5: Robot_WMU_vision,
+    # 6: Robot_WMU_fusion,
+    # 7: Nothing
+    # }
+
     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
         # hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
         hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
 
+        p1 = 1
+        if action == 1 or action == 2 or action == 5 or action == 6:
+            p1 = bayes_model_location.get_prob(pre_act_list, act, location, 0)
 
-        p1 = bayes_model_location.get_prob(pre_act_list, act, location, 0)
         p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, 0)
-        p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, 0)
-        # p4 = bayes_model_object.get_prob(pre_act_list, act, object, 0)
 
-        if action == 0: # audio
-            p1 = 1
-        if action == 1:
-            p3 = 1
+        p3 = 1
+        if action == 0 or action == 2 or action == 4 or action == 6:
+            p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, 0)
         
         p4 =1 
 
@@ -646,7 +665,7 @@ for episode in range(episode_count):
         bayes_model_audio.set_time(cur_time_str)
         bayes_model_object.set_time(cur_time_str)
 
-        detected_activity = get_activity_by_action(rl_env_ascc.WMU_FUSION_ACTION)
+        detected_activity = get_activity_by_action(cur_time_str, rl_env_ascc.WMU_FUSION_ACTION)
         
         
         rank_res.append((detected_activity, '1', cur_time_str))
@@ -700,10 +719,6 @@ for episode in range(episode_count):
     # reinforcement learning part
     while(not env.done):
 
-        # TODO:
-        # p = rank1_res_prob[-1]
-        # if p of previous detection is smaller than threshodl, env.step(rl_env_ascc.FUSION_ACTION)
-
         location = ''
         object = ''
         motion_type = ''
@@ -714,13 +729,15 @@ for episode in range(episode_count):
         object_dict = {}
 
         # agent chose an action based on the state
-        print('Env Running:', cur_time) 
+        print('Env Running:', cur_time_str, " evn.runing:", env.get_running_time()) 
         action = agent.act(state)
         print("Env state:", state)
         print("Env action: ", action, " ", rl_env_ascc.RL_ACTION_DICT[action])
 
         # env check the action and the cost time
         env.step(action)
+
+        print('Env Running (after step):', cur_time_str, " evn.runing:", env.get_running_time()) 
 
         reward_energy = env.get_reward_energy(action)
         reward_privacy = env.get_reward_privacy(action, cur_time_str)
@@ -735,7 +752,7 @@ for episode in range(episode_count):
             or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_audio or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision:
             reward_accuracy = 1
         else:
-            detected_activity = get_activity_by_action(action)
+            detected_activity = get_activity_by_action(cur_time_str, action)
 
             if detected_activity == ground_truth_activity:
                 activity_rank_hit_times += 1
