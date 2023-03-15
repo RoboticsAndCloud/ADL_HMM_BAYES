@@ -412,6 +412,20 @@ def motion_feature_extractor(motion_type):
     return output_matrix[0]
 
 
+def adl_hidden_feature_extractor(act):
+    # motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
+
+    act_id = tools_ascc.get_key(tools_ascc.ACTIVITY_DICT, act)
+
+    class_vector =[act_id]
+    # print(class_vector)
+
+    # Applying the function on input class vector
+    from keras.utils import to_categorical
+    output_matrix = to_categorical(class_vector, num_classes = len(tools_ascc.ACTIVITY_DICT), dtype ="int32")
+
+    return output_matrix[0]
+
 
 env = rl_env_ascc.EnvASCC(TEST_BASE_DATE + ' 00:00:00')
 env.reset()
@@ -496,6 +510,24 @@ def get_target_folder_time_str(cur_time_str):
         target_time_str = ''
 
     return target_time_str
+
+def get_activity_prediction_by_hmm():
+    res = {}
+    for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
+        # hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
+        hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
+        res[act] = hmm_prob
+
+    sd = sorted(res.items(), key=sorter_take_count, reverse=True)
+
+    # return the act with high prob TODO
+    for k,v in sd:
+        print('res2:', k, ' v:', v)
+        return k
+    # break
+
+    return ''
+
 
 def get_activity_by_action(cur_time_str, action):
     # env.running_time
@@ -685,6 +717,9 @@ for episode in range(episode_count):
     env.reset()
     rank_res = []
 
+    pre_act_list = []
+    pre_act_symbol_list = []
+
     while(pre_activity == ''):
         # open camera
 
@@ -719,7 +754,11 @@ for episode in range(episode_count):
     motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
     motion_feature = motion_feature_extractor(motion_type) # [0, 0, 0, 0, 0, 1]
     battery_feature = [0, 0]
-    adl_hidden_feature = [1, 2, 4, 5, 5, 5]  # to be done
+    #adl_hidden_feature = [1, 2, 4, 5, 5, 5]  # to be done
+    predicted_activity = get_activity_prediction_by_hmm()
+    # adl_hidden_feature = adl_hidden_feature_extractor(predicted_activity) # seems useless
+    # currenty activity = get_activity_by_time_str(cur_time_str)
+    # duration activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
 
     # features = motion_feature
     # features.extend(battery_feature)
@@ -835,6 +874,7 @@ for episode in range(episode_count):
             pre_activity_symbol = node.activity_res_generation()
             pre_act_symbol_list.append(pre_activity_symbol)
             pre_activity = detected_activity
+            activity_begin_time = env.get_running_time()
         
 
         reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
@@ -852,6 +892,10 @@ for episode in range(episode_count):
         cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
         motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
         next_motion_feature = motion_feature_extractor(motion_type)
+
+        # currenty activity = get_activity_by_time_str(cur_time_str)
+        # duration activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
+
 
         next_motion_feature = list(next_motion_feature)
         next_state = next_motion_feature + battery_feature + previous_motion_feature

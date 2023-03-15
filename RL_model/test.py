@@ -117,6 +117,18 @@ output_matrix = to_categorical(class_vector, num_classes = 6, dtype ="int32")
 print(output_matrix)
 # [[0 0 0 0 0 1]]
 
+class_vector = [[1, 2, 3, 4, 5],[1, 3, 8, 10, 14]
+                ]
+output_matrix = to_categorical(class_vector)
+# print(output_matrix)
+
+class_vector = [[[1], [2], [3], [4], [5]],[[1], [3], [8], [10], [14]]
+                ]
+output_matrix = to_categorical(class_vector)
+print(output_matrix)
+
+# exit(0)
+
 motion_feature = list(output_matrix[0])
 state = motion_feature + battery_feature + motion_feature
 
@@ -178,6 +190,31 @@ if k in di.keys():
 image_dir_name = "/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/Ascc_Dataset_0819//Image/2009-12-11-08-46-27/"
 target_time_str = image_dir_name.split('Image/')[1].rstrip('/')
 print(target_time_str)
+
+timestamp = 10
+
+for i in range(timestamp, 20-5):
+    print("i:",)
+
+
+res_dict = {}
+res_dict['kitchen'] = 0.2
+res_dict['bedroom'] = 0.3
+res_dict['bathroom'] = 0.1
+res_dict['livingroom'] = 0.4
+
+print("len:", len(res_dict))
+
+def sorter_take_count(elem):
+    # print('elem:', elem)
+    return elem[1]
+
+sd = sorted(res_dict.items(), key=sorter_take_count, reverse=True)
+
+
+for k,v in sd:
+    print('res2:', k, ' v:', v)
+    # break
 
 exit(0)
 
