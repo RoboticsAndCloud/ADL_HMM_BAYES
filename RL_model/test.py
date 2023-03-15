@@ -153,5 +153,31 @@ print(action_space)
 print(random.sample(action_space,1))
 
 
+thisdict =	{
+  "brand": "Ford",
+  "model": "Mustang",
+  "year": 1964
+}
+thisdict["color"] = "red"
+print(thisdict)
+
+di = {}
+di[1] = 2
+di[2] = (3,4)
+print(di)
+
+a, b = di[2]
+print(a)
+print(b)
+
+k = 2
+if k in di.keys():
+    print(di[k])
+
+
+image_dir_name = "/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/Ascc_Dataset_0819//Image/2009-12-11-08-46-27/"
+target_time_str = image_dir_name.split('Image/')[1].rstrip('/')
+print(target_time_str)
+
 exit(0)
 

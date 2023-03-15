@@ -313,6 +313,7 @@ def get_motion_type_by_activity(activity):
 
 def get_motion_type_by_activity_cnn(time_str):
 
+    # TODO: get motion type for time_motion_type dict
     # Mapping
     # should be act : probability
     # /home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/src/
@@ -468,7 +469,7 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 3
+episode_count = 1
 batch_size = 64
 
 # stores the reward per episode
@@ -479,6 +480,22 @@ w_energy = 0.3
 w_privacy = 1 - w_accuracy - w_energy
 # 1 = w_accuracy + w_energy + w_privacy
 
+time_location_dict = {}
+time_sound_dict = {}
+time_motion_dict = {}
+time_object_dict = {}
+
+def get_target_folder_time_str(cur_time_str):
+    target_time_str = ''
+    try:
+        image_dir_name = tools_ascc.get_exist_image_dir(cur_time_str, action)
+        # /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/Ascc_Dataset_0819//Image/2009-12-11-08-46-27/
+        target_time_str = image_dir_name.split('Image/')[1].rstrip('/')
+    except Exception as e:
+        print(e)
+        target_time_str = ''
+
+    return target_time_str
 
 def get_activity_by_action(cur_time_str, action):
     # env.running_time
@@ -498,24 +515,43 @@ def get_activity_by_action(cur_time_str, action):
     motion_type = ""
 
 
-    if action == 1 or action == 2 or action == 5 or action == 6:
-        location, location_prob = get_location_by_activity_cnn(cur_time_str)
-        bayes_model_location.set_location_prob(location_prob)
+    target_folder_time_str = get_target_folder_time_str(cur_time_str)
 
-        location_res.append([location, location_prob])
+    if target_folder_time_str in time_location_dict.keys():
+        location, location_prob = time_location_dict[target_folder_time_str]
+        object_dict = time_object_dict[target_folder_time_str]
+        audio_type, audio_type_prob = time_sound_dict[target_folder_time_str]
+        motion_type, motion_type_prob = time_motion_dict[target_folder_time_str]
 
-        
-        object_dict = get_object_by_activity_yolo(cur_time_str)
-    # bayes_model_object.set_object_prob(object_prob)
+        print("the dict works")
 
-    if action == 0 or action == 2 or action == 4 or action == 6:
-        audio_type, audio_type_prob = get_audio_type_by_activity_cnn(cur_time_str)
-        bayes_model_audio.set_audio_type_prob(float(audio_type_prob))
-        audio_type_res.append([audio_type, audio_type_prob])
+    else:
+        if action == 1 or action == 2 or action == 5 or action == 6:
+            location, location_prob = get_location_by_activity_cnn(cur_time_str)
+            bayes_model_location.set_location_prob(location_prob)
 
-    motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
-    bayes_model_motion.set_motion_type_prob(motion_type_prob)
-    motion_type_res.append([motion_type, motion_type_prob])
+            location_res.append([location, location_prob])
+
+            
+            object_dict = get_object_by_activity_yolo(cur_time_str)
+
+            time_location_dict[target_folder_time_str] = (location, location_prob)
+            time_object_dict[target_folder_time_str] = object_dict
+
+        # bayes_model_object.set_object_prob(object_prob)
+
+        if action == 0 or action == 2 or action == 4 or action == 6:
+            audio_type, audio_type_prob = get_audio_type_by_activity_cnn(cur_time_str)
+            bayes_model_audio.set_audio_type_prob(float(audio_type_prob))
+            audio_type_res.append([audio_type, audio_type_prob])
+
+            time_sound_dict[target_folder_time_str] = (audio_type, audio_type_prob)
+
+        motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
+        bayes_model_motion.set_motion_type_prob(motion_type_prob)
+        motion_type_res.append([motion_type, motion_type_prob])
+
+        time_motion_dict[target_folder_time_str] = (motion_type, motion_type_prob)
 
     
     # object_res.append([object, object_prob])
@@ -735,6 +771,7 @@ for episode in range(episode_count):
         print("Env action: ", action, " ", rl_env_ascc.RL_ACTION_DICT[action])
 
         # env check the action and the cost time
+        action = 6 # rl_env_ascc.Robot_WMU_fusion # to get the time recognition dict
         env.step(action)
 
 
@@ -745,10 +782,29 @@ for episode in range(episode_count):
         detected_activity = ground_truth_activity
         reward_accuracy = 0
 
+                # Todo 
+        detected_activity = get_activity_by_action(cur_time_str, action)
+        print("detected_activity:", detected_activity)
+        print("pre_activity:", pre_activity)
+
+        if env.totol_check_times % 30 == 0:
+            print("===================================================")
+            print("total check times:", env.totol_check_times)
+
+            print("tmp time_location_dict:", time_location_dict)
+            print("tmp time_object_dict:", time_object_dict)
+            print("tmp time_sound_dict:", time_sound_dict)
+            print("tmp time_motion_dict:", time_motion_dict)
+        
+        cur_time = env.get_running_time()
+        cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
+        continue
+
 
         if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion \
             or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_audio or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision:
             reward_accuracy = 1
+
         else:
             detected_activity = get_activity_by_action(cur_time_str, action)
             print("detected_activity:", detected_activity)
@@ -818,9 +874,18 @@ for episode in range(episode_count):
             print("Rewards:", total_reward)
             print("")
 
+            print("tmp time_location_dict:", time_location_dict)
+            print("tmp time_object_dict:", time_object_dict)
+            print("tmp time_sound_dict:", time_sound_dict)
+            print("tmp time_motion_dict:", time_motion_dict)
+
         print("===================================================")
 
 
+    print("time_location_dict:", time_location_dict)
+    print("time_object_dict:", time_object_dict)
+    print("time_sound_dict:", time_sound_dict)
+    print("time_motion_dict:", time_motion_dict)
 
     if len(agent.memory) >= batch_size:
         agent.replay(batch_size)
@@ -840,6 +905,8 @@ for episode in range(episode_count):
     # plot(total_wmu_cam_trigger_times, "wmu_cam_times.png")
     # plot(total_wmu_mic_trigger_times, "wmu_mic_times.png")
     # while not env.done
+
+
 
 
 print("===================================================")
