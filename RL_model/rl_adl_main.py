@@ -154,6 +154,9 @@ def get_activity_by_time_str(activity_time_str):
     last_miss_time_set = set()
     print("Activity", "\t", "Start", "\t", "End", "\t", "Duration")
 
+    res = []
+    res_dict = {}
+
     for key in activity_begin_dict.keys():
         time_list_begin = activity_begin_dict[key]
         time_list_end = activity_end_dict[key]
@@ -174,7 +177,7 @@ def get_activity_by_time_str(activity_time_str):
             # each day start after getting up (sleep end), ignore the activies before the time of 'sleep end'
             tmp_a_end = datetime.strptime(time_list_begin[t_i].split()[1], HOUR_TIME_FORMAT)
             if tmp_a_end < day_begin:
-                print("A end < day begin, ignore:", a_end, day_begin)
+                # print("A end < day begin, ignore:", a_end, day_begin)
                 break
 
             motion_activity_cnt = motion_activity_cnt + 1
@@ -191,16 +194,32 @@ def get_activity_by_time_str(activity_time_str):
                 k_time = activity_time_str
                 hit_time = datetime.strptime(k_time, tools_ascc.DATE_HOUR_TIME_FORMAT)
                 if hit_time >= a_begin and hit_time <= a_end:
+                    print("key a_begin, a_begin, hit_time:",key, a_begin, a_end, hit_time)
+
                     hit_activity_check_times = hit_activity_check_times + 1
                     ## Note: in dict, the time is out off order
                     last_hit_time_list.append(hit_time)
                     # print("#####:hit time:", hit_time, key)
-                    return key
-       
+                    # return key
+                    res.append((key, a_begin, a_end, hit_time))
+                    res_dict[key] = a_begin
+
+    print(res)
+
+    if len(res) == 1:
+        return res[0][0]
+    elif len(res) > 1:
+        sd = sorted(res_dict.items(), key=sorter_take_count, reverse=True)
+        for k,v in sd:
+            return k
+
+                
+    print("Got empty hit_time:", hit_time)
     return ''
 
-
-
+# test_time_str = '2009-12-11 09:10:30'
+# print(get_activity_by_time_str(test_time_str))
+# exit(0)
 
 
 def get_object_by_activity(activity):
@@ -485,7 +504,7 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 1
+episode_count = 99
 batch_size = 64
 
 # stores the reward per episode
@@ -709,9 +728,9 @@ def get_activity_by_action(cur_time_str, action):
     rank2_res_prob_norm.append(p_rank2)
     p_rank3 = (1-p_activity_end) * (rank3_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
     rank3_res_prob_norm.append(p_rank3)
-    print('rank1_res_prob_norm:', rank1_res_prob_norm)
-    print('rank2_res_prob_norm:', rank2_res_prob_norm)
-    print('rank3_res_prob_norm:', rank3_res_prob_norm)
+    # print('rank1_res_prob_norm:', rank1_res_prob_norm)
+    # print('rank2_res_prob_norm:', rank2_res_prob_norm)
+    # print('rank3_res_prob_norm:', rank3_res_prob_norm)
 
 
 
@@ -731,6 +750,16 @@ for episode in range(episode_count):
 
     pre_act_list = []
     pre_act_symbol_list = []
+
+    pre_activity = ''
+
+    rank1_res_prob = []
+    rank2_res_prob = []
+    rank3_res_prob = []
+
+    rank1_res_prob_norm = []
+    rank2_res_prob_norm = []
+    rank3_res_prob_norm = []
 
     while(pre_activity == ''):
         # open camera
@@ -838,7 +867,7 @@ for episode in range(episode_count):
         reward_privacy = env.get_reward_privacy(action, cur_time_str)
 
         ground_truth_activity = get_activity_by_time_str(cur_time_str) # TODO
-        detected_activity = ground_truth_activity
+        # detected_activity = ground_truth_activity
         reward_accuracy = 0
 
         # Todo 
@@ -847,6 +876,8 @@ for episode in range(episode_count):
         # print("pre_activity:", pre_activity)
         # cur_time = env.get_running_time()
         # cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
+
+        pre_activity = pre_act_list[-1]
 
         if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion \
             or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_audio or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision:
@@ -877,14 +908,18 @@ for episode in range(episode_count):
             reward_accuracy = 0
 
         rank_res.append((detected_activity, '1', cur_time_str))
-        pre_activity = ground_truth_activity
+        
+        # TODO: in real test, cur_activity = detected_activity
+        cur_activity = ground_truth_activity
 
-        if pre_activity != detected_activity:
-            pre_act_list.append(pre_activity)
-            node = tools_ascc.Activity_Node_Observable(pre_activity, tools_ascc.get_activity_type(cur_time_str), 0)
+        if cur_activity != pre_act_list[-1] and cur_activity != '':
+            pre_act_list.append(cur_activity)
+            print("pre_activity:", pre_act_list[-1], " cur_activity:", cur_activity)
+            print("pre_act_list:", pre_act_list)
+            node = tools_ascc.Activity_Node_Observable(cur_activity, tools_ascc.get_activity_type(cur_time_str), 0)
             pre_activity_symbol = node.activity_res_generation()
             pre_act_symbol_list.append(pre_activity_symbol)
-            pre_activity = detected_activity
+            # pre_activity = detected_activity
             activity_begin_time = env.get_running_time()
         
 
@@ -957,6 +992,9 @@ for episode in range(episode_count):
     print("hit times:{}, empty times:{}, total times:{}".format(activity_rank_hit_times, activity_rank_empty_times, len(rank_res)))
     print("hit ratio:", activity_rank_hit_times*1.0/len(rank_res), "hit_empty ratio:", (activity_rank_hit_times + activity_rank_empty_times)*1.0/len(rank_res))
 
+    print('rank1_res_prob_norm:', rank1_res_prob_norm)
+    print('rank2_res_prob_norm:', rank2_res_prob_norm)
+    print('rank3_res_prob_norm:', rank3_res_prob_norm)
     # plot(total_wmu_cam_trigger_times, "wmu_cam_times.png")
     # plot(total_wmu_mic_trigger_times, "wmu_mic_times.png")
     # while not env.done
