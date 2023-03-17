@@ -841,14 +841,12 @@ for episode in range(episode_count):
         detected_activity = ground_truth_activity
         reward_accuracy = 0
 
-                # Todo 
-        detected_activity = get_activity_by_action(cur_time_str, action)
-        print("detected_activity:", detected_activity)
-        print("pre_activity:", pre_activity)
-
-        
-        cur_time = env.get_running_time()
-        cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
+        # Todo 
+        # detected_activity = get_activity_by_action(cur_time_str, action)
+        # print("detected_activity:", detected_activity)
+        # print("pre_activity:", pre_activity)
+        # cur_time = env.get_running_time()
+        # cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
 
         if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion \
             or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_audio or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision:
@@ -906,8 +904,6 @@ for episode in range(episode_count):
         motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
         next_motion_feature = motion_feature_extractor(motion_type)
 
-        # currenty activity = get_activity_by_time_str(cur_time_str)
-        # duration activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
 
         current_activity = get_activity_by_time_str(cur_time_str)
         current_activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
