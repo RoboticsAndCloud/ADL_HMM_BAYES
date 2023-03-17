@@ -828,10 +828,8 @@ for episode in range(episode_count):
 
     # state = env.reset()
 
-    # motion, battery, previous_motion
-    cur_motion_feature = motion_feature
+
     previous_motion_feature = motion_feature
-    state = cur_motion_feature + battery_feature + previous_motion_feature
 
     total_reward = 0
     total_wmu_cam_trigger_times = []
@@ -855,8 +853,8 @@ for episode in range(episode_count):
         # agent chose an action based on the state
         print('Env Running:', cur_time_str, " evn.runing:", env.get_running_time()) 
         action = agent.act(state)
-        print("Env state:", state)
-        print("Env action: ", action, " ", rl_env_ascc.RL_ACTION_DICT[action])
+        # print("Env state:", state)
+        # print("Env action: ", action, " ", rl_env_ascc.RL_ACTION_DICT[action])
 
         # env check the action and the cost time
         # action = 6 # rl_env_ascc.Robot_WMU_fusion # to get the time recognition dict
@@ -998,6 +996,8 @@ for episode in range(episode_count):
     # plot(total_wmu_cam_trigger_times, "wmu_cam_times.png")
     # plot(total_wmu_mic_trigger_times, "wmu_mic_times.png")
     # while not env.done
+
+    agent.save_weights()
 
 
 
