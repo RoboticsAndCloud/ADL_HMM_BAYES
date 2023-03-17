@@ -24,6 +24,8 @@ import constants
 import matplotlib.pyplot as plt
 import numpy as np
 
+import time_adl_res_dict
+
 
 
 MILAN_BASE_DATE = '2009-10-16'
@@ -494,19 +496,21 @@ w_energy = 0.3
 w_privacy = 1 - w_accuracy - w_energy
 # 1 = w_accuracy + w_energy + w_privacy
 
-time_location_dict = {}
-time_sound_dict = {}
-time_motion_dict = {}
-time_object_dict = {}
+time_location_dict = time_adl_res_dict.time_location_dict
+time_sound_dict = time_adl_res_dict.time_sound_dict
+time_motion_dict = time_adl_res_dict.time_motion_dict
+time_object_dict = time_adl_res_dict.time_object_dict
+
+print('len time_location_dict:', len(time_location_dict))
 
 def get_target_folder_time_str(cur_time_str):
     target_time_str = ''
     try:
-        image_dir_name = tools_ascc.get_exist_image_dir(cur_time_str, action)
+        image_dir_name = tools_ascc.get_exist_image_dir(cur_time_str)
         # /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/Ascc_Dataset_0819//Image/2009-12-11-08-46-27/
         target_time_str = image_dir_name.split('Image/')[1].rstrip('/')
     except Exception as e:
-        print(e)
+        print("err:", e)
         target_time_str = ''
 
     return target_time_str
@@ -534,7 +538,7 @@ def get_activity_by_action(cur_time_str, action):
     # test_time_str = '2009-12-11 12:58:33'
     # cur_time = env.get_running_time()
     # cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
-    print('cur_time:', cur_time)
+    # print('cur_time:', cur_time)
     
     bayes_model_location.set_time(cur_time_str)
     bayes_model_motion.set_time(cur_time_str)
@@ -548,6 +552,10 @@ def get_activity_by_action(cur_time_str, action):
 
 
     target_folder_time_str = get_target_folder_time_str(cur_time_str)
+    # print("target_folder_time_str:", target_folder_time_str, " time_str:", cur_time_str, ' location:', location)
+
+    if target_folder_time_str == '':
+        return ''
 
     if target_folder_time_str in time_location_dict.keys():
         location, location_prob = time_location_dict[target_folder_time_str]
@@ -555,11 +563,15 @@ def get_activity_by_action(cur_time_str, action):
         audio_type, audio_type_prob = time_sound_dict[target_folder_time_str]
         motion_type, motion_type_prob = time_motion_dict[target_folder_time_str]
 
-        print("the dict works")
+        bayes_model_location.set_location_prob(location_prob)
+        bayes_model_audio.set_audio_type_prob(float(audio_type_prob))
+
+        print("the dict works, target_folder_time_str:", target_folder_time_str, " time_str:", cur_time_str, ' location:', location)
 
     else:
         if action == 1 or action == 2 or action == 5 or action == 6:
             location, location_prob = get_location_by_activity_cnn(cur_time_str)
+            print("not works, target_folder_time_str:", target_folder_time_str, " time_str:", cur_time_str, ' location:', location)
             bayes_model_location.set_location_prob(location_prob)
 
             location_res.append([location, location_prob])
@@ -737,6 +749,8 @@ for episode in range(episode_count):
         bayes_model_object.set_time(cur_time_str)
 
         detected_activity = get_activity_by_action(cur_time_str, rl_env_ascc.WMU_FUSION_ACTION)
+        if detected_activity == '':
+            continue
         
         
         rank_res.append((detected_activity, '1', cur_time_str))
@@ -757,17 +771,23 @@ for episode in range(episode_count):
     #adl_hidden_feature = [1, 2, 4, 5, 5, 5]  # to be done
     predicted_activity = get_activity_prediction_by_hmm()
     # adl_hidden_feature = adl_hidden_feature_extractor(predicted_activity) # seems useless
-    # currenty activity = get_activity_by_time_str(cur_time_str)
-    # duration activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
+    current_activity = get_activity_by_time_str(cur_time_str)
+    current_activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
+
+    current_activity_feature = adl_hidden_feature_extractor(current_activity)
+    current_activity_duration_feature = current_activity_duration
 
     # features = motion_feature
     # features.extend(battery_feature)
     # features.extend(motion_feature)
     # print("features:", features)
     motion_feature = list(motion_feature)
-    state = motion_feature + battery_feature + motion_feature
+    current_activity_feature = list(current_activity_feature)
+    current_activity_duration_feature = [current_activity_duration_feature]
+    state = motion_feature + battery_feature + motion_feature + current_activity_feature + current_activity_duration_feature
     state_size = len(state)
     state = np.reshape(state, [1, state_size])
+    print("state_size:", state_size)
     print("features:", state)
 
     actions = []
@@ -785,8 +805,8 @@ for episode in range(episode_count):
     state = cur_motion_feature + battery_feature + previous_motion_feature
 
     total_reward = 0
-    total_wmu_cam_trigger_times = 0
-    total_wmu_mic_trigger_times = 0
+    total_wmu_cam_trigger_times = []
+    total_wmu_mic_trigger_times = []
 
     
     activity_rank_hit_times = 0
@@ -810,7 +830,7 @@ for episode in range(episode_count):
         print("Env action: ", action, " ", rl_env_ascc.RL_ACTION_DICT[action])
 
         # env check the action and the cost time
-        action = 6 # rl_env_ascc.Robot_WMU_fusion # to get the time recognition dict
+        # action = 6 # rl_env_ascc.Robot_WMU_fusion # to get the time recognition dict
         env.step(action)
 
 
@@ -826,19 +846,9 @@ for episode in range(episode_count):
         print("detected_activity:", detected_activity)
         print("pre_activity:", pre_activity)
 
-        if env.totol_check_times % 30 == 0:
-            print("===================================================")
-            print("total check times:", env.totol_check_times)
-
-            print("tmp time_location_dict:", time_location_dict)
-            print("tmp time_object_dict:", time_object_dict)
-            print("tmp time_sound_dict:", time_sound_dict)
-            print("tmp time_motion_dict:", time_motion_dict)
         
         cur_time = env.get_running_time()
         cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
-        continue
-
 
         if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion \
             or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_audio or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision:
@@ -849,8 +859,11 @@ for episode in range(episode_count):
             print("detected_activity:", detected_activity)
             print("pre_activity:", pre_activity)
 
-
-            if detected_activity == ground_truth_activity:
+            if detected_activity == '':
+                activity_rank_empty_times += 1
+                reward_accuracy = 0
+            
+            elif detected_activity == ground_truth_activity:
                 activity_rank_hit_times += 1
                 if detected_activity != pre_activity:
                     reward_accuracy = 1
@@ -896,9 +909,17 @@ for episode in range(episode_count):
         # currenty activity = get_activity_by_time_str(cur_time_str)
         # duration activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
 
+        current_activity = get_activity_by_time_str(cur_time_str)
+        current_activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
+
+        current_activity_feature = adl_hidden_feature_extractor(current_activity)
+        current_activity_duration_feature = current_activity_duration
+
 
         next_motion_feature = list(next_motion_feature)
-        next_state = next_motion_feature + battery_feature + previous_motion_feature
+        current_activity_feature = list(current_activity_feature)
+        current_activity_duration_feature = [current_activity_duration_feature]
+        next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature + current_activity_duration_feature
         next_state = np.reshape(next_state, [1, state_size])
 
         agent.remember(state, action, reward, next_state, env.done)
@@ -910,18 +931,12 @@ for episode in range(episode_count):
             print("episode: {}/{}, episode_reward: {}, e: {:.2}"
             .format(episode, episode_count-1, total_reward, agent.epsilon))
 
-        if env.totol_check_times % 30 == 0:
+        if env.totol_check_times % 500 == 0:
             print("===================================================")
             print("total check times:", env.totol_check_times)
             print("Env wmu mic trigger times:", env.wmu_mic_times)
             print("Env wmu cam trigger times:", env.wmu_cam_times)
             print("Rewards:", total_reward)
-            print("")
-
-            print("tmp time_location_dict:", time_location_dict)
-            print("tmp time_object_dict:", time_object_dict)
-            print("tmp time_sound_dict:", time_sound_dict)
-            print("tmp time_motion_dict:", time_motion_dict)
 
         print("===================================================")
 

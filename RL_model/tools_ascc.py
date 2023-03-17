@@ -329,6 +329,19 @@ ACTIVITY_NIGHT_HOUR = 18
 
 activity_set_for_lstm = set()
 
+
+def get_target_folder_time_str(cur_time_str):
+    target_time_str = ''
+    try:
+        image_dir_name = get_exist_image_dir(cur_time_str)
+        # /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/Ascc_Dataset_0819//Image/2009-12-11-08-46-27/
+        target_time_str = image_dir_name.split('Image/')[1].rstrip('/')
+    except Exception as e:
+        print("err:", e)
+        target_time_str = ''
+
+    return target_time_str
+
 # the Activity Node for HMM
 class Activity_Node_Observable:
     def __init__(self, a_name, time_type, a_duration = 0):

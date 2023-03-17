@@ -30,6 +30,7 @@ from datetime import timedelta
 
 import constants
 import tools_ascc
+import time_adl_res_dict
 
 
 # import pandas as pd
@@ -715,8 +716,15 @@ class EnvASCC():
     def get_reward_privacy(self, action, time_str):
 
         reward = 0
-        location, prob = tools_ascc.get_activity_by_vision_dnn(time_str, action='vision')
-        print('get_location_by_activity_CNN time_str:', time_str, ' location:', location, ' prob:', prob)
+        target_folder_time_str = tools_ascc.get_target_folder_time_str(time_str)
+        location = ''
+
+        if target_folder_time_str in time_adl_res_dict.time_location_dict.keys():
+            location, prob = time_adl_res_dict.time_location_dict[target_folder_time_str]
+        else:
+            location, prob = tools_ascc.get_activity_by_vision_dnn(time_str, action='vision')
+            print('get_location_by_activity_CNN time_str:', time_str, ' location:', location, ' prob:', prob)
+
 
         if location in PRIVACY_LOCATION_LIST:
             reward = reward + 1
