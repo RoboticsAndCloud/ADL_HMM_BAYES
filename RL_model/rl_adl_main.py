@@ -68,7 +68,7 @@ For Example: Read, we got 20mins(5 times), 30mins(10), 40mins(25), 60mins(2),  f
 
 #     return prob
 
-def plot(rewards, figure = "reward.png"):
+def plotone(rewards, figure = "reward.png"):
     plt.figure(figsize=(20,5))
     plt.plot(rewards)
     plt.xlabel("Episode")
@@ -82,14 +82,14 @@ def plot(rewards, figure = "reward.png"):
 def plot(rewards1, rewards2, label1 = "r1", label2 = "r2"):
     plt.figure(figsize=(20,5))
     plt.plot(rewards1, label=label1)
-    plt.plot(rewards2, label=label1)
+    plt.plot(rewards2, label=label2)
 
     plt.xlabel("Episode")
     plt.ylabel("Times")
     plt.legend()
     plt.savefig('multi_trigger_times.png')
 
-    plt.show()
+    # plt.show()
     plt.clf()
 
 
@@ -339,12 +339,22 @@ def get_motion_type_by_activity_cnn(time_str):
     # should be act : probability
     # /home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/src/
     # ascc_room_activity_test.py
+
+    target_folder_time_str = get_target_folder_time_str(time_str)
+    # print("target_folder_time_str:", target_folder_time_str, " time_str:", cur_time_str, ' location:', location)
+
+    if target_folder_time_str in time_motion_dict.keys():
+        motion_type, prob = time_motion_dict[target_folder_time_str]
+        return motion_type, float(prob)
+
     motion_type_list, prob_list = tools_ascc.get_activity_by_motion_dnn(time_str, action='vision')
     motion_type = ''
     prob = -1
     if len(motion_type_list) > 0:
         motion_type = motion_type_list[-1]
         prob = float(prob_list[-1])
+
+
 
 
     print('get_motion_type_by_activity_cnn time_str:', time_str, ' motion_type:', motion_type, ' prob:', prob)
@@ -505,7 +515,7 @@ for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
 episode_count = 99
-batch_size = 64
+batch_size = 256
 
 # stores the reward per episode
 scores = deque(maxlen=100)
@@ -741,11 +751,68 @@ def get_activity_by_action(cur_time_str, action):
     return cur_activity
 
 
+# init DQN agent
+while(pre_activity == ''):
+    # open camera
+
+    audio_data, vision_data, motion_data, transition_motion = env.step(rl_env_ascc.WMU_FUSION_ACTION)
+
+    # env.running_time
+    # test_time_str = '2009-12-11 12:58:33'
+    cur_time = env.get_running_time()
+    cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
+    print('cur_time:', cur_time)
+    
+    bayes_model_location.set_time(cur_time_str)
+    bayes_model_motion.set_time(cur_time_str)
+    bayes_model_audio.set_time(cur_time_str)
+    bayes_model_object.set_time(cur_time_str)
+
+    detected_activity = get_activity_by_action(cur_time_str, rl_env_ascc.WMU_FUSION_ACTION)
+    if detected_activity == '':
+        continue
+    
+    
+    # rank_res.append((detected_activity, '1', cur_time_str))
+    
+    pre_activity = detected_activity
+    cur_activity = detected_activity
+    activity_begin_time = cur_time
+    
+motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
+motion_feature = motion_feature_extractor(motion_type) # [0, 0, 0, 0, 0, 1]
+battery_feature = [0, 0]
+#adl_hidden_feature = [1, 2, 4, 5, 5, 5]  # to be done
+predicted_activity = get_activity_prediction_by_hmm()
+# adl_hidden_feature = adl_hidden_feature_extractor(predicted_activity) # seems useless
+current_activity = get_activity_by_time_str(cur_time_str)
+current_activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
+
+current_activity_feature = adl_hidden_feature_extractor(current_activity)
+current_activity_duration_feature = current_activity_duration
+
+motion_feature = list(motion_feature)
+current_activity_feature = list(current_activity_feature)
+current_activity_duration_feature = [current_activity_duration_feature]
+state = motion_feature + battery_feature + motion_feature + current_activity_feature + current_activity_duration_feature
+state_size = len(state)
+state = np.reshape(state, [1, state_size])
+print("state_size:", state_size)
+print("features:", state)
+
+actions = []
+
+action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
+
+import rl_ascc_dqn
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space)
+
+total_wmu_cam_trigger_times = []
+total_wmu_mic_trigger_times = []
 
 for episode in range(episode_count):
 
     object_dict = {}
-    env.reset()
     rank_res = []
 
     pre_act_list = []
@@ -760,7 +827,8 @@ for episode in range(episode_count):
     rank1_res_prob_norm = []
     rank2_res_prob_norm = []
     rank3_res_prob_norm = []
-
+    
+    env.reset()
     while(pre_activity == ''):
         # open camera
 
@@ -823,22 +891,20 @@ for episode in range(episode_count):
 
     action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 
-    import rl_ascc_dqn
-    agent = rl_ascc_dqn.DQNAgent(state.size, action_space)
-
     # state = env.reset()
 
 
     previous_motion_feature = motion_feature
 
     total_reward = 0
-    total_wmu_cam_trigger_times = []
-    total_wmu_mic_trigger_times = []
+
 
     
     activity_rank_hit_times = 0
     activity_rank_empty_times = 0
     # reinforcement learning part
+
+    rember_cnt = 0;
     while(not env.done):
 
         location = ''
@@ -952,6 +1018,8 @@ for episode in range(episode_count):
         next_state = np.reshape(next_state, [1, state_size])
 
         agent.remember(state, action, reward, next_state, env.done)
+        rember_cnt = rember_cnt + 1
+        
         state = next_state
         total_reward += reward
         previous_motion_feature = next_motion_feature
@@ -969,30 +1037,40 @@ for episode in range(episode_count):
 
         print("===================================================")
 
+        if rember_cnt >= batch_size:
+            agent.replay(batch_size)
+            print("agent replay(len memeory):", len(agent.memory))
+            rember_cnt = 0
+
 
     print("time_location_dict:", time_location_dict)
     print("time_object_dict:", time_object_dict)
     print("time_sound_dict:", time_sound_dict)
     print("time_motion_dict:", time_motion_dict)
 
-    if len(agent.memory) >= batch_size:
-        agent.replay(batch_size)
+   
+    # agent.replay(len(agent.memory)/2)
+    # print("agent replay(len memeory):", len(agent.memory))
+
     
     scores.append(total_reward)
     # plot rewards 
-    plot(scores, "rl_reward.png")
+    plotone(scores, "rl_reward.png")
+    print("plotone scores:", scores)
 
     total_wmu_cam_trigger_times.append(env.wmu_cam_times)
     total_wmu_mic_trigger_times.append(env.wmu_mic_times)
     plot(total_wmu_cam_trigger_times, total_wmu_mic_trigger_times, label1="camera", label2="microphone")
+    print("total_wmu_cam_trigger_times:", total_wmu_cam_trigger_times)
+    print("total_wmu_mic_trigger_times:", total_wmu_mic_trigger_times)
 
     print("rank res", rank_res)
     print("hit times:{}, empty times:{}, total times:{}".format(activity_rank_hit_times, activity_rank_empty_times, len(rank_res)))
     print("hit ratio:", activity_rank_hit_times*1.0/len(rank_res), "hit_empty ratio:", (activity_rank_hit_times + activity_rank_empty_times)*1.0/len(rank_res))
 
     print('rank1_res_prob_norm:', rank1_res_prob_norm)
-    print('rank2_res_prob_norm:', rank2_res_prob_norm)
-    print('rank3_res_prob_norm:', rank3_res_prob_norm)
+    # print('rank2_res_prob_norm:', rank2_res_prob_norm)
+    # print('rank3_res_prob_norm:', rank3_res_prob_norm)
     # plot(total_wmu_cam_trigger_times, "wmu_cam_times.png")
     # plot(total_wmu_mic_trigger_times, "wmu_mic_times.png")
     # while not env.done
