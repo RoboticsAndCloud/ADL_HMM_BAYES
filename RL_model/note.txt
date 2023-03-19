@@ -41,3 +41,8 @@ https://github.com/theja-vanka/human-activity-recognition/blob/master/HAR_LSTM.i
 股票观测
 https://zhuanlan.zhihu.com/p/366251610
 
+
+
+plotone scores: deque([-1048.499999999825, -854.9999999998544, -129.20000000006905], maxlen=100)
+total_wmu_cam_trigger_times: [9495, 9877, 8581]
+total_wmu_mic_trigger_times: [9061, 8936, 9911]

@@ -598,27 +598,29 @@ def get_activity_by_action(cur_time_str, action):
         print("the dict works, target_folder_time_str:", target_folder_time_str, " time_str:", cur_time_str, ' location:', location)
 
     else:
-        if action == 1 or action == 2 or action == 5 or action == 6:
-            location, location_prob = get_location_by_activity_cnn(cur_time_str)
-            print("not works, target_folder_time_str:", target_folder_time_str, " time_str:", cur_time_str, ' location:', location)
-            bayes_model_location.set_location_prob(location_prob)
+        # if action == 1 or action == 2 or action == 5 or action == 6:
+        location, location_prob = get_location_by_activity_cnn(cur_time_str)
+        print("not works, target_folder_time_str:", target_folder_time_str, " time_str:", cur_time_str, ' location:', location)
+        bayes_model_location.set_location_prob(location_prob)
 
-            location_res.append([location, location_prob])
+        location_res.append([location, location_prob])
 
-            
-            object_dict = get_object_by_activity_yolo(cur_time_str)
+        
+        object_dict = get_object_by_activity_yolo(cur_time_str)
 
-            time_location_dict[target_folder_time_str] = (location, location_prob)
-            time_object_dict[target_folder_time_str] = object_dict
+        time_location_dict[target_folder_time_str] = (location, location_prob)
+        time_object_dict[target_folder_time_str] = object_dict
 
-        # bayes_model_object.set_object_prob(object_prob)
+    # bayes_model_object.set_object_prob(object_prob)
 
-        if action == 0 or action == 2 or action == 4 or action == 6:
-            audio_type, audio_type_prob = get_audio_type_by_activity_cnn(cur_time_str)
-            bayes_model_audio.set_audio_type_prob(float(audio_type_prob))
-            audio_type_res.append([audio_type, audio_type_prob])
+    # if action == 0 or action == 2 or action == 4 or action == 6:
+        audio_type, audio_type_prob = get_audio_type_by_activity_cnn(cur_time_str)
+        bayes_model_audio.set_audio_type_prob(float(audio_type_prob))
+        audio_type_res.append([audio_type, audio_type_prob])
 
-            time_sound_dict[target_folder_time_str] = (audio_type, audio_type_prob)
+        time_sound_dict[target_folder_time_str] = (audio_type, audio_type_prob)
+
+
 
         motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
         bayes_model_motion.set_motion_type_prob(motion_type_prob)
@@ -807,6 +809,13 @@ action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 import rl_ascc_dqn
 agent = rl_ascc_dqn.DQNAgent(state.size, action_space)
 
+
+# for test and reload the pretrained model
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500, epsilon = 0.5)
+agent.load_weights()
+
+
+
 total_wmu_cam_trigger_times = []
 total_wmu_mic_trigger_times = []
 
@@ -904,7 +913,7 @@ for episode in range(episode_count):
     activity_rank_empty_times = 0
     # reinforcement learning part
 
-    rember_cnt = 0;
+    rember_cnt = 0
     while(not env.done):
 
         location = ''
@@ -968,6 +977,8 @@ for episode in range(episode_count):
             else:
                 reward_accuracy = -1
 
+
+
         if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Nothing:
             reward_accuracy = 0
 
@@ -1024,9 +1035,7 @@ for episode in range(episode_count):
         total_reward += reward
         previous_motion_feature = next_motion_feature
 
-        if env.done:
-            print("episode: {}/{}, episode_reward: {}, e: {:.2}"
-            .format(episode, episode_count-1, total_reward, agent.epsilon))
+
 
         if env.totol_check_times % 500 == 0:
             print("===================================================")
@@ -1042,6 +1051,12 @@ for episode in range(episode_count):
             print("agent replay(len memeory):", len(agent.memory))
             rember_cnt = 0
 
+        if env.done:
+            print("episode: {}/{}, episode_reward: {}, e: {:.2}"
+            .format(episode, episode_count-1, total_reward, agent.epsilon))
+
+            agent.update_replay_memory()
+            print("agent update replay  memeory:", len(agent.memory))
 
     print("time_location_dict:", time_location_dict)
     print("time_object_dict:", time_object_dict)
@@ -1050,7 +1065,10 @@ for episode in range(episode_count):
 
    
     # agent.replay(len(agent.memory)/2)
-    # print("agent replay(len memeory):", len(agent.memory))
+
+
+    
+    
 
     
     scores.append(total_reward)
