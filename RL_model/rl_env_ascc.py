@@ -495,7 +495,7 @@ class EnvASCC():
 
         self.wmu_mic_times = 0
         self.wmu_cam_times = 0
-
+        self.privacy_occur_cnt = 0
         # Reset the running time to day_begin
         self.reset()
 
@@ -574,6 +574,7 @@ class EnvASCC():
 
         self.wmu_mic_times = 0
         self.wmu_cam_times = 0
+        self.privacy_occur_cnt = 0
 
         next_state_ = [train_running_time / STATE_TIME_TRANS, (self.activity / 100)]
         # next_state_ = [train_running_time, self.initial_state, self.residual_power]
@@ -727,7 +728,9 @@ class EnvASCC():
 
 
         if location in PRIVACY_LOCATION_LIST:
-            reward = reward + 1
+            if Robot_audio_vision in RL_ACTION_DICT[action]:
+                reward = reward + 1
+                self.privacy_occur_cnt = self.privacy_occur_cnt + 1
 
         return reward
 

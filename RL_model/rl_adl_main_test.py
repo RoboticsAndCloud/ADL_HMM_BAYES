@@ -811,7 +811,7 @@ agent = rl_ascc_dqn.DQNAgent(state.size, action_space)
 
 
 # for test and reload the pretrained model
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500, epsilon = 0.7)
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500, epsilon = 0.2)
 agent.load_weights()
 
 
@@ -985,7 +985,7 @@ for episode in range(episode_count):
         rank_res.append((detected_activity, '1', cur_time_str))
         
         # TODO: in real test, cur_activity = detected_activity
-        cur_activity = ground_truth_activity
+        cur_activity = detected_activity
 
         if cur_activity != pre_act_list[-1] and cur_activity != '':
             pre_act_list.append(cur_activity)
@@ -1046,10 +1046,10 @@ for episode in range(episode_count):
 
         print("===================================================")
 
-        if rember_cnt >= batch_size:
-            agent.replay(batch_size)
-            print("agent replay(len memeory):", len(agent.memory))
-            rember_cnt = 0
+        # if rember_cnt >= batch_size:
+        #     agent.replay(batch_size)
+        #     print("agent replay(len memeory):", len(agent.memory))
+        #     rember_cnt = 0
 
         if env.done:
             print("episode: {}/{}, episode_reward: {}, e: {:.2}"
@@ -1082,6 +1082,7 @@ for episode in range(episode_count):
     print("total_wmu_cam_trigger_times:", total_wmu_cam_trigger_times)
     print("total_wmu_mic_trigger_times:", total_wmu_mic_trigger_times)
     print("total_privacy_occur_cnt:", env.privacy_occur_cnt)
+
 
     print("rank res", rank_res)
     print("hit times:{}, empty times:{}, total times:{}".format(activity_rank_hit_times, activity_rank_empty_times, len(rank_res)))
