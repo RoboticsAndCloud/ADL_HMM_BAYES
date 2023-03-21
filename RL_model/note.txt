@@ -42,7 +42,32 @@ https://github.com/theja-vanka/human-activity-recognition/blob/master/HAR_LSTM.i
 https://zhuanlan.zhihu.com/p/366251610
 
 
-
-plotone scores: deque([-1048.499999999825, -854.9999999998544, -129.20000000006905], maxlen=100)
+Test 1:
+w_accuracy = 0.5 w_energy = 0.3
+plotone scores: deque([-1048.499999999825, -854.9999999998544, -129.20000000006905, 509.6799999999743, 175.85999999994436, -243.05999999998932, -655.4000000000583, -71.8600000000444, 1548.6599999999617, 1322.9000000000174, -56.980000000034146], maxlen=100)
 total_wmu_cam_trigger_times: [9495, 9877, 8581]
 total_wmu_mic_trigger_times: [9061, 8936, 9911]
+
+
+
+total_wmu_cam_trigger_times: [9544]
+total_wmu_mic_trigger_times: [8350]
+total_privacy_occur_cnt: 793
+total_wmu_cam_trigger_times: [9544, 10031]
+total_wmu_mic_trigger_times: [8350, 9754]
+total_privacy_occur_cnt: 963
+
+
+total_wmu_cam_trigger_times: [9134]
+total_wmu_mic_trigger_times: [9003]
+total_privacy_occur_cnt: 1213
+total_wmu_cam_trigger_times: [9134, 6825]
+total_wmu_mic_trigger_times: [9003, 9314]
+total_privacy_occur_cnt: 1124
+total_wmu_cam_trigger_times: [9134, 6825, 9391]
+total_wmu_mic_trigger_times: [9003, 9314, 7346]
+total_privacy_occur_cnt: 605
+
+
+
+Test 2:

@@ -304,7 +304,7 @@ class Bayes_Model_Vision_Location(object):
             pass
             # print('Got error from P1_Location_Under_Act, location, act_name:', location, ', ', act_name, ', err:', e)
         
-        print('prob_of_location_under_act: location, act_name, p:', location, ' ', act_name, ' ', p)
+        # print('prob_of_location_under_act: location, act_name, p:', location, ' ', act_name, ' ', p)
         return p
 
     # def prob_prior_act(self, pre_activity, act_name):
@@ -366,8 +366,8 @@ class Bayes_Model_Vision_Location(object):
                 test_lis.append(next_act)
                 prob = self.hmm_model.evaluate(test_lis)
 
-                print('test_lis:', test_lis)
-                print('prob:', prob)
+                # print('test_lis:', test_lis)
+                # print('prob:', prob)
                 res[next_act] = prob
 
 
@@ -403,7 +403,7 @@ class Bayes_Model_Vision_Location(object):
         for act in PROB_OF_ALL_ACTIVITIES.keys():
             p = p + self.prob_of_location_under_act(location, act) * self.prob_of_activity_in_dataset(act)
 
-        print('prob_of_location_under_all_acts, location, p:', location, ' ', p)
+        # print('prob_of_location_under_all_acts, location, p:', location, ' ', p)
 
         return p
     
@@ -531,7 +531,7 @@ class Bayes_Model_Motion(object):
             pass
             # print('Got error from P2_Motion_type_Under_Act, motion, act_name:', motion_type, ', ', act_name, ', err:', e)
 
-        print('prob_of_motion_type_under_act motion_type, act_name, p:', motion_type, ' ', act_name, ' ', p)
+        # print('prob_of_motion_type_under_act motion_type, act_name, p:', motion_type, ' ', act_name, ' ', p)
         return p
 
     # def prob_prior_act(self, pre_activity, act_name):
@@ -748,7 +748,7 @@ class Bayes_Model_Audio(object):
             pass
             # print('Got error from P3_Audio_type_Under_Act, location, act_name:', audio_type, ', ', act_name, ', err:', e)
         
-        print('prob_of_audio_type_under_act audio_type, act_name, p:', audio_type, ' ', act_name, ' ', p)
+        # print('prob_of_audio_type_under_act audio_type, act_name, p:', audio_type, ' ', act_name, ' ', p)
 
         return p
 
@@ -790,7 +790,7 @@ class Bayes_Model_Audio(object):
             if pre_act_list[-1] == next_act:
                 p = get_end_of_activity_prob_by_duration(duration, target_act_name)
 
-                print('prob_prior_act_by_prelist == next_act, duration, p', next_act, ' ', duration, ' ', p)
+                # print('prob_prior_act_by_prelist == next_act, duration, p', next_act, ' ', duration, ' ', p)
 
                 return p
 
@@ -833,7 +833,7 @@ class Bayes_Model_Audio(object):
                     p = v
                     break
         
-        print('prob_prior_act_by_prelist target_act_name, duration, p:', target_act_name, ' ', duration, ' ', p)
+        # print('prob_prior_act_by_prelist target_act_name, duration, p:', target_act_name, ' ', duration, ' ', p)
 
         return p
 
@@ -847,7 +847,7 @@ class Bayes_Model_Audio(object):
             print(self.prob_of_activity_in_dataset(act))
             p = p + self.prob_of_audio_type_under_act(audio_type, act) * self.prob_of_activity_in_dataset(act)
 
-        print('prob_of_audio_type_under_all_acts prob_of_motion_type_under_all_acts audio_type, p:', audio_type, ' ', p)
+        # print('prob_of_audio_type_under_all_acts prob_of_motion_type_under_all_acts audio_type, p:', audio_type, ' ', p)
 
         return p
     
@@ -869,7 +869,7 @@ class Bayes_Model_Audio(object):
             p = self.audio_type_prob
             pass
 
-        print('prob_of_audio_type_using_audio audio_type, act, p:', audio_type, ' ', act, ' ', p)
+        # print('prob_of_audio_type_using_audio audio_type, act, p:', audio_type, ' ', act, ' ', p)
 
         return p
 
@@ -963,7 +963,7 @@ class Bayes_Model_Vision_Object(object):
             pass
             # print('Got error from P4_Object_Under_Act, object, act_name:', object, ', ', act_name, ', err:', e)
 
-        print('prob_of_object_under_act, object, act_name, p:', object, ' ', act_name, ' ', p)
+        # print('prob_of_object_under_act, object, act_name, p:', object, ' ', act_name, ' ', p)
         return p
 
     def prob_prior_act(self, pre_activity, act_name):
@@ -1005,7 +1005,7 @@ class Bayes_Model_Vision_Object(object):
             if pre_act_list[-1] == next_act:
                 p = get_end_of_activity_prob_by_duration(duration, target_act_name)
 
-                print('prob_prior_act_by_prelist == next_act, duration, p', next_act, ' ', duration, ' ', p)
+                # print('prob_prior_act_by_prelist == next_act, duration, p', next_act, ' ', duration, ' ', p)
 
                 return p
 
@@ -1024,8 +1024,8 @@ class Bayes_Model_Vision_Object(object):
                 test_lis.append(next_act)
                 prob = self.hmm_model.evaluate(test_lis)
 
-                print('test_lis:', test_lis)
-                print('prob:', prob)
+                # print('test_lis:', test_lis)
+                # print('prob:', prob)
                 res[next_act] = prob
 
         # print('=========================================================')
@@ -1047,7 +1047,7 @@ class Bayes_Model_Vision_Object(object):
                     p = v
                     break
                 
-        print('prob_prior_act_by_prelist target_act_name, duration, p:', target_act_name, ' ', duration, ' ', p)
+        # print('prob_prior_act_by_prelist target_act_name, duration, p:', target_act_name, ' ', duration, ' ', p)
     
         return p
 
@@ -1058,7 +1058,7 @@ class Bayes_Model_Vision_Object(object):
         for act in PROB_OF_ALL_ACTIVITIES.keys():
             p = p + self.prob_of_object_under_act(object, act) * self.prob_of_activity_in_dataset(act)
 
-        print('prob_of_object_under_all_acts objec, p:', object, ' ', p)
+        # print('prob_of_object_under_all_acts objec, p:', object, ' ', p)
         return p
     
     # From CNN model, confusion matrix for simulation
@@ -1079,7 +1079,7 @@ class Bayes_Model_Vision_Object(object):
             p = self.object_prob
             pass
 
-        print('prob_of_object_using_vision object, act, p:', object, ' ', act, ' ', p)
+        # print('prob_of_object_using_vision object, act, p:', object, ' ', act, ' ', p)
         return p
 
     def prob_of_activity_in_dataset(self, act):

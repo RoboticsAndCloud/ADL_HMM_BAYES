@@ -156,6 +156,7 @@ ACTION_INTERVAL_DICT = {
 
 
 PRIVACY_LOCATION_LIST = [constants.LOCATION_BEDROOM, constants.LOCATION_BATHROOM]
+PRIVACY_ACTIVITY_LIST = [constants.ACTIVITY_MASTER_BEDROOM, constants.ACTIVITY_MASTER_BATHROOM, constants.ACTIVITY_GUEST_BATHROOM]
 
 
 # action map
@@ -714,26 +715,37 @@ class EnvASCC():
 
         return reward
     
-    def get_reward_privacy(self, action, time_str):
+    # def get_reward_privacy(self, action, time_str):
+
+    #     reward = 0
+    #     target_folder_time_str = tools_ascc.get_target_folder_time_str(time_str)
+    #     location = ''
+
+    #     if target_folder_time_str in time_adl_res_dict.time_location_dict.keys():
+    #         location, prob = time_adl_res_dict.time_location_dict[target_folder_time_str]
+    #     else:
+    #         location, prob = tools_ascc.get_activity_by_vision_dnn(time_str, action='vision')
+    #         print('get_location_by_activity_CNN time_str:', time_str, ' location:', location, ' prob:', prob)
+
+
+    #     if location in PRIVACY_LOCATION_LIST:
+    #         if Robot_audio_vision in RL_ACTION_DICT[action]:
+    #             reward = reward + 1
+    #             self.privacy_occur_cnt = self.privacy_occur_cnt + 1
+
+    #     return reward
+
+    def get_reward_privacy(self, action, activity):
 
         reward = 0
-        target_folder_time_str = tools_ascc.get_target_folder_time_str(time_str)
-        location = ''
 
-        if target_folder_time_str in time_adl_res_dict.time_location_dict.keys():
-            location, prob = time_adl_res_dict.time_location_dict[target_folder_time_str]
-        else:
-            location, prob = tools_ascc.get_activity_by_vision_dnn(time_str, action='vision')
-            print('get_location_by_activity_CNN time_str:', time_str, ' location:', location, ' prob:', prob)
-
-
-        if location in PRIVACY_LOCATION_LIST:
+        if activity in PRIVACY_ACTIVITY_LIST:
             if Robot_audio_vision in RL_ACTION_DICT[action]:
                 reward = reward + 1
                 self.privacy_occur_cnt = self.privacy_occur_cnt + 1
 
         return reward
-
+    
     #
     def render(self):
         # time.sleep(0.03)

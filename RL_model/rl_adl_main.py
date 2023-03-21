@@ -811,7 +811,7 @@ agent = rl_ascc_dqn.DQNAgent(state.size, action_space)
 
 
 # for test and reload the pretrained model
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500, epsilon = 0.7)
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500, epsilon = 0.2)
 agent.load_weights()
 
 
@@ -937,10 +937,13 @@ for episode in range(episode_count):
 
 
         reward_energy = env.get_reward_energy(action)
-        reward_privacy = env.get_reward_privacy(action, cur_time_str)
 
         ground_truth_activity = get_activity_by_time_str(cur_time_str) # TODO
         # detected_activity = ground_truth_activity
+
+
+        reward_privacy = env.get_reward_privacy(action, ground_truth_activity)
+
         reward_accuracy = 0
 
         # Todo 
