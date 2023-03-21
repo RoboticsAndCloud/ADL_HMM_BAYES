@@ -44,7 +44,7 @@ https://zhuanlan.zhihu.com/p/366251610
 
 Test 1:
 w_accuracy = 0.5 w_energy = 0.3
-plotone scores: deque([-1048.499999999825, -854.9999999998544, -129.20000000006905, 509.6799999999743, 175.85999999994436, -243.05999999998932, -655.4000000000583, -71.8600000000444, 1548.6599999999617, 1322.9000000000174, -56.980000000034146], maxlen=100)
+plotone scores: deque([-1048.499999999825, -854.9999999998544, -129.20000000006905, 509.6799999999743, 175.85999999994436, -243.05999999998932, -655.4000000000583, -71.8600000000444, 1548.6599999999617, 1322.9000000000174, -56.980000000034146, 2155.919999999853, 5303.299999999906, 4003.83999999987, 8771.080000000231, 4365.779999999948], maxlen=100)
 total_wmu_cam_trigger_times: [9495, 9877, 8581]
 total_wmu_mic_trigger_times: [9061, 8936, 9911]
 
@@ -68,6 +68,18 @@ total_wmu_cam_trigger_times: [9134, 6825, 9391]
 total_wmu_mic_trigger_times: [9003, 9314, 7346]
 total_privacy_occur_cnt: 605
 
-
+total_wmu_cam_trigger_times: [7954]
+total_wmu_mic_trigger_times: [8062]
+total_privacy_occur_cnt: 1286
+total_wmu_cam_trigger_times: [7954, 5431]
+total_wmu_mic_trigger_times: [8062, 7331]
+total_privacy_occur_cnt: 1264
+total_wmu_cam_trigger_times: [7954, 5431, 7928]
+total_wmu_mic_trigger_times: [8062, 7331, 6163]
+total_privacy_occur_cnt: 1332
+total_wmu_cam_trigger_times: [7954, 5431, 7928, 1713]
+total_wmu_mic_trigger_times: [8062, 7331, 6163, 1660]
+total_privacy_occur_cnt: 1526
 
 Test 2:
+
