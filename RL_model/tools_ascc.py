@@ -160,7 +160,7 @@ import numpy as np
 
 from matplotlib import image
 
-DEBUG = True
+DEBUG = False
 
 ASCC_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/notice.txt'
 ASCC_DATA_RES_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/recognition_result.txt'
@@ -767,7 +767,7 @@ def get_exist_image_dir(time_str, action='vision'):
         image_dir_name = ASCC_DATA_SET_DIR + '/' + 'Image/' + ascc_dir_time + '/'
 
         if os.path.exists(image_dir_name) == True:
-            print('tools_ascc image_dir_name:', image_dir_name)
+            #print('tools_ascc image_dir_name:', image_dir_name)
 
             return image_dir_name
 

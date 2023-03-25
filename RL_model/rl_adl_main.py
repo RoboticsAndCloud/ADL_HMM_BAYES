@@ -26,6 +26,10 @@ import numpy as np
 
 import time_adl_res_dict
 
+from timeit import default_timer as timer
+
+#from tensorflow.keras.utils import to_categorical
+
 
 
 MILAN_BASE_DATE = '2009-10-16'
@@ -194,7 +198,7 @@ def get_activity_by_time_str(activity_time_str):
                 k_time = activity_time_str
                 hit_time = datetime.strptime(k_time, tools_ascc.DATE_HOUR_TIME_FORMAT)
                 if hit_time >= a_begin and hit_time <= a_end:
-                    print("key a_begin, a_begin, hit_time:",key, a_begin, a_end, hit_time)
+                    #print("key a_begin, a_begin, hit_time:",key, a_begin, a_end, hit_time)
 
                     hit_activity_check_times = hit_activity_check_times + 1
                     ## Note: in dict, the time is out off order
@@ -347,6 +351,9 @@ def get_motion_type_by_activity_cnn(time_str):
         motion_type, prob = time_motion_dict[target_folder_time_str]
         return motion_type, float(prob)
 
+    # as we recognize all the motion action and store in the dict, here we just returl null
+    return '', -1
+
     motion_type_list, prob_list = tools_ascc.get_activity_by_motion_dnn(time_str, action='vision')
     motion_type = ''
     prob = -1
@@ -356,6 +363,7 @@ def get_motion_type_by_activity_cnn(time_str):
 
 
 
+    #time_motion_dict[target_folder_time_str] = (motion_type, prob)
 
     print('get_motion_type_by_activity_cnn time_str:', time_str, ' motion_type:', motion_type, ' prob:', prob)
 
@@ -514,14 +522,17 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 99
+episode_count = 10
 batch_size = 256
 
 # stores the reward per episode
 scores = deque(maxlen=100)
 
-w_accuracy = 0.5
-w_energy = 0.3
+#w_accuracy = 0.3
+#w_energy = 0.34
+
+w_accuracy = 0.3
+w_energy = 0.5
 w_privacy = 1 - w_accuracy - w_energy
 # 1 = w_accuracy + w_energy + w_privacy
 
@@ -531,9 +542,14 @@ time_motion_dict = time_adl_res_dict.time_motion_dict
 time_object_dict = time_adl_res_dict.time_object_dict
 
 print('len time_location_dict:', len(time_location_dict))
+time_exist_dict = time_adl_res_dict.time_exist_dict
 
 def get_target_folder_time_str(cur_time_str):
     target_time_str = ''
+    
+    if cur_time_str in time_exist_dict.keys():
+        return time_exist_dict[cur_time_str]
+
     try:
         image_dir_name = tools_ascc.get_exist_image_dir(cur_time_str)
         # /home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/Ascc_Dataset_0819//Image/2009-12-11-08-46-27/
@@ -541,6 +557,8 @@ def get_target_folder_time_str(cur_time_str):
     except Exception as e:
         print("err:", e)
         target_time_str = ''
+
+    time_exist_dict[cur_time_str] = target_time_str
 
     return target_time_str
 
@@ -561,6 +579,7 @@ def get_activity_prediction_by_hmm():
 
     return ''
 
+time_detected_act_dict = {}
 
 def get_activity_by_action(cur_time_str, action):
     # env.running_time
@@ -581,7 +600,10 @@ def get_activity_by_action(cur_time_str, action):
 
 
     target_folder_time_str = get_target_folder_time_str(cur_time_str)
+    key = (cur_time_str, action)
     # print("target_folder_time_str:", target_folder_time_str, " time_str:", cur_time_str, ' location:', location)
+    if key in time_detected_act_dict.keys():
+        return time_detected_act_dict[key] 
 
     if target_folder_time_str == '':
         return ''
@@ -719,9 +741,9 @@ def get_activity_by_action(cur_time_str, action):
 
         p2_res_dict[act] = p2
         
-    print('heap_prob:', heap_prob)
+    #print('heap_prob:', heap_prob)
     top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
-    print('top3_prob:', top3_prob)
+    #print('top3_prob:', top3_prob)
 
     
     activity_detected = top3_prob[0][0]
@@ -732,14 +754,14 @@ def get_activity_by_action(cur_time_str, action):
 
 
     rank1_res_prob.append(top3_prob[0])
-    rank2_res_prob.append(top3_prob[1])
-    rank3_res_prob.append(top3_prob[2])
+    #rank2_res_prob.append(top3_prob[1])
+    #rank3_res_prob.append(top3_prob[2])
 
     rank1_res_prob_norm.append(p_activity_end)
-    p_rank2 = (1-p_activity_end) * (rank2_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
-    rank2_res_prob_norm.append(p_rank2)
-    p_rank3 = (1-p_activity_end) * (rank3_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
-    rank3_res_prob_norm.append(p_rank3)
+   # p_rank2 = (1-p_activity_end) * (rank2_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
+   # rank2_res_prob_norm.append(p_rank2)
+   # p_rank3 = (1-p_activity_end) * (rank3_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
+   # rank3_res_prob_norm.append(p_rank3)
     # print('rank1_res_prob_norm:', rank1_res_prob_norm)
     # print('rank2_res_prob_norm:', rank2_res_prob_norm)
     # print('rank3_res_prob_norm:', rank3_res_prob_norm)
@@ -749,6 +771,7 @@ def get_activity_by_action(cur_time_str, action):
     # pre_activity = top3_prob[0][0]
     cur_activity = top3_prob[0][0]
     # activity_begin_time = cur_time
+    time_detected_act_dict[key] = cur_activity
 
     return cur_activity
 
@@ -807,11 +830,11 @@ actions = []
 action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 
 import rl_ascc_dqn
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space)
+#agent = rl_ascc_dqn.DQNAgent(state.size, action_space)
 
 
 # for test and reload the pretrained model
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500, epsilon = 0.2)
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500, epsilon = 0.11)
 agent.load_weights()
 
 
@@ -872,6 +895,7 @@ for episode in range(episode_count):
         pre_act_symbol_list.append(pre_activity_symbol)
         
     motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
+    pre_motion_type = motion_type
     motion_feature = motion_feature_extractor(motion_type) # [0, 0, 0, 0, 0, 1]
     battery_feature = [0, 0]
     #adl_hidden_feature = [1, 2, 4, 5, 5, 5]  # to be done
@@ -915,7 +939,9 @@ for episode in range(episode_count):
 
     rember_cnt = 0
     while(not env.done):
+        start_t_iter = timer()
 
+        pre_motion_type = motion_type
         location = ''
         object = ''
         motion_type = ''
@@ -941,6 +967,8 @@ for episode in range(episode_count):
         ground_truth_activity = get_activity_by_time_str(cur_time_str) # TODO
         # detected_activity = ground_truth_activity
 
+        end_t_iter = timer()
+        print(" 0 after get activity by time each iter takes:", end_t_iter - start_t_iter)
 
         reward_privacy = env.get_reward_privacy(action, ground_truth_activity)
 
@@ -957,6 +985,7 @@ for episode in range(episode_count):
 
         if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion \
             or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_audio or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision:
+            activity_rank_hit_times += 1
             reward_accuracy = 1
 
         else:
@@ -987,6 +1016,9 @@ for episode in range(episode_count):
 
         rank_res.append((detected_activity, '1', cur_time_str))
         
+        end_t_iter = timer()
+        print(" 1 each iter takes:", end_t_iter - start_t_iter)
+
         # TODO: in real test, cur_activity = detected_activity
         cur_activity = ground_truth_activity
 
@@ -1000,6 +1032,9 @@ for episode in range(episode_count):
             # pre_activity = detected_activity
             activity_begin_time = env.get_running_time()
         
+
+        end_t_iter = timer()
+        print(" 2 each iter takes:", end_t_iter - start_t_iter)
 
         reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
         print("Env state:", state)
@@ -1015,11 +1050,17 @@ for episode in range(episode_count):
         cur_time = env.get_running_time()
         cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
         motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
+        if motion_type == '':
+            motion_type = pre_motion_type
+            print('pre_motion for empty detection:', pre_motion_type)
+
         next_motion_feature = motion_feature_extractor(motion_type)
 
 
         current_activity = get_activity_by_time_str(cur_time_str)
         current_activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
+
+        #end_t_iter = timer()
 
         current_activity_feature = adl_hidden_feature_extractor(current_activity)
         current_activity_duration_feature = current_activity_duration
@@ -1038,6 +1079,9 @@ for episode in range(episode_count):
         total_reward += reward
         previous_motion_feature = next_motion_feature
 
+        end_t_iter = timer()
+        print("each iter takes:", end_t_iter - start_t_iter)
+
 
 
         if env.totol_check_times % 500 == 0:
@@ -1050,8 +1094,11 @@ for episode in range(episode_count):
         print("===================================================")
 
         if rember_cnt >= batch_size:
+            start_t = timer()
             agent.replay(batch_size)
-            print("agent replay(len memeory):", len(agent.memory))
+            end_t = timer()
+            print("replay takes:", end_t - start_t, 'replay times:', agent.replay_counter)
+            #print("agent replay(len memeory):", len(agent.memory))
             rember_cnt = 0
 
         if env.done:
@@ -1065,6 +1112,8 @@ for episode in range(episode_count):
     print("time_object_dict:", time_object_dict)
     print("time_sound_dict:", time_sound_dict)
     print("time_motion_dict:", time_motion_dict)
+    print("time_exist_dict:", time_exist_dict)
+    print("time_detected_act_dict:", time_detected_act_dict)
 
    
     # agent.replay(len(agent.memory)/2)

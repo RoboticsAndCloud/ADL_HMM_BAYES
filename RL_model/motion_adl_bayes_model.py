@@ -333,7 +333,7 @@ class Bayes_Model_Vision_Location(object):
 
             p = get_end_of_activity_prob_by_duration(duration, target_act_name)
 
-            print('prob_prior_act_by_prelist == target_act_name, duration, p', target_act_name, ' ', duration, ' ', p)
+            #print('prob_prior_act_by_prelist == target_act_name, duration, p', target_act_name, ' ', duration, ' ', p)
 
             return p
 
@@ -346,7 +346,7 @@ class Bayes_Model_Vision_Location(object):
             if pre_act_list[-1] == next_act:
                 p = get_end_of_activity_prob_by_duration(duration, target_act_name)
 
-                print('prob_prior_act_by_prelist == next_act, duration, p', next_act, ' ', duration, ' ', p)
+                #print('prob_prior_act_by_prelist == next_act, duration, p', next_act, ' ', duration, ' ', p)
 
                 return p
 
@@ -374,7 +374,7 @@ class Bayes_Model_Vision_Location(object):
         # print('=========================================================')
 
         sd = sorted(res.items(), key=tools_ascc.sorter_take_count, reverse=True)
-        print(sd)
+        #print(sd)
 
         for k, v in sd:
             for type in act_type_list:
@@ -390,7 +390,7 @@ class Bayes_Model_Vision_Location(object):
                     p = v
                     break
 
-        print('prob_prior_act_by_prelist target_act_name, duration, p', target_act_name, ' ', duration, ' ', p)
+        #print('prob_prior_act_by_prelist target_act_name, duration, p', target_act_name, ' ', duration, ' ', p)
 
         
         return p
@@ -436,7 +436,7 @@ class Bayes_Model_Vision_Location(object):
 
             pass
 
-        print('prob_of_location_using_vision:, location, act, p:', act, ' ', location, ' ', p)
+        #print('prob_of_location_using_vision:, location, act, p:', act, ' ', location, ' ', p)
         return p
 
     def prob_of_activity_in_dataset(self, act):
@@ -553,7 +553,7 @@ class Bayes_Model_Motion(object):
         p = MIN_Prob
 
         pre_act_list = copy.deepcopy(pre_activity_list)
-        print('motion pre_act_list:', pre_act_list)
+        #print('motion pre_act_list:', pre_act_list)
 
         if len(pre_act_list) == 0:
             return HMM_START_MATRIX[target_act_name]
@@ -561,7 +561,7 @@ class Bayes_Model_Motion(object):
         if pre_act_list[-1] == target_act_name:
 
             p = get_end_of_activity_prob_by_duration(duration, target_act_name)
-            print('prob_prior_act_by_prelist target_act_name, == duration, p:', target_act_name, ' ', duration, ' ', p)
+            #print('prob_prior_act_by_prelist target_act_name, == duration, p:', target_act_name, ' ', duration, ' ', p)
 
             return p
         
@@ -574,7 +574,7 @@ class Bayes_Model_Motion(object):
             if pre_act_list[-1] == next_act:
                 p = get_end_of_activity_prob_by_duration(duration, target_act_name)
 
-                print('prob_prior_act_by_prelist == next_act, duration, p', next_act, ' ', duration, ' ', p)
+                #print('prob_prior_act_by_prelist == next_act, duration, p', next_act, ' ', duration, ' ', p)
 
                 return p
 
@@ -596,13 +596,13 @@ class Bayes_Model_Motion(object):
                 prob = self.hmm_model.evaluate(test_lis)
 
                 # print('motion test_lis:', test_lis)
-                print('next_act, prob:', next_act, ' ', prob)
+                #print('next_act, prob:', next_act, ' ', prob)
                 res[next_act] = prob
 
         # print('=========================================================')
 
         sd = sorted(res.items(), key=tools_ascc.sorter_take_count, reverse=True)
-        print(sd)
+        #print(sd)
 
         for k, v in sd:
             for type in act_type_list:
@@ -618,7 +618,7 @@ class Bayes_Model_Motion(object):
                     p = v
                     break
         
-        print('prob_prior_act_by_prelist target_act_name, duration, p:', target_act_name, ' ', duration, ' ', p)
+        #print('prob_prior_act_by_prelist target_act_name, duration, p:', target_act_name, ' ', duration, ' ', p)
 
         return p
 
@@ -629,7 +629,7 @@ class Bayes_Model_Motion(object):
         for act in PROB_OF_ALL_ACTIVITIES.keys():
             p = p + self.prob_of_motion_type_under_act(motion_type, act) * self.prob_of_activity_in_dataset(act)
 
-        print('prob_of_motion_type_under_all_acts motion_type, p:', motion_type, ' ', p)
+        #print('prob_of_motion_type_under_all_acts motion_type, p:', motion_type, ' ', p)
 
         return p
     
@@ -651,7 +651,7 @@ class Bayes_Model_Motion(object):
             p = self.motion_type_prob
             pass
 
-        print('prob_of_motion_type_using_motion motion_type, act, p:', motion_type, ' ', act, ' ', p)
+        #print('prob_of_motion_type_using_motion motion_type, act, p:', motion_type, ' ', act, ' ', p)
 
         return p
 
@@ -777,7 +777,7 @@ class Bayes_Model_Audio(object):
         if pre_act_list[-1] == target_act_name:
 
             p = get_end_of_activity_prob_by_duration(duration, target_act_name)
-            print('target_act_name, == duration, p:', target_act_name, ' ', duration, ' ', p)
+            #print('target_act_name, == duration, p:', target_act_name, ' ', duration, ' ', p)
 
             return p
         
@@ -816,8 +816,8 @@ class Bayes_Model_Audio(object):
         # print('=========================================================')
 
         sd = sorted(res.items(), key=tools_ascc.sorter_take_count, reverse=True)
-        print('prob_prior_act_by_prelist HMM res:')
-        print(sd)
+        #print('prob_prior_act_by_prelist HMM res:')
+        #print(sd)
 
         for k, v in sd:
             for type in act_type_list:
@@ -842,9 +842,9 @@ class Bayes_Model_Audio(object):
         p = MIN_Prob
 
         for act in PROB_OF_ALL_ACTIVITIES.keys():
-            print('act: ', act, ' audio type:', audio_type)
-            print(self.prob_of_audio_type_under_act(audio_type, act))
-            print(self.prob_of_activity_in_dataset(act))
+            #print('act: ', act, ' audio type:', audio_type)
+            #print(self.prob_of_audio_type_under_act(audio_type, act))
+            #print(self.prob_of_activity_in_dataset(act))
             p = p + self.prob_of_audio_type_under_act(audio_type, act) * self.prob_of_activity_in_dataset(act)
 
         # print('prob_of_audio_type_under_all_acts prob_of_motion_type_under_all_acts audio_type, p:', audio_type, ' ', p)
@@ -992,7 +992,7 @@ class Bayes_Model_Vision_Object(object):
         if pre_act_list[-1] == target_act_name:
 
             p = get_end_of_activity_prob_by_duration(duration, target_act_name)
-            print('prob_prior_act_by_prelist ==target_act_name, duration, p:', target_act_name, ' ', duration, ' ', p)
+            #print('prob_prior_act_by_prelist ==target_act_name, duration, p:', target_act_name, ' ', duration, ' ', p)
 
             return p
 
@@ -1031,7 +1031,7 @@ class Bayes_Model_Vision_Object(object):
         # print('=========================================================')
 
         sd = sorted(res.items(), key=tools_ascc.sorter_take_count, reverse=True)
-        print(sd)
+        #print(sd)
 
         for k, v in sd:
             for type in act_type_list:
