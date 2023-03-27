@@ -105,6 +105,9 @@ def sorter_take_count(elem):
     # print('elem:', elem)
     return elem[1]
 
+def sorter_dict(elem):
+    # print('elem:', elem)
+    return elem[0]
 
 def get_hmm_model():
     state_list, symbol_list = tools_ascc.get_activity_for_state_list()
@@ -137,7 +140,8 @@ day_begin ='08:45:00'
 activity_date_dict, activity_begin_dict, activity_end_dict, \
         activity_begin_list, activity_end_list  = tools_ascc.get_activity_date(day_time_str)
 
-def get_activity_by_time_str(activity_time_str):
+# from milan dataset
+def get_activity_by_time_str2(activity_time_str):
 
     
 
@@ -548,6 +552,33 @@ time_object_dict = time_adl_res_dict.time_object_dict
 print('len time_location_dict:', len(time_location_dict))
 time_exist_dict = time_adl_res_dict.time_exist_dict
 
+
+import ground_truth_dict_dataset0819
+ground_truth_dict = ground_truth_dict_dataset0819.ground_truth_dict
+
+ground_truth_dict = sorted(ground_truth_dict.items(), key=sorter_dict, reverse=False)
+
+def get_activity_by_time_str(cur_time_str):
+    target_folder_time_str = get_target_folder_time_str(cur_time_str)
+
+    
+    key = datetime.strptime(target_folder_time_str, tools_ascc.ASCC_DATASET_DATE_HOUR_TIME_FORMAT_DIR) 
+#    print("in get_activity_by_time_str target_folder_time_str:", target_folder_time_str, " time_str:", cur_time_str, ' ', key)
+    res = ''
+    
+    for k, v in ground_truth_dict:
+        tmp_start = datetime.strptime(k, tools_ascc.ASCC_DATASET_DATE_HOUR_TIME_FORMAT_DIR) 
+
+#        print("in get_activity_by_time_str target_folder_time_str:", ' k:', k, ' ', tmp_start)
+        if key >= tmp_start:
+            res = v[2]
+        else:
+            print("in get_activity_by_time_str target_folder_time_str:", target_folder_time_str, " time_str:", cur_time_str,' res:', res)
+
+            return res
+
+    return ''
+
 def get_target_folder_time_str(cur_time_str):
     target_time_str = ''
     
@@ -838,8 +869,8 @@ agent = rl_ascc_dqn.DQNAgent(state.size, action_space)
 
 
 # for test and reload the pretrained model
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500, epsilon = 0.03)
-agent.load_weights()
+#agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500, epsilon = 0.03)
+#agent.load_weights()
 
 
 
@@ -866,6 +897,7 @@ for episode in range(episode_count):
     rank3_res_prob_norm = []
     
     transition_occur_cnt = 0
+    motion_transition_occur_cnt = 0
     env.reset()
     while(pre_activity == ''):
         # open camera
@@ -990,8 +1022,11 @@ for episode in range(episode_count):
 
 
         # walking motion
-        #if pre_motion_type != motion_type:
-            #transition_occur_cnt += 1
+        if pre_motion_type != motion_type:
+            print('activity:', pre_activity, ' ', ground_truth_activity)
+            motion_transition_occur_cnt += 1
+            print('motion_transition_occur_cnt:', motion_transition_occur_cnt)
+
         if pre_activity != ground_truth_activity and ground_truth_activity!='':
             print("motion_type:", pre_motion_type, " ", motion_type)
             transition_occur_cnt += 1
