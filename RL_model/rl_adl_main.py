@@ -52,6 +52,10 @@ AUDIO_WEIGHT = 0.6
 
 LOCATION_DIR_SPLIT_SYMBOL = ':'
 
+BATHROOM = 'athroom'
+
+new_activity_factor = 1.0
+
 """
 Given the duration, return the probability that the activity may be finished
 For Example: Read, we got 20mins(5 times), 30mins(10), 40mins(25), 60mins(2),  for duration of 20mins, the probability would be 5/(5+10+25+2) = 11.90% 
@@ -528,11 +532,11 @@ batch_size = 256
 # stores the reward per episode
 scores = deque(maxlen=100)
 
-#w_accuracy = 0.3
-#w_energy = 0.34
+w_accuracy = 0.2
+w_energy = 0.3
 
-w_accuracy = 0.3
-w_energy = 0.5
+#w_accuracy = 0.3
+#w_energy = 0.5
 w_privacy = 1 - w_accuracy - w_energy
 # 1 = w_accuracy + w_energy + w_privacy
 
@@ -579,7 +583,7 @@ def get_activity_prediction_by_hmm():
 
     return ''
 
-time_detected_act_dict = {}
+time_detected_act_dict =  time_adl_res_dict.time_detected_act_dict
 
 def get_activity_by_action(cur_time_str, action):
     # env.running_time
@@ -600,7 +604,7 @@ def get_activity_by_action(cur_time_str, action):
 
 
     target_folder_time_str = get_target_folder_time_str(cur_time_str)
-    key = (cur_time_str, action)
+    key = (target_folder_time_str, action)
     # print("target_folder_time_str:", target_folder_time_str, " time_str:", cur_time_str, ' location:', location)
     if key in time_detected_act_dict.keys():
         return time_detected_act_dict[key] 
@@ -830,17 +834,18 @@ actions = []
 action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 
 import rl_ascc_dqn
-#agent = rl_ascc_dqn.DQNAgent(state.size, action_space)
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space)
 
 
 # for test and reload the pretrained model
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500, epsilon = 0.11)
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500, epsilon = 0.03)
 agent.load_weights()
 
 
 
 total_wmu_cam_trigger_times = []
 total_wmu_mic_trigger_times = []
+
 
 for episode in range(episode_count):
 
@@ -860,6 +865,7 @@ for episode in range(episode_count):
     rank2_res_prob_norm = []
     rank3_res_prob_norm = []
     
+    transition_occur_cnt = 0
     env.reset()
     while(pre_activity == ''):
         # open camera
@@ -941,10 +947,9 @@ for episode in range(episode_count):
     while(not env.done):
         start_t_iter = timer()
 
-        pre_motion_type = motion_type
         location = ''
         object = ''
-        motion_type = ''
+        #motion_type = ''
         audio_type = ''
 
         living_room_check_flag = False
@@ -965,7 +970,7 @@ for episode in range(episode_count):
         reward_energy = env.get_reward_energy(action)
 
         ground_truth_activity = get_activity_by_time_str(cur_time_str) # TODO
-        # detected_activity = ground_truth_activity
+        detected_activity = ground_truth_activity
 
         end_t_iter = timer()
         print(" 0 after get activity by time each iter takes:", end_t_iter - start_t_iter)
@@ -983,6 +988,20 @@ for episode in range(episode_count):
 
         pre_activity = pre_act_list[-1]
 
+
+        # walking motion
+        #if pre_motion_type != motion_type:
+            #transition_occur_cnt += 1
+        if pre_activity != ground_truth_activity and ground_truth_activity!='':
+            print("motion_type:", pre_motion_type, " ", motion_type)
+            transition_occur_cnt += 1
+            #real_transition_occur_cnt += 1
+            print('transition_occur_cnt:', transition_occur_cnt)
+ 
+
+        pre_motion_type = motion_type
+
+
         if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion \
             or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_audio or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision:
             activity_rank_hit_times += 1
@@ -997,17 +1016,19 @@ for episode in range(episode_count):
                 activity_rank_empty_times += 1
                 reward_accuracy = 0
             
-            elif detected_activity == ground_truth_activity:
+            elif detected_activity == ground_truth_activity or (BATHROOM in detected_activity and BATHROOM in ground_truth_activity):
                 activity_rank_hit_times += 1
                 if detected_activity != pre_activity:
-                    reward_accuracy = 1
+                    reward_accuracy = 1 * new_activity_factor
                 else:
-                    reward_accuracy = 0
-            elif ground_truth_activity == '':
-                activity_rank_empty_times += 1
-                reward_accuracy = 0
-            else:
+                    reward_accuracy = 1
+            elif ground_truth_activity != '':
                 reward_accuracy = -1
+
+
+        if ground_truth_activity == '':
+            activity_rank_empty_times += 1
+            reward_accuracy = 0
 
 
 
@@ -1037,6 +1058,7 @@ for episode in range(episode_count):
         print(" 2 each iter takes:", end_t_iter - start_t_iter)
 
         reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
+        print("Env motion:", pre_motion_type)
         print("Env state:", state)
         print("Env action: ", action, " ", rl_env_ascc.RL_ACTION_DICT[action])
         print("Env reward:", reward, " accuracy|energy|privacy:", reward_accuracy, ", ", reward_energy, ", ", reward_privacy)

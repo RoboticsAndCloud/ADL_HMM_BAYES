@@ -53,7 +53,7 @@ class DQNAgent:
         self.epsilon = epsilon
         # iteratively applying decay til 
         # 10% exploration/90% exploitation
-        self.epsilon_min = 0.1
+        self.epsilon_min = 0.01
         self.epsilon_decay = self.epsilon_min / self.epsilon
         self.epsilon_decay = self.epsilon_decay ** \
                              (1. / float(episodes))
@@ -131,9 +131,10 @@ class DQNAgent:
     
     def update_replay_memory(self):
 
-        self.memory = random.sample(self.memory, int(len(self.memory)/10))
+        self.memory = random.sample(self.memory, int(len(self.memory)/20))
 
-        # self.memory = []
+        #self.memory = []
+        
 
 
     def remember(self, state, action, reward, next_state, done):
