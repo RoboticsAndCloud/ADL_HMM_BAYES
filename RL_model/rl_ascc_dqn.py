@@ -33,7 +33,7 @@ class DQNAgent:
     def __init__(self,
                  state_space, 
                  action_space, 
-                 episodes=500, epsilon = 1.0):
+                 episodes=500, epsilon = 1.0, memory_size = 521):
         """DQN Agent on CartPole-v0 environment
 
         Arguments:
@@ -45,6 +45,7 @@ class DQNAgent:
 
         # experience buffer
         self.memory = []
+        self.memory_size = memory_size
 
         # discount rate
         self.gamma = 0.9
@@ -131,9 +132,11 @@ class DQNAgent:
     
     def update_replay_memory(self):
 
-        self.memory = random.sample(self.memory, int(len(self.memory)/20))
+        #self.memory = random.sample(self.memory, int(len(self.memory)/20))
 
-        #self.memory = []
+        self.memory.clear()
+
+        self.memory = []
         
 
 
@@ -148,6 +151,10 @@ class DQNAgent:
         """
         item = (state, action, reward, next_state, done)
         self.memory.append(item)
+
+        if len(self.memory) > self.memory_size:
+            index = int(self.memory_size/2)
+            self.memory = self.memory[index:]
 
         # self.memory = [] # ring buffer
         # # replace the old memory with new memory

@@ -536,8 +536,15 @@ batch_size = 256
 # stores the reward per episode
 scores = deque(maxlen=100)
 
-w_accuracy = 0.2
+w_accuracy = 0.6
 w_energy = 0.3
+
+#w_accuracy = 0.2
+#w_energy = 0.1
+
+# can not work well, 0.2 * (-1) + 0.35  = 0.15, 0.35-0.45=-0.15
+#w_accuracy = 0.35
+#w_energy = 0.2
 
 #w_accuracy = 0.3
 #w_energy = 0.5
@@ -558,8 +565,17 @@ ground_truth_dict = ground_truth_dict_dataset0819.ground_truth_dict
 
 ground_truth_dict = sorted(ground_truth_dict.items(), key=sorter_dict, reverse=False)
 
+cache_ground_truth_dict  = time_adl_res_dict.cache_ground_truth_dict
+
 def get_activity_by_time_str(cur_time_str):
+
+    if cur_time_str in cache_ground_truth_dict.keys():
+        return cache_ground_truth_dict[cur_time_str]
+
     target_folder_time_str = get_target_folder_time_str(cur_time_str)
+    if target_folder_time_str == '':
+        cache_ground_truth_dict[cur_time_str] = ''
+        return ''
 
     
     key = datetime.strptime(target_folder_time_str, tools_ascc.ASCC_DATASET_DATE_HOUR_TIME_FORMAT_DIR) 
@@ -574,6 +590,7 @@ def get_activity_by_time_str(cur_time_str):
             res = v[2]
         else:
             print("in get_activity_by_time_str target_folder_time_str:", target_folder_time_str, " time_str:", cur_time_str,' res:', res)
+            cache_ground_truth_dict[cur_time_str] = res
 
             return res
 
@@ -660,7 +677,7 @@ def get_activity_by_action(cur_time_str, action):
         print("not works, target_folder_time_str:", target_folder_time_str, " time_str:", cur_time_str, ' location:', location)
         bayes_model_location.set_location_prob(location_prob)
 
-        location_res.append([location, location_prob])
+        #location_res.append([location, location_prob])
 
         
         object_dict = get_object_by_activity_yolo(cur_time_str)
@@ -673,7 +690,7 @@ def get_activity_by_action(cur_time_str, action):
     # if action == 0 or action == 2 or action == 4 or action == 6:
         audio_type, audio_type_prob = get_audio_type_by_activity_cnn(cur_time_str)
         bayes_model_audio.set_audio_type_prob(float(audio_type_prob))
-        audio_type_res.append([audio_type, audio_type_prob])
+        #audio_type_res.append([audio_type, audio_type_prob])
 
         time_sound_dict[target_folder_time_str] = (audio_type, audio_type_prob)
 
@@ -681,7 +698,7 @@ def get_activity_by_action(cur_time_str, action):
 
         motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
         bayes_model_motion.set_motion_type_prob(motion_type_prob)
-        motion_type_res.append([motion_type, motion_type_prob])
+        #motion_type_res.append([motion_type, motion_type_prob])
 
         time_motion_dict[target_folder_time_str] = (motion_type, motion_type_prob)
 
@@ -865,11 +882,11 @@ actions = []
 action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 
 import rl_ascc_dqn
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space)
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*1.5)
 
 
 # for test and reload the pretrained model
-#agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500, epsilon = 0.03)
+#agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500, epsilon = 0.011)
 #agent.load_weights()
 
 
@@ -877,8 +894,12 @@ agent = rl_ascc_dqn.DQNAgent(state.size, action_space)
 total_wmu_cam_trigger_times = []
 total_wmu_mic_trigger_times = []
 
-
 for episode in range(episode_count):
+
+    location_res = []
+    audio_type_res = []
+    motion_type_res = []
+    object_res = []
 
     object_dict = {}
     rank_res = []
@@ -1022,13 +1043,14 @@ for episode in range(episode_count):
 
 
         # walking motion
-        if pre_motion_type != motion_type:
+        if pre_motion_type != motion_type and (pre_motion_type == 'walking' or motion_type == 'walking'):
             print('activity:', pre_activity, ' ', ground_truth_activity)
             motion_transition_occur_cnt += 1
             print('motion_transition_occur_cnt:', motion_transition_occur_cnt)
 
         if pre_activity != ground_truth_activity and ground_truth_activity!='':
             print("motion_type:", pre_motion_type, " ", motion_type)
+            print('activity:', pre_activity, ' ', ground_truth_activity)
             transition_occur_cnt += 1
             #real_transition_occur_cnt += 1
             print('transition_occur_cnt:', transition_occur_cnt)
@@ -1079,9 +1101,9 @@ for episode in range(episode_count):
         cur_activity = ground_truth_activity
 
         if cur_activity != pre_act_list[-1] and cur_activity != '':
-            pre_act_list.append(cur_activity)
             print("pre_activity:", pre_act_list[-1], " cur_activity:", cur_activity)
             print("pre_act_list:", pre_act_list)
+            pre_act_list.append(cur_activity)
             node = tools_ascc.Activity_Node_Observable(cur_activity, tools_ascc.get_activity_type(cur_time_str), 0)
             pre_activity_symbol = node.activity_res_generation()
             pre_act_symbol_list.append(pre_activity_symbol)
@@ -1171,6 +1193,7 @@ for episode in range(episode_count):
     print("time_motion_dict:", time_motion_dict)
     print("time_exist_dict:", time_exist_dict)
     print("time_detected_act_dict:", time_detected_act_dict)
+    print("cache_ground_truth_dict:", cache_ground_truth_dict)
 
    
     # agent.replay(len(agent.memory)/2)
