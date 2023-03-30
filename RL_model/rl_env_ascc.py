@@ -712,6 +712,8 @@ class EnvASCC():
              reward = reward + 0.6
         if WMU_vision in RL_ACTION_DICT[action]:
              reward = reward + 1
+        if Robot_audio_vision in RL_ACTION_DICT[action]:
+             reward = reward + 0.1
 
         return reward
     
@@ -743,6 +745,8 @@ class EnvASCC():
             if Robot_audio_vision in RL_ACTION_DICT[action]:
                 reward = reward + 1
                 self.privacy_occur_cnt = self.privacy_occur_cnt + 1
+            #else:
+            #    reward = -1 # get higher reward for using wmu sensors to detect private activity
 
         return reward
     

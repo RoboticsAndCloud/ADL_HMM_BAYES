@@ -9,7 +9,13 @@ from pickle import TRUE
 import random
 from re import T
 from collections import deque
+import gc
+# Applying the function on input class vector
+from keras.utils import to_categorical
 
+
+
+import collections
 
 #import constants
 #from tkinter.messagebox import NO
@@ -30,7 +36,11 @@ from timeit import default_timer as timer
 
 #from tensorflow.keras.utils import to_categorical
 
+from mem_top import mem_top
+print(mem_top(limit=15,width=180))
 
+
+OUTPUT_RANK = False
 
 MILAN_BASE_DATE = '2009-10-16'
 
@@ -54,7 +64,7 @@ LOCATION_DIR_SPLIT_SYMBOL = ':'
 
 BATHROOM = 'athroom'
 
-new_activity_factor = 1.0
+new_activity_factor = 1.0 # when detect new activity, reward more 
 
 """
 Given the duration, return the probability that the activity may be finished
@@ -156,7 +166,6 @@ def get_activity_by_time_str2(activity_time_str):
     # print("activity_end_dict", len(activity_end_dict))
 
     motion_activity_cnt = 0
-    import collections
     output_dict = {}
     output_dict2 = {}  # timestamp is at the beginning
 
@@ -449,8 +458,6 @@ def motion_feature_extractor(motion_type):
     class_vector =[motion_id]
     print(class_vector)
 
-    # Applying the function on input class vector
-    from keras.utils import to_categorical
     output_matrix = to_categorical(class_vector, num_classes = 6, dtype ="int32")
 
     # print(output_matrix)
@@ -468,7 +475,7 @@ def adl_hidden_feature_extractor(act):
     # print(class_vector)
 
     # Applying the function on input class vector
-    from keras.utils import to_categorical
+    #from keras.utils import to_categorical
     output_matrix = to_categorical(class_vector, num_classes = len(tools_ascc.ACTIVITY_DICT), dtype ="int32")
 
     return output_matrix[0]
@@ -536,19 +543,26 @@ batch_size = 256
 # stores the reward per episode
 scores = deque(maxlen=100)
 
-w_accuracy = 0.6
-w_energy = 0.3
+#w_accuracy = 0.6
+#w_energy = 0.3
+#w_privacy = 0.1
+
+#w_accuracy = 0.2
+#w_energy = 0.6
+#w_privacy = 0.8
 
 #w_accuracy = 0.2
 #w_energy = 0.1
 
 # can not work well, 0.2 * (-1) + 0.35  = 0.15, 0.35-0.45=-0.15
-#w_accuracy = 0.35
-#w_energy = 0.2
+w_accuracy = 0.3
+w_energy = 0.25
+w_privacy = 0.45
+
 
 #w_accuracy = 0.3
 #w_energy = 0.5
-w_privacy = 1 - w_accuracy - w_energy
+#w_privacy = 1 - w_accuracy - w_energy
 # 1 = w_accuracy + w_energy + w_privacy
 
 time_location_dict = time_adl_res_dict.time_location_dict
@@ -788,12 +802,12 @@ def get_activity_by_action(cur_time_str, action):
 
         p = p1*p2*p3*p4 * hmm_prob
             
-        res_prob[act].append(p)
+        #res_prob[act].append(p)
         heap_prob.append((act, p, cur_time_str))
 
         p2_res_dict[act] = p2
         
-    #print('heap_prob:', heap_prob)
+    print('heap_prob len:', len(heap_prob))
     top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
     #print('top3_prob:', top3_prob)
 
@@ -802,7 +816,7 @@ def get_activity_by_action(cur_time_str, action):
 
     p_activity_end = motion_adl_bayes_model.get_end_of_activity_prob_by_duration(activity_duration, activity_detected)
 
-    p_duration_lis.append(p_activity_end)
+    #p_duration_lis.append(p_activity_end)
 
 
     rank1_res_prob.append(top3_prob[0])
@@ -824,6 +838,8 @@ def get_activity_by_action(cur_time_str, action):
     cur_activity = top3_prob[0][0]
     # activity_begin_time = cur_time
     time_detected_act_dict[key] = cur_activity
+
+    del heap_prob
 
     return cur_activity
 
@@ -882,12 +898,12 @@ actions = []
 action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 
 import rl_ascc_dqn
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*1.5)
+#agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*2.5)
 
 
 # for test and reload the pretrained model
-#agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500, epsilon = 0.011)
-#agent.load_weights()
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*2.5, epsilon = 0.2)
+agent.load_weights()
 
 
 
@@ -940,8 +956,8 @@ for episode in range(episode_count):
         if detected_activity == '':
             continue
         
-        
-        rank_res.append((detected_activity, '1', cur_time_str))
+        if OUTPUT_RANK:
+            rank_res.append((detected_activity, '1', cur_time_str))
         
         pre_activity = detected_activity
         cur_activity = detected_activity
@@ -1060,9 +1076,13 @@ for episode in range(episode_count):
 
 
         if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion \
-            or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_audio or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision:
+            or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_audio or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision \
+            or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion:
+                
             activity_rank_hit_times += 1
             reward_accuracy = 1
+            #if pre_activity != ground_truth_activity and ground_truth_activity!='':
+            #    reward_accuracy = 1 * new_activity_factor
 
         else:
             detected_activity = get_activity_by_action(cur_time_str, action)
@@ -1086,13 +1106,15 @@ for episode in range(episode_count):
         if ground_truth_activity == '':
             activity_rank_empty_times += 1
             reward_accuracy = 0
+            reward_energy = 0
 
 
 
         if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Nothing:
             reward_accuracy = 0
 
-        rank_res.append((detected_activity, '1', cur_time_str))
+        if OUTPUT_RANK:
+            rank_res.append((detected_activity, '1', cur_time_str))
         
         end_t_iter = timer()
         print(" 1 each iter takes:", end_t_iter - start_t_iter)
@@ -1174,7 +1196,8 @@ for episode in range(episode_count):
 
         if rember_cnt >= batch_size:
             start_t = timer()
-            agent.replay(batch_size)
+            #agent.replay(batch_size)
+            agent.replay2(batch_size)
             end_t = timer()
             print("replay takes:", end_t - start_t, 'replay times:', agent.replay_counter)
             #print("agent replay(len memeory):", len(agent.memory))
@@ -1187,6 +1210,9 @@ for episode in range(episode_count):
             agent.update_replay_memory()
             print("agent update replay  memeory:", len(agent.memory))
 
+    print(mem_top(limit=15,width=180))
+    tools_ascc.show_memory()
+
     print("time_location_dict:", time_location_dict)
     print("time_object_dict:", time_object_dict)
     print("time_sound_dict:", time_sound_dict)
@@ -1194,6 +1220,7 @@ for episode in range(episode_count):
     print("time_exist_dict:", time_exist_dict)
     print("time_detected_act_dict:", time_detected_act_dict)
     print("cache_ground_truth_dict:", cache_ground_truth_dict)
+    print("cache_ground_truth_dict:", len(cache_ground_truth_dict))
 
    
     # agent.replay(len(agent.memory)/2)
@@ -1215,9 +1242,10 @@ for episode in range(episode_count):
     print("total_wmu_mic_trigger_times:", total_wmu_mic_trigger_times)
     print("total_privacy_occur_cnt:", env.privacy_occur_cnt)
 
+    print("rank res", len(rank_res))
     print("rank res", rank_res)
     print("hit times:{}, empty times:{}, total times:{}".format(activity_rank_hit_times, activity_rank_empty_times, len(rank_res)))
-    print("hit ratio:", activity_rank_hit_times*1.0/len(rank_res), "hit_empty ratio:", (activity_rank_hit_times + activity_rank_empty_times)*1.0/len(rank_res))
+    print("hit ratio:", activity_rank_hit_times*1.0/(len(rank_res)+1), "hit_empty ratio:", (activity_rank_hit_times + activity_rank_empty_times)*1.0/(len(rank_res)+1))
 
     print('rank1_res_prob_norm:', rank1_res_prob_norm)
     # print('rank2_res_prob_norm:', rank2_res_prob_norm)
@@ -1227,6 +1255,7 @@ for episode in range(episode_count):
     # while not env.done
 
     agent.save_weights()
+    gc.collect()
 
 
 
