@@ -65,6 +65,7 @@ LOCATION_DIR_SPLIT_SYMBOL = ':'
 BATHROOM = 'athroom'
 
 new_activity_factor = 1.0 # when detect new activity, reward more 
+MOTION_TRANSITION_REWARD = 1 # when detect the walking transition, reward + 1
 
 """
 Given the duration, return the probability that the activity may be finished
@@ -537,7 +538,7 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 10
+episode_count = 20
 batch_size = 256
 
 # stores the reward per episode
@@ -902,7 +903,7 @@ import rl_ascc_dqn
 
 
 # for test and reload the pretrained model
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*2.5, epsilon = 0.2)
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*2.5, epsilon = 0.26)
 agent.load_weights()
 
 
@@ -1059,10 +1060,12 @@ for episode in range(episode_count):
 
 
         # walking motion
+        motion_transition_occur_flag = False
         if pre_motion_type != motion_type and (pre_motion_type == 'walking' or motion_type == 'walking'):
             print('activity:', pre_activity, ' ', ground_truth_activity)
             motion_transition_occur_cnt += 1
             print('motion_transition_occur_cnt:', motion_transition_occur_cnt)
+            motion_transition_occur_flag = True
 
         if pre_activity != ground_truth_activity and ground_truth_activity!='':
             print("motion_type:", pre_motion_type, " ", motion_type)
@@ -1137,6 +1140,9 @@ for episode in range(episode_count):
         print(" 2 each iter takes:", end_t_iter - start_t_iter)
 
         reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
+        #if motion_transition_occur_flag == True:
+        #    reward = reward + MOTION_TRANSITION_REWARD
+
         print("Env motion:", pre_motion_type)
         print("Env state:", state)
         print("Env action: ", action, " ", rl_env_ascc.RL_ACTION_DICT[action])

@@ -16,6 +16,13 @@ from gym import wrappers, logger
 
 import matplotlib.pyplot as plt
 
+from tensorflow.keras import backend as K
+
+#config = tf.compat.v1.ConfigProto(log_device_placement=True)
+#config.gpu_options.allow_growth = True
+#session = tf.compat.v1.Session(config=config)
+#K.set_session(session)
+
 MODEL_SAVED_PATH = 'ascc_rl_dqn-saved-model'
 
 def plot(rewards, figure = 'ascc_rl_reward.png'):
@@ -122,8 +129,8 @@ class DQNAgent:
         """
         if np.random.rand() < self.epsilon:
             # explore - do random action
-            if np.random.rand() < self.epsilon:
-                return 3 # let robot_fusion action get more chance
+           # if np.random.rand() < 0.5:
+           #     return random.sample([3,1], 1)[0] # let robot_fusion action get more chance
             return random.sample(self.action_space,1)[0]
 
         # exploit
@@ -244,6 +251,7 @@ class DQNAgent:
             # collect batch state-q_value mapping
             state_batch.append(state[0])
             q_values_batch.append(q_values[0])
+            #K.clear_session()
 
         # train the Q-network
         self.q_model.fit(np.array(state_batch),
