@@ -538,7 +538,7 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 40  
+episode_count = 30  
 batch_size = 256
 
 # stores the reward per episode
@@ -904,7 +904,7 @@ actions = []
 action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 
 import rl_ascc_dqn
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*2.5)
+#agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*2.5)
 
 train_cnt = 3
 
@@ -912,8 +912,8 @@ train_cnt = 3
 #train_cnt = train_cnt - 1
 
 # for test and reload the pretrained model
-#agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*2.5, epsilon = 0.1)
-#agent.load_weights()
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*2.5, epsilon = 0.1)
+agent.load_weights()
 
 
 
