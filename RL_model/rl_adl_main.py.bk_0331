@@ -538,7 +538,7 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 20  
+episode_count = 40  
 batch_size = 256
 
 # stores the reward per episode
@@ -891,8 +891,7 @@ motion_feature = list(motion_feature)
 current_activity_feature = list(current_activity_feature)
 current_activity_duration_feature = [current_activity_duration_feature]
 #state = motion_feature + battery_feature + motion_feature + current_activity_feature + current_activity_duration_feature
-state = motion_feature + battery_feature + motion_feature + current_activity_feature 
-#state = battery_feature + current_activity_feature  
+state = battery_feature + current_activity_feature  
 #state = current_activity_feature  # works well
 state_size = len(state)
 state = np.reshape(state, [1, state_size])
@@ -1001,8 +1000,7 @@ for episode in range(episode_count):
     current_activity_feature = list(current_activity_feature)
     current_activity_duration_feature = [current_activity_duration_feature]
     #state = motion_feature + battery_feature + motion_feature + current_activity_feature + current_activity_duration_feature
-    state = motion_feature + battery_feature + motion_feature + current_activity_feature  
-    #state = battery_feature + current_activity_feature 
+    state = battery_feature + current_activity_feature 
     #state = current_activity_feature 
     state_size = len(state)
     state = np.reshape(state, [1, state_size])
@@ -1153,9 +1151,10 @@ for episode in range(episode_count):
         print(" 2 each iter takes:", end_t_iter - start_t_iter)
 
         reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
-        if motion_transition_occur_flag == True:
-            if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision:
-                reward = reward + reward_accuracy*MOTION_TRANSITION_REWARD
+        #if motion_transition_occur_flag == True:
+            #if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion \
+                   # or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision:
+        #        reward = reward + reward_accurracy*MOTION_TRANSITION_REWARD
 
         print("Env motion:", pre_motion_type)
         print("Env state:", state)
@@ -1192,8 +1191,7 @@ for episode in range(episode_count):
         current_activity_feature = list(current_activity_feature)
         current_activity_duration_feature = [current_activity_duration_feature]
         #next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature + current_activity_duration_feature
-        next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature  
-        #next_state = battery_feature + current_activity_feature
+        next_state = battery_feature + current_activity_feature
         #next_state = current_activity_feature
         next_state = np.reshape(next_state, [1, state_size])
 

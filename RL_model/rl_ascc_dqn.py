@@ -1,4 +1,5 @@
 """Trains a DQN/DDQN to solve CartPole-v0 problem
+https://github.com/PacktPublishing/Advanced-Deep-Learning-with-Keras.git
 
 
 """
@@ -82,7 +83,7 @@ class DQNAgent:
         self.replay_counter = 0
 
     
-    def build_model(self, n_inputs, n_outputs):
+    def build_model22(self, n_inputs, n_outputs):
         """Q Network is 256-256-256 MLP
 
         Arguments:
@@ -96,6 +97,33 @@ class DQNAgent:
         x = Dense(256, activation='relu')(inputs)
         x = Dense(256, activation='relu')(x)
         x = Dense(256, activation='relu')(x)
+        x = Dense(256, activation='relu')(x)
+        x = Dense(256, activation='relu')(x)
+        x = Dense(n_outputs,
+                  activation='linear', 
+                  name='action')(x)
+        q_model = Model(inputs, x)
+        q_model.summary()
+        return q_model
+
+    def build_model(self, n_inputs, n_outputs):
+        """Q Network is 256-256-256 MLP
+
+        Arguments:
+            n_inputs (int): input dim
+            n_outputs (int): output dim
+
+        Return:
+            q_model (Model): DQN
+        """
+        inputs = Input(shape=(n_inputs, ), name='state')
+        x = Dense(64, activation='relu')(inputs)
+        x = Dense(64, activation='relu')(x)
+        x = Dense(64, activation='relu')(x)
+        x = Dense(64, activation='relu')(x)
+      #  x = Dense(64, activation='relu')(x)
+      #  x = Dense(64, activation='relu')(x)
+        #x = Dropout(0.2)(x)
         x = Dense(n_outputs,
                   activation='linear', 
                   name='action')(x)
@@ -114,6 +142,7 @@ class DQNAgent:
         # self.q_model.load_weights(self.weights_file)
         from keras.models import load_model
         self.q_model = load_model(MODEL_SAVED_PATH)
+        self.target_q_model.set_weights(self.q_model.get_weights())
         self.q_model.summary()
         print('load weights')
 
@@ -264,8 +293,8 @@ class DQNAgent:
         self.update_epsilon()
 
         # copy new params on old target after 
-        # every 10 training updates
-        if self.replay_counter % 5 == 0:
+        # every 10 or 5 training updates
+        if self.replay_counter % 10 == 0:
             self.update_weights()
 
         self.replay_counter += 1
