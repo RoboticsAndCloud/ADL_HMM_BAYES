@@ -74,7 +74,8 @@ class DQNAgent:
         n_inputs = state_space
         n_outputs = len(action_space)
         self.q_model = self.build_model(n_inputs, n_outputs)
-        self.q_model.compile(loss='mse', optimizer=Adam())
+        #self.q_model.compile(loss='mse', optimizer=Adam(learning_rate=0.001))
+        self.q_model.compile(loss='mse', optimizer=Adam(learning_rate=0.005))
         # target Q Network
         self.target_q_model = self.build_model(n_inputs, n_outputs)
         # copy Q Network params to target Q Network
@@ -117,10 +118,10 @@ class DQNAgent:
             q_model (Model): DQN
         """
         inputs = Input(shape=(n_inputs, ), name='state')
-        x = Dense(64, activation='relu')(inputs)
-        x = Dense(64, activation='relu')(x)
-        x = Dense(64, activation='relu')(x)
-        x = Dense(64, activation='relu')(x)
+        x = Dense(128, activation='relu')(inputs)
+        #x = Dense(64, activation='relu')(x)
+        #x = Dense(64, activation='relu')(x)
+        #x = Dense(64, activation='relu')(x)
       #  x = Dense(64, activation='relu')(x)
       #  x = Dense(64, activation='relu')(x)
         #x = Dropout(0.2)(x)

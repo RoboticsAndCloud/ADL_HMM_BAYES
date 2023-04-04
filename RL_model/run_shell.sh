@@ -8,7 +8,7 @@
 now=`date '+%Y-%m-%d %H:%M:%S'` # 
 grepFlag='rl_adl_main' # process name
 thisLog='./watchlog' # 
-trainLog='./rl_0401_new_acc_privacy_0.45_energy_0.25_acc_0.3motion.txt' # 
+trainLog='./rl_0404_new_acc_privacy_0.45_energy_0.25_acc_0.3motion1.txt'
 
 baseDir="."
 sleepTime=300s # 

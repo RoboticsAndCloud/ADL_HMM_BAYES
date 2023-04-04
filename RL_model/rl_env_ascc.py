@@ -129,7 +129,7 @@ Robot_WMU_fusion = Robot_audio_vision + WMU_fusion
 Nothing = "Nothing"
 
 
-RL_ACTION_DICT = {
+RL_ACTION_DICT_0 = {
     0: WMU_audio,  
     1: WMU_vision, 
     2: WMU_fusion,  
@@ -140,9 +140,10 @@ RL_ACTION_DICT = {
     7: Nothing
 }
 
+
 MOTION_RECORD_TIME = 2.3 # 2 seconds for motion data collection
 # todo: time cost for recognition:  image: 1.15 for 10 images, audio:0.1, motion: 1.14, totally: 2.5
-ACTION_INTERVAL_DICT = {
+ACTION_INTERVAL_DICT_0 = {
     0: 1,  # "audio",
     1: 1.0/3, #"vision",
     2: 1, # fusion  # multi-thread, audio, vision simultanously
@@ -153,6 +154,19 @@ ACTION_INTERVAL_DICT = {
     7: 0
 }
 
+RL_ACTION_DICT = {
+    0: WMU_fusion,  
+    1: Robot_audio_vision,
+    2: Robot_WMU_fusion,
+    3: Nothing
+}
+
+ACTION_INTERVAL_DICT = {
+    0: 1, # fusion  # multi-thread, audio, vision simultanously
+    1: 0, # robot
+    2: 1, # Robot_WMU_fusion
+    3: 0
+}
 
 
 PRIVACY_LOCATION_LIST = [constants.LOCATION_BEDROOM, constants.LOCATION_BATHROOM]
@@ -679,7 +693,12 @@ class EnvASCC():
             self.done = True
             # print("Done == True, self.running_time:", self.running_time, "self.day_end:", self.day_end)
         
-        print('Get current date_day_time:', self.get_current_date_day_time(), " running day:", self.running_day)
+        #print('Get current date_day_time:', self.get_current_date_day_time(), " running day:", self.running_day)
+
+        #if self.wmu_cam_times > 1500: #1500
+            #print('Get wmu_cam_times > 3000, running day:', self.running_day)
+            #done = True
+            #self.done = True
 
         if self.get_current_date_day_time() > self.running_day:
             print('Get current date_day_time:', self.get_current_date_day_time(), " running day:", self.running_day)
@@ -708,10 +727,19 @@ class EnvASCC():
 
     def get_reward_energy(self, action):
         reward = 0
-        if WMU_audio in RL_ACTION_DICT[action]:
-             reward = reward + 0.6
+        #if WMU_audio in RL_ACTION_DICT[action]:
+        #     reward = reward + 0.6
         if WMU_vision in RL_ACTION_DICT[action]:
              reward = reward + 1
+             battery_level = self.get_battery_level()
+             reward = reward + battery_level * 0.1
+             #if battery_level ==3:
+             #    reward = reward + 3
+             #if battery_level ==2:
+             #    reward = reward + 2
+             #if battery_level ==1:
+             #    reward = reward + 1
+
         if Robot_audio_vision in RL_ACTION_DICT[action]:
              reward = reward + 0.1
 
@@ -1520,3 +1548,15 @@ class EnvASCC():
     def get_running_time(self):
         return self.running_time
 
+    def get_battery_level(self):
+        wmu_cam_times = self.wmu_cam_times
+        battery_level = 0
+        if wmu_cam_times < 300:
+            battery_level = 0
+        elif wmu_cam_times < 600:
+            battery_level = 1
+        elif wmu_cam_times < 1200:
+            battery_level = 2
+        else:
+            battery_level = 3
+        return battery_level

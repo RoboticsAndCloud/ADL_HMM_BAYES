@@ -451,6 +451,17 @@ MOTION_ACTIVITY_MAPPING = {
     5: 'walking'
 }
 
+def battery_feature_extractor(battery_level):
+
+    class_vector =[battery_level]
+
+    output_matrix = to_categorical(class_vector, num_classes = 4, dtype ="int32")
+
+    # print(output_matrix)
+    # [[0 0 0 0 0 1]]
+
+    return output_matrix[0]
+
 def motion_feature_extractor(motion_type):
     # motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
 
@@ -877,7 +888,11 @@ while(pre_activity == ''):
 motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
 motion_feature = motion_feature_extractor(motion_type) # [0, 0, 0, 0, 0, 1]
 #battery_feature = [0, 0]
-battery_feature = [0] # wmu_cam trigger times
+# battery_level = 0
+# todo battery_feature = battery_feature_extractor(battery_level)
+#battery_feature = [0] # wmu_cam trigger times
+battery_level = env.get_battery_level()
+battery_feature = battery_feature_extractor(battery_level)
 #adl_hidden_feature = [1, 2, 4, 5, 5, 5]  # to be done
 predicted_activity = get_activity_prediction_by_hmm()
 # adl_hidden_feature = adl_hidden_feature_extractor(predicted_activity) # seems useless
@@ -887,11 +902,13 @@ current_activity_duration = (cur_time - activity_begin_time).seconds / 60 # in m
 current_activity_feature = adl_hidden_feature_extractor(current_activity)
 current_activity_duration_feature = current_activity_duration
 
+battery_feature = list(battery_feature)
 motion_feature = list(motion_feature)
 current_activity_feature = list(current_activity_feature)
 current_activity_duration_feature = [current_activity_duration_feature]
 #state = motion_feature + battery_feature + motion_feature + current_activity_feature + current_activity_duration_feature
-state = motion_feature + battery_feature + motion_feature + current_activity_feature 
+#state = motion_feature + battery_feature + motion_feature + current_activity_feature 
+state = motion_feature + battery_feature + current_activity_feature 
 #state = battery_feature + current_activity_feature  
 #state = current_activity_feature  # works well
 state_size = len(state)
@@ -919,6 +936,7 @@ agent.load_weights()
 
 total_wmu_cam_trigger_times = []
 total_wmu_mic_trigger_times = []
+total_privacy_times = []
 
 for episode in range(episode_count):
 
@@ -983,7 +1001,9 @@ for episode in range(episode_count):
     pre_motion_type = motion_type
     motion_feature = motion_feature_extractor(motion_type) # [0, 0, 0, 0, 0, 1]
     #battery_feature = [0, 0]
-    battery_feature = [0]
+    #battery_feature = [0]
+    battery_level = env.get_battery_level()
+    battery_feature = battery_feature_extractor(battery_level)
     #adl_hidden_feature = [1, 2, 4, 5, 5, 5]  # to be done
     predicted_activity = get_activity_prediction_by_hmm()
     # adl_hidden_feature = adl_hidden_feature_extractor(predicted_activity) # seems useless
@@ -997,11 +1017,13 @@ for episode in range(episode_count):
     # features.extend(battery_feature)
     # features.extend(motion_feature)
     # print("features:", features)
+    battery_feature = list(battery_feature)
     motion_feature = list(motion_feature)
     current_activity_feature = list(current_activity_feature)
     current_activity_duration_feature = [current_activity_duration_feature]
     #state = motion_feature + battery_feature + motion_feature + current_activity_feature + current_activity_duration_feature
-    state = motion_feature + battery_feature + motion_feature + current_activity_feature  
+    #state = motion_feature + battery_feature + motion_feature + current_activity_feature  
+    state = motion_feature + battery_feature + current_activity_feature  
     #state = battery_feature + current_activity_feature 
     #state = current_activity_feature 
     state_size = len(state)
@@ -1041,6 +1063,14 @@ for episode in range(episode_count):
 
         # agent chose an action based on the state
         print('Env Running:', cur_time_str, " evn.runing:", env.get_running_time()) 
+
+        ignore_time1 =  datetime.strptime('2009-12-11 18:53:00', rl_env_ascc.DATE_HOUR_TIME_FORMAT)
+        ignore_time2 =  datetime.strptime('2009-12-11 20:36:40', rl_env_ascc.DATE_HOUR_TIME_FORMAT)
+        if env.running_time > ignore_time1  and env.running_time < ignore_time2:
+            #print("ignore time:", env.running_time)
+            env.step(1)
+            continue
+
         action = agent.act(state)
         # print("Env state:", state)
         # print("Env action: ", action, " ", rl_env_ascc.RL_ACTION_DICT[action])
@@ -1074,7 +1104,8 @@ for episode in range(episode_count):
 
         # walking motion
         motion_transition_occur_flag = False
-        if pre_motion_type != motion_type and (pre_motion_type == 'walking' or motion_type == 'walking'):
+        #if pre_motion_type != motion_type and (pre_motion_type == 'walking' or motion_type == 'walking'):
+        if motion_type == 'walking':
             print('activity:', pre_activity, ' ', ground_truth_activity)
             motion_transition_occur_cnt += 1
             print('motion_transition_occur_cnt:', motion_transition_occur_cnt)
@@ -1154,7 +1185,7 @@ for episode in range(episode_count):
 
         reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
         if motion_transition_occur_flag == True:
-            if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision:
+            if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion:
                 reward = reward + reward_accuracy*MOTION_TRANSITION_REWARD
 
         print("Env motion:", pre_motion_type)
@@ -1166,7 +1197,10 @@ for episode in range(episode_count):
 
         wmu_mic_times, wmu_cam_times = env.get_wmu_sensor_trigger_times()
         #battery_feature = [wmu_mic_times, wmu_cam_times]
-        battery_feature = [wmu_cam_times]
+        battery_level = env.get_battery_level()
+        battery_feature = battery_feature_extractor(battery_level)
+
+        #battery_feature = [wmu_cam_times]
 
         # after the action, time changes and motion changes
         cur_time = env.get_running_time()
@@ -1188,11 +1222,13 @@ for episode in range(episode_count):
         current_activity_duration_feature = current_activity_duration
 
 
+        battery_feature = list(battery_feature)
         next_motion_feature = list(next_motion_feature)
         current_activity_feature = list(current_activity_feature)
         current_activity_duration_feature = [current_activity_duration_feature]
         #next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature + current_activity_duration_feature
-        next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature  
+        #next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature  
+        next_state = next_motion_feature + battery_feature + current_activity_feature  
         #next_state = battery_feature + current_activity_feature
         #next_state = current_activity_feature
         next_state = np.reshape(next_state, [1, state_size])
@@ -1265,10 +1301,12 @@ for episode in range(episode_count):
 
     total_wmu_cam_trigger_times.append(env.wmu_cam_times)
     total_wmu_mic_trigger_times.append(env.wmu_mic_times)
+    total_privacy_times.append(env.privacy_occur_cnt)
+
     plot(total_wmu_cam_trigger_times, total_wmu_mic_trigger_times, label1="camera", label2="microphone")
     print("total_wmu_cam_trigger_times:", total_wmu_cam_trigger_times)
     print("total_wmu_mic_trigger_times:", total_wmu_mic_trigger_times)
-    print("total_privacy_occur_cnt:", env.privacy_occur_cnt)
+    print("total_privacy_times:", total_privacy_times)
 
     print("rank res", len(rank_res))
     print("rank res", rank_res)
