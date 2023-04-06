@@ -565,7 +565,7 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 50 # 200 
+episode_count = 250
 batch_size = 256
 
 # stores the reward per episode
@@ -945,8 +945,8 @@ actions = []
 
 action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 
-import rl_ascc_dqn
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*2.5)
+import rl_ascc_q
+agent = rl_ascc_q.QLearningAgent(len(action_space), episodes=500*2.5)
 
 train_cnt = 3
 
@@ -1100,7 +1100,7 @@ for episode in range(episode_count):
             env.step(1)
             continue
 
-        action = agent.act(state)
+        action = agent.act(str(state))
         # print("Env state:", state)
         # print("Env action: ", action, " ", rl_env_ascc.RL_ACTION_DICT[action])
 
@@ -1267,7 +1267,7 @@ for episode in range(episode_count):
         #next_state = current_activity_feature
         next_state = np.reshape(next_state, [1, state_size])
 
-        agent.remember(state, action, reward, next_state, env.done)
+        agent.remember(str(state), action, reward, str(next_state), env.done)
         rember_cnt = rember_cnt + 1
         
         state = next_state
@@ -1290,8 +1290,7 @@ for episode in range(episode_count):
 
         if rember_cnt >= batch_size:
             start_t = timer()
-            #agent.replay(batch_size)
-            agent.replay2(batch_size)
+            agent.replay(batch_size)
             end_t = timer()
             print("replay takes:", end_t - start_t, 'replay times:', agent.replay_counter)
             #print("agent replay(len memeory):", len(agent.memory))
@@ -1301,7 +1300,7 @@ for episode in range(episode_count):
             print("episode: {}/{}, episode_reward: {}, e: {:.2}, end time {}"
             .format(episode, episode_count-1, total_reward, agent.epsilon, env.get_running_time()))
             if rember_cnt > 0:
-                agent.replay2(rember_cnt)
+                agent.replay(rember_cnt)
 
             agent.update_replay_memory()
             print("agent update replay  memeory:", len(agent.memory))
@@ -1332,6 +1331,8 @@ for episode in range(episode_count):
     plotone(scores, "rl_reward.png")
     print("plotone scores:", scores)
     print("plotone time scores:", time_scores)
+    print("q_table:")
+    print(agent.q_table)
 
     total_wmu_cam_trigger_times.append(env.wmu_cam_times)
     total_wmu_mic_trigger_times.append(env.wmu_mic_times)
@@ -1354,7 +1355,7 @@ for episode in range(episode_count):
     # plot(total_wmu_mic_trigger_times, "wmu_mic_times.png")
     # while not env.done
 
-    agent.save_weights()
+    # agent.save_weights()
     gc.collect()
 
 
@@ -1362,6 +1363,8 @@ for episode in range(episode_count):
 
 print("===================================================")
 print("rank res", rank_res)
+print("q_table:")
+print(agent.q_table)
 # end episode for
 
 
