@@ -40,7 +40,7 @@ from mem_top import mem_top
 print(mem_top(limit=15,width=180))
 
 
-OUTPUT_RANK = False
+OUTPUT_RANK = True
 
 MILAN_BASE_DATE = '2009-10-16'
 
@@ -63,6 +63,8 @@ AUDIO_WEIGHT = 0.6
 LOCATION_DIR_SPLIT_SYMBOL = ':'
 
 BATHROOM = 'athroom'
+
+Q_TABLE = 'ascc_q_table.txt'
 
 new_activity_factor = 1.0 # when detect new activity, reward more 
 MOTION_TRANSITION_REWARD = 1 # when detect the walking transition, reward + 1
@@ -574,7 +576,7 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 2500 # 2000
+episode_count = 1000 # 2000
 batch_size = 256
 
 # stores the reward per episode
@@ -957,7 +959,7 @@ actions = []
 action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 
 import rl_ascc_q
-agent = rl_ascc_q.QLearningAgent(len(action_space), episodes=500*2.5)
+agent = rl_ascc_q.QLearningAgent(len(action_space), episodes=500*5)
 
 train_cnt = 3
 
@@ -973,6 +975,10 @@ train_cnt = 3
 total_wmu_cam_trigger_times = []
 total_wmu_mic_trigger_times = []
 total_robot_trigger_times = []
+total_transition_nothing_times = []
+total_transition_wmu_times = []
+total_transition_robot_times = []
+total_motion_transition_occur_cnt = []
 total_privacy_times = []
 
 for episode in range(episode_count):
@@ -1000,6 +1006,10 @@ for episode in range(episode_count):
     
     transition_occur_cnt = 0
     motion_transition_occur_cnt = 0
+    transition_nothing_times = 0
+    transition_wmu_times = 0
+    transition_robot_times = 0
+
     env.reset()
     while(pre_activity == ''):
         # open camera
@@ -1111,7 +1121,7 @@ for episode in range(episode_count):
         ignore_time2 =  datetime.strptime('2009-12-11 20:36:40', rl_env_ascc.DATE_HOUR_TIME_FORMAT)
         if env.running_time > ignore_time1  and env.running_time < ignore_time2:
             #print("ignore time:", env.running_time)
-            env.step(1)
+            env.step(2) # nothing
             continue
 
         action = agent.act(str(state))
@@ -1151,7 +1161,6 @@ for episode in range(episode_count):
         #if motion_type == 'walking':
             print('activity:', pre_activity, ' ', ground_truth_activity)
             motion_transition_occur_cnt += 1
-            print('motion_transition_occur_cnt:', motion_transition_occur_cnt)
             motion_transition_occur_flag = True
 
         if pre_activity != ground_truth_activity and ground_truth_activity!='':
@@ -1192,6 +1201,11 @@ for episode in range(episode_count):
             elif ground_truth_activity != '':
                 reward_accuracy = -1
 
+        # check the activities which can not be detected by robot
+        reward_acc = env.get_reward_accuracy(action, ground_truth_activity)
+        if reward_acc == -1:
+            print('reward_acc == 0, with: ', action, ', ', ground_truth_activity)
+            reward_accuracy = -1
 
         if ground_truth_activity == '':
             activity_rank_empty_times += 1
@@ -1228,10 +1242,18 @@ for episode in range(episode_count):
 
         reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
         if motion_transition_occur_flag == True:
+            print('motion_transtion_action:', rl_env_ascc.RL_ACTION_DICT[action])
             if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion:
-                reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
+                reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD
+                transition_wmu_times += 1
             if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision:
-                reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
+                reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD
+                transition_wmu_times += 1
+
+#                reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
+            if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Nothing:
+                reward = reward - MOTION_TRANSITION_REWARD
+                transition_nothing_times += 1
 
         print("Env motion:", pre_motion_type)
         print("Env state:", state)
@@ -1330,9 +1352,15 @@ for episode in range(episode_count):
    
     #agent.replay2(len(agent.memory)-1)
 
+    total_wmu_cam_trigger_times.append(env.wmu_cam_times)
+    total_wmu_mic_trigger_times.append(env.wmu_mic_times)
+    total_robot_trigger_times.append(env.robot_trigger_times)
+    total_privacy_times.append(env.privacy_occur_cnt)
 
-    
-    
+    total_transition_nothing_times.append(transition_nothing_times) 
+    total_transition_wmu_times.append(transition_wmu_times) 
+    total_transition_robot_times.append(transition_robot_times) 
+    total_motion_transition_occur_cnt.append(motion_transition_occur_cnt)
 
     
     time_scores.append(cur_time_str)
@@ -1356,16 +1384,18 @@ for episode in range(episode_count):
     print("q_table:", agent.q_table)
     print("q_table size:", len(agent.q_table))
 
-    total_wmu_cam_trigger_times.append(env.wmu_cam_times)
-    total_wmu_mic_trigger_times.append(env.wmu_mic_times)
-    total_robot_trigger_times.append(env.robot_trigger_times)
-    total_privacy_times.append(env.privacy_occur_cnt)
+    tools_ascc.save_dict(agent.q_table, Q_TABLE)
+
 
     plot(total_wmu_cam_trigger_times, total_wmu_mic_trigger_times, label1="camera", label2="microphone")
     print("total_wmu_cam_trigger_times:", total_wmu_cam_trigger_times)
     print("total_wmu_mic_trigger_times:", total_wmu_mic_trigger_times)
     print("total_robot_trigger_times:", total_robot_trigger_times)
     print("total_privacy_times:", total_privacy_times)
+    print("total_transition_nothing_times:", total_transition_nothing_times) 
+    print("total_transition_wmu_times:", total_transition_wmu_times) 
+    print("total_transition_robot_times:", total_transition_robot_times) 
+    print('total_motion_transition_occur_cnt:', total_motion_transition_occur_cnt)
 
     print("rank res", len(rank_res))
     print("rank res", rank_res)

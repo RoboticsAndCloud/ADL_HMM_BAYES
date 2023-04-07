@@ -330,6 +330,17 @@ ACTIVITY_NIGHT_HOUR = 18
 activity_set_for_lstm = set()
 
 
+import json
+
+def save_dict(pet, filename):
+    with open(filename, 'w') as f:
+        f.write(json.dumps(pet))
+
+def load_dict(filename):
+    with open(filename) as f:
+        pet = json.loads(f.read())
+    return pet
+
 def get_target_folder_time_str(cur_time_str):
     target_time_str = ''
     try:

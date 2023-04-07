@@ -114,9 +114,9 @@ MOTION_TRIGGERRED_ACTION = 1
 
 INTERVAL_FOR_COLLECTING_DATA = 10 # Seconds
 
-WMU_AUDIO_ACTION = 0
-WMU_VISION_ACTION = 1
-WMU_FUSION_ACTION = 2
+#WMU_AUDIO_ACTION = 0
+#WMU_VISION_ACTION = 1
+WMU_FUSION_ACTION = 0
 
 WMU_audio = "WMU_audio"
 WMU_vision = "WMU_vision"
@@ -157,20 +157,23 @@ ACTION_INTERVAL_DICT_0 = {
 RL_ACTION_DICT = {
     0: WMU_fusion,  
     1: Robot_audio_vision,
-    2: Robot_WMU_fusion,
-    3: Nothing
+   # 2: Robot_WMU_fusion,
+    2: Nothing
 }
 
 ACTION_INTERVAL_DICT = {
     0: 1, # fusion  # multi-thread, audio, vision simultanously
     1: 0, # robot
-    2: 1, # Robot_WMU_fusion
-    3: 0
+   # 2: 1, # Robot_WMU_fusion
+    2: 0
 }
 
 
 PRIVACY_LOCATION_LIST = [constants.LOCATION_BEDROOM, constants.LOCATION_BATHROOM]
+
 PRIVACY_ACTIVITY_LIST = [constants.ACTIVITY_MASTER_BEDROOM, constants.ACTIVITY_MASTER_BATHROOM, constants.ACTIVITY_GUEST_BATHROOM]
+
+ROBOT_CANNOT_REG_ACTIVITY_LIST = [constants.ACTIVITY_LEAVE_HOME]
 
 
 # action map
@@ -763,6 +766,17 @@ class EnvASCC():
     #             self.privacy_occur_cnt = self.privacy_occur_cnt + 1
 
     #     return reward
+
+    def get_reward_accuracy(self, action, activity):
+
+        acc = 1
+
+        if activity in ROBOT_CANNOT_REG_ACTIVITY_LIST:
+            if Robot_audio_vision == RL_ACTION_DICT[action]:
+
+                acc = -1
+
+        return acc
 
     def get_reward_privacy(self, action, activity):
 
