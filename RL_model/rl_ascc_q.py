@@ -19,7 +19,7 @@ class QLearningAgent:
         self.epsilon = epsilon
         # iteratively applying decay til 
         # 10% exploration/90% exploitation
-        self.epsilon_min = 0.1
+        self.epsilon_min = 0.01
         self.epsilon_decay = self.epsilon_min / self.epsilon
         self.epsilon_decay = self.epsilon_decay ** \
                              (1. / float(episodes))

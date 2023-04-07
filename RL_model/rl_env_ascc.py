@@ -510,6 +510,7 @@ class EnvASCC():
 
         self.wmu_mic_times = 0
         self.wmu_cam_times = 0
+        self.robot_trigger_times = 0
         self.privacy_occur_cnt = 0
         # Reset the running time to day_begin
         self.reset()
@@ -589,6 +590,7 @@ class EnvASCC():
 
         self.wmu_mic_times = 0
         self.wmu_cam_times = 0
+        self.robot_trigger_times = 0
         self.privacy_occur_cnt = 0
 
         next_state_ = [train_running_time / STATE_TIME_TRANS, (self.activity / 100)]
@@ -695,10 +697,10 @@ class EnvASCC():
         
         #print('Get current date_day_time:', self.get_current_date_day_time(), " running day:", self.running_day)
 
-        #if self.wmu_cam_times > 1500: #1500
-            #print('Get wmu_cam_times > 3000, running day:', self.running_day)
-            #done = True
-            #self.done = True
+        if self.wmu_cam_times > 400: #1500
+           #print('Get wmu_cam_times > 3000, running day:', self.running_day)
+           done = True
+           self.done = True
 
         if self.get_current_date_day_time() > self.running_day:
             print('Get current date_day_time:', self.get_current_date_day_time(), " running day:", self.running_day)
@@ -717,6 +719,9 @@ class EnvASCC():
             self.wmu_mic_times += 1
         if WMU_vision in RL_ACTION_DICT[action]:
             self.wmu_cam_times += 1
+
+        if Robot_audio_vision in RL_ACTION_DICT[action]:
+            self.robot_trigger_times += 1
             
         return '', '', '', motion_triggerred_flag
     
@@ -733,12 +738,6 @@ class EnvASCC():
              reward = reward + 1
              battery_level = self.get_battery_level()
              reward = reward + battery_level * 0.1
-             #if battery_level ==3:
-             #    reward = reward + 3
-             #if battery_level ==2:
-             #    reward = reward + 2
-             #if battery_level ==1:
-             #    reward = reward + 1
 
         if Robot_audio_vision in RL_ACTION_DICT[action]:
              reward = reward + 0.1

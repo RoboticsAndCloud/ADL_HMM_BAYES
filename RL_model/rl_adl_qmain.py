@@ -460,6 +460,8 @@ def transition_feature_extractor(pre_motion_type, motion_type):
 
     class_vector =[tran]
 
+    return class_vector
+
     output_matrix = to_categorical(class_vector, num_classes = 2, dtype ="int32")
 
     # print(output_matrix)
@@ -470,6 +472,8 @@ def transition_feature_extractor(pre_motion_type, motion_type):
 def battery_feature_extractor(battery_level):
 
     class_vector =[battery_level]
+
+    return class_vector
 
     output_matrix = to_categorical(class_vector, num_classes = 4, dtype ="int32")
 
@@ -484,6 +488,9 @@ def motion_feature_extractor(motion_type):
     motion_id = tools_ascc.get_key(MOTION_ACTIVITY_MAPPING, motion_type)
 
     class_vector =[motion_id]
+
+    return class_vector
+
     print(class_vector)
 
     output_matrix = to_categorical(class_vector, num_classes = 6, dtype ="int32")
@@ -500,6 +507,8 @@ def adl_hidden_feature_extractor(act):
     act_id = tools_ascc.get_key(tools_ascc.ACTIVITY_DICT, act)
 
     class_vector =[act_id]
+
+    return class_vector
     # print(class_vector)
 
     # Applying the function on input class vector
@@ -565,7 +574,7 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 250
+episode_count = 2500 # 2000
 batch_size = 256
 
 # stores the reward per episode
@@ -910,9 +919,10 @@ motion_feature = motion_feature_extractor(motion_type) # [0, 0, 0, 0, 0, 1]
 #battery_feature = [0, 0]
 # battery_level = 0
 # todo battery_feature = battery_feature_extractor(battery_level)
-#battery_feature = [0] # wmu_cam trigger times
-battery_level = env.get_battery_level()
-battery_feature = battery_feature_extractor(battery_level)
+battery_feature = [0] # wmu_cam trigger times
+robot_trigger_feature = [0]
+# battery_level = env.get_battery_level()
+# battery_feature = battery_feature_extractor(battery_level)
 #adl_hidden_feature = [1, 2, 4, 5, 5, 5]  # to be done
 predicted_activity = get_activity_prediction_by_hmm()
 # adl_hidden_feature = adl_hidden_feature_extractor(predicted_activity) # seems useless
@@ -923,6 +933,7 @@ current_activity_feature = adl_hidden_feature_extractor(current_activity)
 current_activity_duration_feature = current_activity_duration
 
 battery_feature = list(battery_feature)
+robot_trigger_feature = list(robot_trigger_feature)
 motion_feature = list(motion_feature)
 current_activity_feature = list(current_activity_feature)
 current_activity_duration_feature = [current_activity_duration_feature]
@@ -932,7 +943,7 @@ transition_feature = list(transition_feature)
 
 #state = motion_feature + battery_feature + motion_feature + current_activity_feature + current_activity_duration_feature
 #state = motion_feature + battery_feature + motion_feature + current_activity_feature 
-state = transition_feature + battery_feature + current_activity_feature 
+state = transition_feature + battery_feature + current_activity_feature + robot_trigger_feature
 #state = motion_feature + battery_feature + current_activity_feature 
 #state = battery_feature + current_activity_feature  
 #state = current_activity_feature  # works well
@@ -961,6 +972,7 @@ train_cnt = 3
 
 total_wmu_cam_trigger_times = []
 total_wmu_mic_trigger_times = []
+total_robot_trigger_times = []
 total_privacy_times = []
 
 for episode in range(episode_count):
@@ -1026,9 +1038,10 @@ for episode in range(episode_count):
     pre_motion_type = motion_type
     motion_feature = motion_feature_extractor(motion_type) # [0, 0, 0, 0, 0, 1]
     #battery_feature = [0, 0]
-    #battery_feature = [0]
-    battery_level = env.get_battery_level()
-    battery_feature = battery_feature_extractor(battery_level)
+    battery_feature = [env.wmu_cam_times]
+    robot_trigger_feature = [env.robot_trigger_times]
+    # battery_level = env.get_battery_level()
+    # battery_feature = battery_feature_extractor(battery_level)
     #adl_hidden_feature = [1, 2, 4, 5, 5, 5]  # to be done
     predicted_activity = get_activity_prediction_by_hmm()
     # adl_hidden_feature = adl_hidden_feature_extractor(predicted_activity) # seems useless
@@ -1043,6 +1056,7 @@ for episode in range(episode_count):
     # features.extend(motion_feature)
     # print("features:", features)
     battery_feature = list(battery_feature)
+    robot_trigger_feature = list(robot_trigger_feature)
     motion_feature = list(motion_feature)
     transition_feature = transition_feature_extractor(motion_type, motion_type)
     transition_feature = list(transition_feature)
@@ -1051,7 +1065,7 @@ for episode in range(episode_count):
     current_activity_duration_feature = [current_activity_duration_feature]
     #state = motion_feature + battery_feature + motion_feature + current_activity_feature + current_activity_duration_feature
     #state = motion_feature + battery_feature + motion_feature + current_activity_feature  
-    state = transition_feature + battery_feature + current_activity_feature 
+    state = transition_feature + battery_feature + current_activity_feature + robot_trigger_feature
     #state = motion_feature + battery_feature + current_activity_feature  
     #state = battery_feature + current_activity_feature 
     #state = current_activity_feature 
@@ -1228,8 +1242,10 @@ for episode in range(episode_count):
 
         wmu_mic_times, wmu_cam_times = env.get_wmu_sensor_trigger_times()
         #battery_feature = [wmu_mic_times, wmu_cam_times]
-        battery_level = env.get_battery_level()
-        battery_feature = battery_feature_extractor(battery_level)
+        battery_feature = [wmu_cam_times]
+        robot_trigger_feature = [env.robot_trigger_times]
+        # battery_level = env.get_battery_level()
+        # battery_feature = battery_feature_extractor(battery_level)
 
         #battery_feature = [wmu_cam_times]
 
@@ -1256,12 +1272,13 @@ for episode in range(episode_count):
 
 
         battery_feature = list(battery_feature)
+        robot_trigger_feature = list(robot_trigger_feature)
         next_motion_feature = list(next_motion_feature)
         current_activity_feature = list(current_activity_feature)
         current_activity_duration_feature = [current_activity_duration_feature]
         #next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature + current_activity_duration_feature
-        next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature  
-        next_state = transition_feature + battery_feature + current_activity_feature 
+        # next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature  
+        next_state = transition_feature + battery_feature + current_activity_feature + robot_trigger_feature
         #next_state = next_motion_feature + battery_feature + current_activity_feature  
         #next_state = battery_feature + current_activity_feature
         #next_state = current_activity_feature
@@ -1308,14 +1325,7 @@ for episode in range(episode_count):
     print(mem_top(limit=15,width=180))
     tools_ascc.show_memory()
 
-    print("time_location_dict:", time_location_dict)
-    print("time_object_dict:", time_object_dict)
-    print("time_sound_dict:", time_sound_dict)
-    print("time_motion_dict:", time_motion_dict)
-    print("time_exist_dict:", time_exist_dict)
-    print("time_detected_act_dict:", time_detected_act_dict)
-    print("cache_ground_truth_dict:", cache_ground_truth_dict)
-    print("cache_ground_truth_dict:", len(cache_ground_truth_dict))
+
 
    
     #agent.replay2(len(agent.memory)-1)
@@ -1328,19 +1338,33 @@ for episode in range(episode_count):
     time_scores.append(cur_time_str)
     scores.append(total_reward)
     # plot rewards 
-    plotone(scores, "rl_reward.png")
+    if episode % 100 != 0:
+        continue
+
+    print("time_location_dict:", time_location_dict)
+    print("time_object_dict:", time_object_dict)
+    print("time_sound_dict:", time_sound_dict)
+    print("time_motion_dict:", time_motion_dict)
+    print("time_exist_dict:", time_exist_dict)
+    print("time_detected_act_dict:", time_detected_act_dict)
+    print("cache_ground_truth_dict:", cache_ground_truth_dict)
+    print("cache_ground_truth_dict:", len(cache_ground_truth_dict))
+
+    # plotone(scores, "rl_reward.png")
     print("plotone scores:", scores)
     print("plotone time scores:", time_scores)
-    print("q_table:")
-    print(agent.q_table)
+    print("q_table:", agent.q_table)
+    print("q_table size:", len(agent.q_table))
 
     total_wmu_cam_trigger_times.append(env.wmu_cam_times)
     total_wmu_mic_trigger_times.append(env.wmu_mic_times)
+    total_robot_trigger_times.append(env.robot_trigger_times)
     total_privacy_times.append(env.privacy_occur_cnt)
 
     plot(total_wmu_cam_trigger_times, total_wmu_mic_trigger_times, label1="camera", label2="microphone")
     print("total_wmu_cam_trigger_times:", total_wmu_cam_trigger_times)
     print("total_wmu_mic_trigger_times:", total_wmu_mic_trigger_times)
+    print("total_robot_trigger_times:", total_robot_trigger_times)
     print("total_privacy_times:", total_privacy_times)
 
     print("rank res", len(rank_res))
