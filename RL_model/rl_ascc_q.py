@@ -1,6 +1,7 @@
 import numpy as np
 import random
 from collections import defaultdict
+import tools_ascc
 
 
 class QLearningAgent:
@@ -8,9 +9,12 @@ class QLearningAgent:
         # actions = [0, 1, 2, 3]
         self.actions = actions
         self.learning_rate = 0.01
+        self.learning_rate_min = 0.0001
+        self.learning_rate_decay = 0.000001 # 1e-8
+        
         self.discount_factor = 0.9
         self.epsilon = 0.1
-        self.q_table = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])
+        self.q_table = defaultdict(lambda: [0.0, 0.0, 0.0])
 
         # discount rate
         self.gamma = 0.9
@@ -29,6 +33,17 @@ class QLearningAgent:
 
         self.replay_counter = 0
 
+    def load_weights(self, q_table_path = "ascc_q_table.txt"):
+        """save Q Network params to a file"""
+        # self.q_model.load_weights(self.weights_file)
+
+        new_qtable = tools_ascc.load_dict(q_table_path)
+
+        for k, v in new_qtable.items():
+            self.q_table[k] = v
+
+        print('load q_table:', len(self.q_table))
+
     # 采样 <s, a, r, s'>
     def learn(self, state, action, reward, next_state):
         current_q = self.q_table[state][action]
@@ -43,6 +58,8 @@ class QLearningAgent:
             action = np.random.choice(self.actions)
         else:
             # 从q表中选择
+            # if state not in self.q_table.keys():
+            #     action = 1
             state_action = self.q_table[state]
             action = self.arg_max(state_action)
         return action
@@ -112,6 +129,8 @@ class QLearningAgent:
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
+        if self.learning_rate > self.learning_rate_min:
+            self.learning_rate -= self.learning_rate_decay
 
 # if __name__ == "__main__":
 #     env = Env()

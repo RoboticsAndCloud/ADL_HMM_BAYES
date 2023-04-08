@@ -374,7 +374,7 @@ def get_motion_type_by_activity_cnn(time_str):
         return motion_type, float(prob)
 
     # as we recognize all the motion action and store in the dict, here we just returl null
-    return '', -1
+    # return '', -1
 
     motion_type_list, prob_list = tools_ascc.get_activity_by_motion_dnn(time_str, action='vision')
     motion_type = ''
@@ -619,11 +619,11 @@ time_object_dict = time_adl_res_dict.time_object_dict
 print('len time_location_dict:', len(time_location_dict))
 time_exist_dict = time_adl_res_dict.time_exist_dict
 
-# time_location_dict = {}
-# time_sound_dict = {}
-# time_motion_dict = {}
-# time_object_dict = {}
-# time_exist_dict = {}
+#time_location_dict = {}
+#time_sound_dict = {}
+#time_motion_dict = {}
+#time_object_dict = {}
+#time_exist_dict = {}
 
 
 import ground_truth_dict_dataset0819
@@ -702,7 +702,7 @@ def get_activity_prediction_by_hmm():
 
 time_detected_act_dict = {}
 
-def get_activity_by_action(cur_time_str, action):
+def get_activity_by_action(cur_time_str, action, pre_act = ''):
     # env.running_time
     # test_time_str = '2009-12-11 12:58:33'
     # cur_time = env.get_running_time()
@@ -723,8 +723,8 @@ def get_activity_by_action(cur_time_str, action):
     target_folder_time_str = get_target_folder_time_str(cur_time_str)
     key = (target_folder_time_str, action)
     # print("target_folder_time_str:", target_folder_time_str, " time_str:", cur_time_str, ' location:', location)
-    # if key in time_detected_act_dict.keys():
-    #     return time_detected_act_dict[key] 
+    #if key in time_detected_act_dict.keys():
+    #    return time_detected_act_dict[key] 
 
     if target_folder_time_str == '':
         return ''
@@ -779,6 +779,12 @@ def get_activity_by_action(cur_time_str, action):
     print('audio_type:', audio_type)
     print('motion_type:', motion_type)
 
+
+    if location == constants.LOCATION_LOBBY:
+        cur_activity = pre_act
+        print('++++++++++++++Around lobby,', cur_time_str)
+        return cur_activity, location
+
     
     
     heap_prob = []
@@ -802,13 +808,13 @@ def get_activity_by_action(cur_time_str, action):
         hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
 
         p1 = 1
-        if action == 1 or action == 2 or action == 5 or action == 6:
+        if action == 0 or action == 1 or action == 5 or action == 6:
             p1 = bayes_model_location.get_prob(pre_act_list, act, location, 0)
 
         p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, 0)
 
         p3 = 1
-        if action == 0 or action == 2 or action == 4 or action == 6:
+        if action == 0 or action == 1 or action == 4 or action == 6:
             p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, 0)
         
         p4 =1 
@@ -896,7 +902,7 @@ def get_activity_by_action(cur_time_str, action):
 
     del heap_prob
 
-    return cur_activity
+    return cur_activity, location
 
 
 # init DQN agent
@@ -916,7 +922,7 @@ while(pre_activity == ''):
     bayes_model_audio.set_time(cur_time_str)
     bayes_model_object.set_time(cur_time_str)
 
-    detected_activity = get_activity_by_action(cur_time_str, rl_env_ascc_test.WMU_FUSION_ACTION)
+    detected_activity, _ = get_activity_by_action(cur_time_str, rl_env_ascc_test.WMU_FUSION_ACTION)
     if detected_activity == '':
         continue
     
@@ -1035,7 +1041,7 @@ for episode in range(episode_count):
         bayes_model_audio.set_time(cur_time_str)
         bayes_model_object.set_time(cur_time_str)
 
-        detected_activity = get_activity_by_action(cur_time_str, rl_env_ascc_test.WMU_FUSION_ACTION)
+        detected_activity, _ = get_activity_by_action(cur_time_str, rl_env_ascc_test.WMU_FUSION_ACTION)
         if detected_activity == '':
             continue
         
@@ -1110,6 +1116,10 @@ for episode in range(episode_count):
     # reinforcement learning part
 
     rember_cnt = 0
+
+    need_recollect_data = False
+    double_check = 2
+    living_room_check_flag = False
     while(not env.done):
         start_t_iter = timer()
 
@@ -1118,7 +1128,7 @@ for episode in range(episode_count):
         #motion_type = ''
         audio_type = ''
 
-        living_room_check_flag = False
+
 
         object_dict = {}
 
@@ -1132,7 +1142,14 @@ for episode in range(episode_count):
             env.step(2) # nothing
             continue
 
-        action = agent.act(str(state))
+        if living_room_check_flag:
+            env.get_current_running_time(10) # wait 6 seconds
+
+        if need_recollect_data:
+            env.step(0, need_recollect_data)
+            
+        else:
+            action = agent.act(str(state))
         # print("Env state:", state)
         # print("Env action: ", action, " ", rl_env_ascc_test.RL_ACTION_DICT[action])
 
@@ -1141,24 +1158,31 @@ for episode in range(episode_count):
         env.step(action)
 
 
+        need_recollect_data = False
+        living_room_check_flag = False
+
         reward_energy = env.get_reward_energy(action)
 
-        ground_truth_activity = get_activity_by_time_str(cur_time_str) # TODO
-        # detected_activity = ground_truth_activity
+        # # detected_activity = ground_truth_activity
 
-        # end_t_iter = timer()
-        # print(" 0 after get activity by time each iter takes:", end_t_iter - start_t_iter)
-
+        # # end_t_iter = timer()
+        # # print(" 0 after get activity by time each iter takes:", end_t_iter - start_t_iter)
 
 
-        # Todo 
-        detected_activity = get_activity_by_action(cur_time_str, action)
-        print("detected_activity:", detected_activity)
-        print("pre_activity:", pre_activity)
+        # pre_activity = pre_act_list[-1]
+        # if rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.Nothing:
+        #     detected_activity = pre_activity 
+        # elif rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.Robot_audio_vision:
+        #     detected_activity = ground_truth_activity
+        # else:
+        #     # Todo 
+        #     detected_activity = get_activity_by_action(cur_time_str, action)
+        # print("detected_activity:", detected_activity)
+        # print("pre_activity:", pre_activity)
         cur_time = env.get_running_time()
         cur_time_str = cur_time.strftime(rl_env_ascc_test.DATE_HOUR_TIME_FORMAT)
 
-        pre_activity = pre_act_list[-1]
+        ground_truth_activity = get_activity_by_time_str(cur_time_str) # TODO
 
 
         reward_privacy = env.get_reward_privacy(action, detected_activity)
@@ -1169,17 +1193,17 @@ for episode in range(episode_count):
         motion_transition_occur_flag = False
         if pre_motion_type != motion_type and (pre_motion_type == 'walking' or motion_type == 'walking'):
         #if motion_type == 'walking':
-            print('activity:', pre_activity, ' ', ground_truth_activity)
+            # print('activity:', pre_activity, ' ', ground_truth_activity)
             print('motion transiction occur, action:', action)
             motion_transition_occur_cnt += 1
             motion_transition_occur_flag = True
 
-        if pre_activity != ground_truth_activity and ground_truth_activity!='':
-            print("motion_type:", pre_motion_type, " ", motion_type)
-            print('activity:', pre_activity, ' ', ground_truth_activity)
-            transition_occur_cnt += 1
-            #real_transition_occur_cnt += 1
-            print('transition_occur_cnt:', transition_occur_cnt)
+        # if pre_activity != ground_truth_activity and ground_truth_activity!='':
+        #     print("motion_type:", pre_motion_type, " ", motion_type)
+        #     print('activity:', pre_activity, ' ', ground_truth_activity)
+        #     transition_occur_cnt += 1
+        #     #real_transition_occur_cnt += 1
+        #     print('transition_occur_cnt:', transition_occur_cnt)
  
 
         pre_motion_type = motion_type
@@ -1223,6 +1247,13 @@ for episode in range(episode_count):
         #     reward_accuracy = 0
         #     reward_energy = 0
 
+        location = ''
+        detected_activity = pre_act_list[-1]
+        if rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.Nothing:
+            detected_activity = pre_act_list[-1]
+        else:
+            detected_activity, location = get_activity_by_action(cur_time_str, action, pre_act_list[-1])
+
 
 
         if rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.Nothing:
@@ -1235,24 +1266,43 @@ for episode in range(episode_count):
         print(" 1 each iter takes:", end_t_iter - start_t_iter)
 
         # TODO: in real test, cur_activity = detected_activity
+
         cur_activity = detected_activity
 
         if cur_activity != pre_act_list[-1] and cur_activity != '':
-            print("pre_activity:", pre_act_list[-1], " cur_activity:", cur_activity)
-            print("pre_act_list:", pre_act_list)
-            pre_act_list.append(cur_activity)
-            node = tools_ascc.Activity_Node_Observable(cur_activity, tools_ascc.get_activity_type(cur_time_str), 0)
-            pre_activity_symbol = node.activity_res_generation()
-            pre_act_symbol_list.append(pre_activity_symbol)
-            # pre_activity = detected_activity
-            activity_begin_time = env.get_running_time()
+            if double_check == 2:
+                need_recollect_data = True
+                double_check -= 1
+                print('need_recollect_data:', env.need_recollect_data_cnt)
+                print("pre_activity:", pre_act_list[-1], " cur_activity:", cur_activity)
+                continue
+
+            else:
+                if location == constants.LOCATION_LIVINGROOM:
+                    # wait and check again
+                    living_room_check_flag = True
+                    print("need flag: ", living_room_check_flag)
+                    continue
+
+                double_check = 2
+                print("not need_recollect_data ")
+                print("pre_activity:", pre_act_list[-1], " cur_activity:", cur_activity)
+                print("pre_act_list:", pre_act_list)
+                pre_act_list.append(cur_activity)
+                node = tools_ascc.Activity_Node_Observable(cur_activity, tools_ascc.get_activity_type(cur_time_str), 0)
+                pre_activity_symbol = node.activity_res_generation()
+                pre_act_symbol_list.append(pre_activity_symbol)
+                # pre_activity = detected_activity
+                activity_begin_time = env.get_running_time()
+        else:
+            double_check = 2 # not a new activity
         
 
-        end_t_iter = timer()
-        print(" 2 each iter takes:", end_t_iter - start_t_iter)
+#         end_t_iter = timer()
+#         print(" 2 each iter takes:", end_t_iter - start_t_iter)
 
         reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
-#         if motion_transition_occur_flag == True:
+# #         if motion_transition_occur_flag == True:
 #             print('motion_transtion_action:', rl_env_ascc_test.RL_ACTION_DICT[action])
 #             if rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.WMU_fusion or rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.Robot_WMU_fusion:
 #                 reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD
@@ -1275,6 +1325,10 @@ for episode in range(episode_count):
         print("Env detected_activity:", detected_activity)
         print('Env Running (after step):', cur_time_str, " evn.runing:", env.get_running_time()) 
 
+
+
+
+
         wmu_mic_times, wmu_cam_times = env.get_wmu_sensor_trigger_times()
         #battery_feature = [wmu_mic_times, wmu_cam_times]
         battery_feature = [wmu_cam_times]
@@ -1292,12 +1346,16 @@ for episode in range(episode_count):
             motion_type = pre_motion_type
             print('pre_motion for empty detection:', pre_motion_type)
 
+        if need_recollect_data:
+            continue        
+
         next_motion_feature = motion_feature_extractor(motion_type)
         transition_feature = transition_feature_extractor(pre_motion_type, motion_type)
         transition_feature = list(transition_feature)
 
 
-        current_activity = get_activity_by_time_str(cur_time_str)
+        # detected_activity = get_activity_by_action(cur_time_str, action)
+        current_activity = detected_activity
         current_activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
 
         #end_t_iter = timer()
@@ -1409,6 +1467,8 @@ for episode in range(episode_count):
     print("total_transition_wmu_times:", total_transition_wmu_times) 
     print("total_transition_robot_times:", total_transition_robot_times) 
     print('total_motion_transition_occur_cnt:', total_motion_transition_occur_cnt)
+    print('total_need_recollect_cnt:', env.need_recollect_data_cnt)
+
 
     print("rank res", len(rank_res))
     print("rank res", rank_res)

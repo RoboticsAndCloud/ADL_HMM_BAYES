@@ -11,7 +11,7 @@ from re import T
 from collections import deque
 import gc
 # Applying the function on input class vector
-from keras.utils import to_categorical
+# from keras.utils import to_categorical
 
 
 
@@ -576,12 +576,12 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 1000 # 2000
+episode_count = 1500 # 2000
 batch_size = 256
 
 # stores the reward per episode
-scores = deque(maxlen=1000)
-time_scores = deque(maxlen=1000)
+scores = deque(maxlen=episode_count+1)
+time_scores = deque(maxlen=episode_count+1)
 
 #w_accuracy = 0.6
 #w_energy = 0.3
@@ -595,13 +595,14 @@ time_scores = deque(maxlen=1000)
 #w_energy = 0.1
 
 # work well, 0.2 * (-1) + 0.35  = 0.15, 0.35-0.45=-0.15
-#w_accuracy = 0.3
-#w_energy = 0.25
-#w_privacy = 0.45
+w_accuracy = 0.3
+w_energy = 0.25
+w_privacy = 0.45
 
-w_accuracy = 0.02
-w_energy = 0.49
-w_privacy = 0.49
+## good
+# w_accuracy = 0.02
+# w_energy = 0.49
+# w_privacy = 0.49
 
 
 #w_accuracy = 0.3
@@ -690,6 +691,7 @@ def get_activity_prediction_by_hmm():
     return ''
 
 time_detected_act_dict =  time_adl_res_dict.time_detected_act_dict
+time_detected_act_dict =  {}
 
 def get_activity_by_action(cur_time_str, action):
     # env.running_time
@@ -797,8 +799,8 @@ def get_activity_by_action(cur_time_str, action):
         p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, 0)
 
         p3 = 1
-        if action == 0 or action == 2 or action == 4 or action == 6:
-            p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, 0)
+        # if action == 0 or action == 2 or action == 4 or action == 6:
+        #     p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, 0)
         
         p4 =1 
 
@@ -1031,8 +1033,8 @@ for episode in range(episode_count):
         if detected_activity == '':
             continue
         
-        if OUTPUT_RANK:
-            rank_res.append((detected_activity, '1', cur_time_str))
+        # if OUTPUT_RANK:
+        #     rank_res.append((detected_activity, '1', cur_time_str))
         
         pre_activity = detected_activity
         cur_activity = detected_activity
@@ -1248,7 +1250,7 @@ for episode in range(episode_count):
                 transition_wmu_times += 1
             if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision:
                 reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD
-                transition_wmu_times += 1
+                transition_robot_times += 1
 
 #                reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
             if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Nothing:
@@ -1331,7 +1333,7 @@ for episode in range(episode_count):
             start_t = timer()
             agent.replay(batch_size)
             end_t = timer()
-            print("replay takes:", end_t - start_t, 'replay times:', agent.replay_counter)
+            print("replay takes:", end_t - start_t, 'replay times:', agent.replay_counter, ' rate:', agent.learning_rate)
             #print("agent replay(len memeory):", len(agent.memory))
             rember_cnt = 0
 
