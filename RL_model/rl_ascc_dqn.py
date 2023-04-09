@@ -42,7 +42,7 @@ class DQNAgent:
     def __init__(self,
                  state_space, 
                  action_space, 
-                 episodes=500, epsilon = 1.0, memory_size = 521):
+                 episodes=500, epsilon = 1.0, memory_size = 5210):
         """DQN Agent on CartPole-v0 environment
 
         Arguments:
@@ -54,6 +54,7 @@ class DQNAgent:
 
         # experience buffer
         self.memory = []
+        self.memory_transition = []
         self.memory_size = memory_size
 
         # discount rate
@@ -74,8 +75,8 @@ class DQNAgent:
         n_inputs = state_space
         n_outputs = len(action_space)
         self.q_model = self.build_model(n_inputs, n_outputs)
-        #self.q_model.compile(loss='mse', optimizer=Adam(learning_rate=0.001))
-        self.q_model.compile(loss='mse', optimizer=Adam(learning_rate=0.005))
+        self.q_model.compile(loss='mse', optimizer=Adam(learning_rate=0.001))
+        #self.q_model.compile(loss='mse', optimizer=Adam(learning_rate=0.005))
         # target Q Network
         self.target_q_model = self.build_model(n_inputs, n_outputs)
         # copy Q Network params to target Q Network
@@ -200,6 +201,23 @@ class DQNAgent:
         # # replace the old memory with new memory
         # index = self.memory_counter % self.memory_size
 
+    def remember_transition(self, state, action, reward, next_state, done):
+        """store experiences in the replay buffer
+        Arguments:
+            state (tensor): env state
+            action (tensor): agent action
+            reward (float): reward received after executing
+                action on state
+            next_state (tensor): next state
+        """
+        item = (state, action, reward, next_state, done)
+        self.memory_transition.append(item)
+
+        if len(self.memory_transition) > self.memory_size:
+            index = int(self.memory_size/2)
+            self.memory_transition = self.memory_transition[index:]
+
+
     def get_target_q_value2(self, next_state, reward):
         """compute Q_max
            Use of target Q Network solves the 
@@ -251,7 +269,7 @@ class DQNAgent:
         return q_value
 
 
-    def replay2(self, batch_size):
+    def replay2(self, batch_size, transition=False):
         """experience replay addresses the correlation issue 
             between samples
         Arguments:
@@ -259,8 +277,13 @@ class DQNAgent:
                 sample size
         """
         # sars = state, action, reward, state' (next_state)
+        print('len memory:', len(self.memory), ' ', len(self.memory_transition))
         sars_batch = random.sample(self.memory, batch_size)
         state_batch, q_values_batch = [], []
+
+        if transition:
+            sars_batch = random.sample(self.memory_transition, batch_size)
+
 
         # fixme: for speedup, this could be done on the tensor level
         # but easier to understand using a loop
@@ -343,7 +366,7 @@ class DQNAgent:
 
         # copy new params on old target after 
         # every 10 training updates
-        if self.replay_counter % 10 == 0:
+        if self.replay_counter % 5 == 0:
             self.update_weights()
 
         self.replay_counter += 1

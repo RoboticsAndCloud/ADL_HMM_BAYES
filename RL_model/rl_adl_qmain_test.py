@@ -578,7 +578,7 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 1500 # 2000
+episode_count = 1 # 2000
 batch_size = 256
 
 # stores the reward per episode
@@ -727,7 +727,7 @@ def get_activity_by_action(cur_time_str, action, pre_act = ''):
     #    return time_detected_act_dict[key] 
 
     if target_folder_time_str == '':
-        return ''
+        return '', ''
 
     if target_folder_time_str in time_location_dict.keys():
         location, location_prob = time_location_dict[target_folder_time_str]
@@ -981,7 +981,7 @@ import rl_ascc_q
 
 # for test and reload the pretrained model
 qtable_path = '/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/RL_model/q_res_energy0.49_privacy_0.49/ascc_q_table.txt'
-agent = rl_ascc_q.QLearningAgent(len(action_space), episodes=500*2.5, epsilon = 0.1)
+agent = rl_ascc_q.QLearningAgent(len(action_space), episodes=500*2.5, epsilon = 0.0001)
 agent.load_weights(qtable_path)
 
 
@@ -1143,23 +1143,25 @@ for episode in range(episode_count):
             continue
 
         if living_room_check_flag:
-            env.get_current_running_time(10) # wait 6 seconds
+            env.set_current_running_time(10) # wait 6 seconds
+            living_room_check_flag = False
 
         if need_recollect_data:
             env.step(0, need_recollect_data)
             
         else:
             action = agent.act(str(state))
+            env.step(action)
+
         # print("Env state:", state)
         # print("Env action: ", action, " ", rl_env_ascc_test.RL_ACTION_DICT[action])
 
         # env check the action and the cost time
         # action = 6 # rl_env_ascc_test.Robot_WMU_fusion # to get the time recognition dict
-        env.step(action)
 
 
         need_recollect_data = False
-        living_room_check_flag = False
+        # living_room_check_flag = False
 
         reward_energy = env.get_reward_energy(action)
 
@@ -1275,14 +1277,17 @@ for episode in range(episode_count):
                 double_check -= 1
                 print('need_recollect_data:', env.need_recollect_data_cnt)
                 print("pre_activity:", pre_act_list[-1], " cur_activity:", cur_activity)
+
+                if location == constants.LOCATION_LIVINGROOM:
+                    if living_room_check_flag == False:
+                        # wait and check again
+                        living_room_check_flag = True
+                        print("living_room_check_flag: ", living_room_check_flag)
+                        
+
                 continue
 
             else:
-                if location == constants.LOCATION_LIVINGROOM:
-                    # wait and check again
-                    living_room_check_flag = True
-                    print("need flag: ", living_room_check_flag)
-                    continue
 
                 double_check = 2
                 print("not need_recollect_data ")

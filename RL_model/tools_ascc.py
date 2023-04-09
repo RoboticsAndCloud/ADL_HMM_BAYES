@@ -869,7 +869,7 @@ def get_activity_by_vision_dnn(time_str, action='vision', mode='map'):
     write_notice_into_file(ASCC_DATA_NOTICE_FILE, image_dir_name)
 
     # wait for the result, 2-5 seconds, todo: test how long should wait, how to improve the speed
-    time.sleep(5*2)
+    time.sleep(5)
 
     # get the results
     res_str = read_res_from_file(ASCC_DATA_RES_FILE)

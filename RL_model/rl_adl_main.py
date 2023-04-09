@@ -566,7 +566,7 @@ for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
 episode_count = 50 # 200 
-batch_size = 256
+batch_size = 200
 
 # stores the reward per episode
 scores = deque(maxlen=1000)
@@ -910,9 +910,10 @@ motion_feature = motion_feature_extractor(motion_type) # [0, 0, 0, 0, 0, 1]
 #battery_feature = [0, 0]
 # battery_level = 0
 # todo battery_feature = battery_feature_extractor(battery_level)
-#battery_feature = [0] # wmu_cam trigger times
-battery_level = env.get_battery_level()
-battery_feature = battery_feature_extractor(battery_level)
+battery_feature = [0] # wmu_cam trigger times
+robot_trigger_feature = [0]
+#battery_level = env.get_battery_level()
+#battery_feature = battery_feature_extractor(battery_level)
 #adl_hidden_feature = [1, 2, 4, 5, 5, 5]  # to be done
 predicted_activity = get_activity_prediction_by_hmm()
 # adl_hidden_feature = adl_hidden_feature_extractor(predicted_activity) # seems useless
@@ -923,6 +924,7 @@ current_activity_feature = adl_hidden_feature_extractor(current_activity)
 current_activity_duration_feature = current_activity_duration
 
 battery_feature = list(battery_feature)
+robot_trigger_feature = list(robot_trigger_feature)
 motion_feature = list(motion_feature)
 current_activity_feature = list(current_activity_feature)
 current_activity_duration_feature = [current_activity_duration_feature]
@@ -933,6 +935,7 @@ transition_feature = list(transition_feature)
 #state = motion_feature + battery_feature + motion_feature + current_activity_feature + current_activity_duration_feature
 #state = motion_feature + battery_feature + motion_feature + current_activity_feature 
 state = transition_feature + battery_feature + current_activity_feature 
+state = transition_feature + battery_feature + current_activity_feature + robot_trigger_feature
 #state = motion_feature + battery_feature + current_activity_feature 
 #state = battery_feature + current_activity_feature  
 #state = current_activity_feature  # works well
@@ -963,6 +966,7 @@ total_wmu_cam_trigger_times = []
 total_wmu_mic_trigger_times = []
 total_privacy_times = []
 
+rember_cnt = 0
 for episode in range(episode_count):
 
     location_res = []
@@ -1026,9 +1030,12 @@ for episode in range(episode_count):
     pre_motion_type = motion_type
     motion_feature = motion_feature_extractor(motion_type) # [0, 0, 0, 0, 0, 1]
     #battery_feature = [0, 0]
-    #battery_feature = [0]
-    battery_level = env.get_battery_level()
-    battery_feature = battery_feature_extractor(battery_level)
+    battery_feature = [0]
+    #battery_level = env.get_battery_level()
+    #battery_feature = battery_feature_extractor(battery_level)
+    battery_feature = [env.wmu_cam_times]
+    robot_trigger_feature = [env.robot_trigger_times]
+
     #adl_hidden_feature = [1, 2, 4, 5, 5, 5]  # to be done
     predicted_activity = get_activity_prediction_by_hmm()
     # adl_hidden_feature = adl_hidden_feature_extractor(predicted_activity) # seems useless
@@ -1043,6 +1050,8 @@ for episode in range(episode_count):
     # features.extend(motion_feature)
     # print("features:", features)
     battery_feature = list(battery_feature)
+    robot_trigger_feature = list(robot_trigger_feature)
+
     motion_feature = list(motion_feature)
     transition_feature = transition_feature_extractor(motion_type, motion_type)
     transition_feature = list(transition_feature)
@@ -1051,7 +1060,9 @@ for episode in range(episode_count):
     current_activity_duration_feature = [current_activity_duration_feature]
     #state = motion_feature + battery_feature + motion_feature + current_activity_feature + current_activity_duration_feature
     #state = motion_feature + battery_feature + motion_feature + current_activity_feature  
-    state = transition_feature + battery_feature + current_activity_feature 
+#    state = transition_feature + battery_feature + current_activity_feature 
+    state = transition_feature + battery_feature + current_activity_feature + robot_trigger_feature
+
     #state = motion_feature + battery_feature + current_activity_feature  
     #state = battery_feature + current_activity_feature 
     #state = current_activity_feature 
@@ -1077,7 +1088,6 @@ for episode in range(episode_count):
     activity_rank_empty_times = 0
     # reinforcement learning part
 
-    rember_cnt = 0
     while(not env.done):
         start_t_iter = timer()
 
@@ -1228,8 +1238,11 @@ for episode in range(episode_count):
 
         wmu_mic_times, wmu_cam_times = env.get_wmu_sensor_trigger_times()
         #battery_feature = [wmu_mic_times, wmu_cam_times]
-        battery_level = env.get_battery_level()
-        battery_feature = battery_feature_extractor(battery_level)
+        #battery_level = env.get_battery_level()
+        #battery_feature = battery_feature_extractor(battery_level)
+
+        battery_feature = [wmu_cam_times]
+        robot_trigger_feature = [env.robot_trigger_times]
 
         #battery_feature = [wmu_cam_times]
 
@@ -1256,19 +1269,26 @@ for episode in range(episode_count):
 
 
         battery_feature = list(battery_feature)
+        robot_trigger_feature = list(robot_trigger_feature)
         next_motion_feature = list(next_motion_feature)
         current_activity_feature = list(current_activity_feature)
         current_activity_duration_feature = [current_activity_duration_feature]
         #next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature + current_activity_duration_feature
-        next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature  
-        next_state = transition_feature + battery_feature + current_activity_feature 
+        #next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature  
+        #next_state = transition_feature + battery_feature + current_activity_feature 
+        next_state = transition_feature + battery_feature + current_activity_feature + robot_trigger_feature
+
         #next_state = next_motion_feature + battery_feature + current_activity_feature  
         #next_state = battery_feature + current_activity_feature
         #next_state = current_activity_feature
         next_state = np.reshape(next_state, [1, state_size])
 
-        agent.remember(state, action, reward, next_state, env.done)
-        rember_cnt = rember_cnt + 1
+        if motion_transition_occur_flag == True:
+            #agent.remember(state, action, reward, next_state, env.done)
+            agent.remember_transition(state, action, reward, next_state, env.done)
+            rember_cnt = rember_cnt + 1
+        else:
+            agent.remember(state, action, reward, next_state, env.done)
         
         state = next_state
         total_reward += reward
@@ -1292,6 +1312,7 @@ for episode in range(episode_count):
             start_t = timer()
             #agent.replay(batch_size)
             agent.replay2(batch_size)
+            agent.replay2(batch_size, transition=True)
             end_t = timer()
             print("replay takes:", end_t - start_t, 'replay times:', agent.replay_counter)
             #print("agent replay(len memeory):", len(agent.memory))
@@ -1302,9 +1323,11 @@ for episode in range(episode_count):
             .format(episode, episode_count-1, total_reward, agent.epsilon, env.get_running_time()))
             if rember_cnt > 0:
                 agent.replay2(rember_cnt)
+                agent.replay2(rember_cnt, transition=True)
+            print('replay times:', agent.replay_counter, ' len memory:', len(agent.memory), ' ', len(agent.memory_transition))
 
-            agent.update_replay_memory()
-            print("agent update replay  memeory:", len(agent.memory))
+            #agent.update_replay_memory()
+            #print("agent update replay  memeory:", len(agent.memory))
 
     print(mem_top(limit=15,width=180))
     tools_ascc.show_memory()

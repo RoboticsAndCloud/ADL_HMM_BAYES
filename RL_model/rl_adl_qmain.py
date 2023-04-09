@@ -576,7 +576,7 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 1500 # 2000
+episode_count = 2000 # 2000
 batch_size = 256
 
 # stores the reward per episode
@@ -595,14 +595,14 @@ time_scores = deque(maxlen=episode_count+1)
 #w_energy = 0.1
 
 # work well, 0.2 * (-1) + 0.35  = 0.15, 0.35-0.45=-0.15
-w_accuracy = 0.3
-w_energy = 0.25
-w_privacy = 0.45
+# w_accuracy = 0.3
+# w_energy = 0.25
+# w_privacy = 0.45
 
 ## good
-# w_accuracy = 0.02
-# w_energy = 0.49
-# w_privacy = 0.49
+w_accuracy = 0.02
+w_energy = 0.49
+w_privacy = 0.49
 
 
 #w_accuracy = 0.3
@@ -961,7 +961,7 @@ actions = []
 action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 
 import rl_ascc_q
-agent = rl_ascc_q.QLearningAgent(len(action_space), episodes=500*5)
+# agent = rl_ascc_q.QLearningAgent(len(action_space), episodes=500*5)
 
 train_cnt = 3
 
@@ -969,8 +969,9 @@ train_cnt = 3
 #train_cnt = train_cnt - 1
 
 # for test and reload the pretrained model
-#agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*2.5, epsilon = 0.1)
-#agent.load_weights()
+qtable_path = '/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/RL_model/q_res_energy0.49_privacy_0.49/ascc_q_table.txt'
+agent = rl_ascc_q.QLearningAgent(len(action_space), episodes=500*2.5, epsilon = 0.001)
+agent.load_weights(Q_TABLE)
 
 
 
