@@ -565,7 +565,7 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 50 # 200 
+episode_count = 40 # 200 
 batch_size = 200
 
 # stores the reward per episode
@@ -949,7 +949,7 @@ actions = []
 action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 
 import rl_ascc_dqn
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*2.5)
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*2)
 
 train_cnt = 3
 
@@ -1286,6 +1286,30 @@ for episode in range(episode_count):
         if motion_transition_occur_flag == True:
             #agent.remember(state, action, reward, next_state, env.done)
             agent.remember_transition(state, action, reward, next_state, env.done)
+
+            # construction_state()
+            for wmu_trigger_times in range(1, 400):
+                for robot_trigger_times in range(1, 400):
+                    t_transition_feature = state[:2]
+                    t_battery_feature = [wmu_cam_times]
+                    t_current_activity_feature = state[3:-1]
+                    t_robot_feature = [robot_trigger_times]
+                    
+                    new_state = t_transition_feature + t_battery_feature + t_current_activity_feature + t_robot_feature
+                    
+                    tn_battery_feature = [wmu_cam_times+1]
+                    tn_robot_feature = [robot_trigger_times]
+                    new_next_state = transition_feature + tn_battery_feature + current_activity_feature + tn_robot_feature
+
+                    agent.remember_transition(new_state, 0, reward, new_next_state, env.done)
+
+
+                    tn_battery_feature = [wmu_cam_times]
+                    tn_robot_feature = [robot_trigger_times+1]
+                    new_next_state = transition_feature + tn_battery_feature + current_activity_feature + tn_robot_feature
+                    agent.remember_transition(new_state, 1, reward, new_next_state, env.done)
+
+
             rember_cnt = rember_cnt + 1
         else:
             agent.remember(state, action, reward, next_state, env.done)
