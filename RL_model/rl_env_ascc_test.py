@@ -513,6 +513,7 @@ class EnvASCC():
 
         self.wmu_mic_times = 0
         self.wmu_cam_times = 0
+        self.need_recollect_data_cnt = 0
         self.robot_trigger_times = 0
         self.privacy_occur_cnt = 0
         # Reset the running time to day_begin
@@ -595,6 +596,8 @@ class EnvASCC():
         self.wmu_cam_times = 0
         self.robot_trigger_times = 0
         self.privacy_occur_cnt = 0
+        self.need_recollect_data_cnt = 0
+
 
         next_state_ = [train_running_time / STATE_TIME_TRANS, (self.activity / 100)]
         # next_state_ = [train_running_time, self.initial_state, self.residual_power]
@@ -605,7 +608,7 @@ class EnvASCC():
 
         return next_state_
 
-    def step(self, p_action):
+    def step(self, p_action, need_recollect_data = False):
         
         if DEBUG:
             print("Step--running_time:", self.running_time)
@@ -717,14 +720,16 @@ class EnvASCC():
 
         self.res_hit_plus_miss_event_dict = merge_dicts(self.res_hit_event_dict, self.res_random_event_dict)
 
+        if need_recollect_data == False:
+            if WMU_audio in RL_ACTION_DICT[action]:
+                self.wmu_mic_times += 1
+            if WMU_vision in RL_ACTION_DICT[action]:
+                self.wmu_cam_times += 1
 
-        if WMU_audio in RL_ACTION_DICT[action]:
-            self.wmu_mic_times += 1
-        if WMU_vision in RL_ACTION_DICT[action]:
-            self.wmu_cam_times += 1
-
-        if Robot_audio_vision in RL_ACTION_DICT[action]:
-            self.robot_trigger_times += 1
+            if Robot_audio_vision in RL_ACTION_DICT[action]:
+                self.robot_trigger_times += 1
+        else:
+            self.need_recollect_data_cnt += 1
             
         return '', '', '', motion_triggerred_flag
     
@@ -1314,6 +1319,21 @@ class EnvASCC():
 
 
         return final_time
+    
+    def set_current_running_time(self, time_cost):
+        # Add time_cost (seconds) to datetime object
+        final_time = self.running_time + timedelta(seconds = time_cost)
+        if DEBUG:
+            print('Get_current_running_time: ', final_time)
+        
+        self.running_time = final_time
+
+
+        if self.get_current_date_day_time() > self.running_day:
+            print('Get current date_day_time:', self.get_current_date_day_time(), " running day:", self.running_day)
+            done = True
+            self.done = True
+
 
     def get_activity_by_action(self, action):
         activity = 0

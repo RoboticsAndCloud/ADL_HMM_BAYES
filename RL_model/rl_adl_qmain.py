@@ -576,8 +576,8 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 2000 # 2000
-batch_size = 256
+episode_count = 100 # 2000
+batch_size = 256 * 10
 
 # stores the reward per episode
 scores = deque(maxlen=episode_count+1)
@@ -961,7 +961,7 @@ actions = []
 action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 
 import rl_ascc_q
-# agent = rl_ascc_q.QLearningAgent(len(action_space), episodes=500*5)
+# agent = rl_ascc_q.QLearningAgent(len(action_space), episodes=500*5, memory_size = 5120*2)
 
 train_cnt = 3
 
@@ -970,8 +970,8 @@ train_cnt = 3
 
 # for test and reload the pretrained model
 qtable_path = '/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/RL_model/q_res_energy0.49_privacy_0.49/ascc_q_table.txt'
-agent = rl_ascc_q.QLearningAgent(len(action_space), episodes=500*2.5, epsilon = 0.001)
-agent.load_weights(Q_TABLE)
+agent = rl_ascc_q.QLearningAgent(len(action_space), episodes=500*2.5, epsilon = 0.001, memory_size = 5120*2)
+agent.load_weights(qtable_path)
 
 
 

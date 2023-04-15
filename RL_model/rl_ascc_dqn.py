@@ -42,7 +42,7 @@ class DQNAgent:
     def __init__(self,
                  state_space, 
                  action_space, 
-                 episodes=500, epsilon = 1.0, memory_size = 5210):
+                 episodes=500, epsilon = 1.0, memory_size = 51200):
         """DQN Agent on CartPole-v0 environment
 
         Arguments:
@@ -119,8 +119,8 @@ class DQNAgent:
             q_model (Model): DQN
         """
         inputs = Input(shape=(n_inputs, ), name='state')
-        x = Dense(128, activation='relu')(inputs)
-        #x = Dense(64, activation='relu')(x)
+        x = Dense(64, activation='relu')(inputs)
+        x = Dense(64, activation='relu')(x)
         #x = Dense(64, activation='relu')(x)
         #x = Dense(64, activation='relu')(x)
       #  x = Dense(64, activation='relu')(x)

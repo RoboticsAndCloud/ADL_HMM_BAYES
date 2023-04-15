@@ -1148,7 +1148,6 @@ for episode in range(episode_count):
 
         if need_recollect_data:
             env.step(0, need_recollect_data)
-            
         else:
             action = agent.act(str(state))
             env.step(action)
