@@ -928,9 +928,11 @@ def construct_reward(action):
 
     if motion_transition_occur_flag == True:
         if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion:
-            reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
+            reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD + MOTION_TRANSITION_REWARD
+            #reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
         if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision:
-            reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
+            reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD + MOTION_TRANSITION_REWARD
+            #reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
 
     return reward
 
@@ -1284,9 +1286,11 @@ for episode in range(episode_count):
         reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
         if motion_transition_occur_flag == True:
             if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion:
-                reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
+                reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD + MOTION_TRANSITION_REWARD
+                #reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
             if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision:
-                reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
+                reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD + MOTION_TRANSITION_REWARD
+                #reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
 
         print("Env motion:", pre_motion_type)
         print("Env state:", state)
@@ -1381,7 +1385,7 @@ for episode in range(episode_count):
 
                     # agent.remember_transition(new_state, 1, reward, new_next_state, env.done)
                     # todo update reward function
-                    con_reward = construct_reward(1)
+                    con_reward = construct_reward(0)
                     agent.remember(new_state, 0, con_reward, new_next_state, env.done)
                     print("construct 1-1 :", new_next_state, ' r:', con_reward)
 
