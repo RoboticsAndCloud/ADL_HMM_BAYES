@@ -31,6 +31,8 @@ from datetime import timedelta
 import constants
 import tools_ascc
 import time_adl_res_dict
+import adl_env_client_lib
+import adl_type_constants
 
 
 # import pandas as pd
@@ -624,6 +626,23 @@ class EnvASCC():
         # if(p_action[0] in {'NaN','infinity','nan','Infinity'}):
         #     action = 0
 
+        # try:
+        #     if RL_ACTION_DICT[p_action] == WMU_fusion or RL_ACTION_DICT[p_action] == Robot_audio_vision:
+        #         adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+        #                                                     adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_FUSION)
+        #         self.fusion_check_times += 1
+
+        #     elif RL_ACTION_DICT[p_action] == Nothing:
+        #         # adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+        #         #                                             adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_MOTION)
+        #         self.motion_check_times += 1
+        
+        # except Exception as e:
+        #     print("Got error when Send cmd to WMU, err:", e, " p_action:", p_action)
+        #     logging.warn('Got error when Send cmd to WMU')
+        #     logging.warn(e)
+
+        
         
 
         running_time_str = self.running_time.strftime(TRAIN_RUNNING_TIME_FORMAT)

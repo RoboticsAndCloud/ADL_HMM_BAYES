@@ -260,8 +260,13 @@ class DQNAgent:
         # selection and evaluation of action is 
         # on the target Q Network
         # Q_max = max_a' Q_target(s', a')
+        # q_value = np.amax(\
+        #              self.target_q_model.predict(next_state)[0])
+        
+        tensor_state=tf.convert_to_tensor(next_state)
+        #q_values = self.q_model(tensor_state).numpy()
         q_value = np.amax(\
-                     self.target_q_model.predict(next_state)[0])
+                     self.target_q_model(tensor_state).numpy()[0])
 
         # Q_max = reward + gamma * Q_max
         q_value *= self.gamma
@@ -338,11 +343,11 @@ class DQNAgent:
         # but easier to understand using a loop
         for state, action, reward, next_state, done in sars_batch:
 
-            #tensor_state=tf.convert_to_tensor(state)
-            #q_values = self.q_model.predict(tensor_state)
+            tensor_state=tf.convert_to_tensor(state)
+            q_values = self.q_model.predict(tensor_state)
 
             # policy prediction for a given state
-            q_values = self.q_model.predict(state)
+            # q_values = self.q_model.predict(state)
             
             # get Q_max
             q_value = self.get_target_q_value(next_state, reward)

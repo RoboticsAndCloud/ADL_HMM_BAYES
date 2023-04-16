@@ -680,6 +680,13 @@ class EnvASCC():
             # self.done_energy_cost = self.done_energy_cost + sensors_power_consumption
             # self.done_total_time_cost = self.done_total_time_cost + sensors_time_cost
 
+        if self.wmu_cam_times > 400:
+            done = True #  Battery is dead
+            self.done = True
+            # print("Done = True, self.residual_power: ", self.residual_power)
+        
+
+
         if self.residual_power <= 0:
             done = True #  Battery is dead
             self.done = True

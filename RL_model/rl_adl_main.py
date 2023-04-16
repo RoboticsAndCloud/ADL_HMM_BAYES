@@ -565,8 +565,8 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 40 # 200 
-batch_size = 200
+episode_count = 100 # 200 
+batch_size = 256
 
 # stores the reward per episode
 scores = deque(maxlen=1000)
@@ -877,6 +877,66 @@ def get_activity_by_action(cur_time_str, action):
     return cur_activity
 
 
+def construct_reward(action):
+
+
+    reward_energy = env.get_reward_energy(action)
+
+
+    reward_privacy = env.get_reward_privacy(action, ground_truth_activity)
+
+    reward_accuracy = 0
+
+
+    if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion \
+        or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_audio or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision \
+        or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion:
+            
+        reward_accuracy = 1
+
+
+    else:
+        detected_activity = get_activity_by_action(cur_time_str, action)
+        print("detected_activity:", detected_activity)
+        print("pre_activity:", pre_activity)
+
+        if detected_activity == '':
+            activity_rank_empty_times += 1
+            reward_accuracy = 0
+        
+        elif detected_activity == ground_truth_activity or (BATHROOM in detected_activity and BATHROOM in ground_truth_activity):
+            activity_rank_hit_times += 1
+            if detected_activity != pre_activity:
+                reward_accuracy = 1 * new_activity_factor
+            else:
+                reward_accuracy = 1
+        elif ground_truth_activity != '':
+            reward_accuracy = -1
+
+
+    if ground_truth_activity == '':
+        activity_rank_empty_times += 1
+        reward_accuracy = 0
+        reward_energy = 0
+
+
+    if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Nothing:
+        reward_accuracy = 0
+
+
+
+    reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
+
+    if motion_transition_occur_flag == True:
+        if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion:
+            reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
+        if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision:
+            reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
+
+    return reward
+
+
+
 # init DQN agent
 while(pre_activity == ''):
     # open camera
@@ -949,7 +1009,7 @@ actions = []
 action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 
 import rl_ascc_dqn
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*2)
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*2, memory_size = 5120)
 
 train_cnt = 3
 
@@ -1285,35 +1345,66 @@ for episode in range(episode_count):
 
         if motion_transition_occur_flag == True:
             #agent.remember(state, action, reward, next_state, env.done)
-            agent.remember_transition(state, action, reward, next_state, env.done)
+            # agent.remember_transition(state, action, reward, next_state, env.done)
+            agent.remember(state, action, reward, next_state, env.done)
 
             # construction_state()
-            for wmu_trigger_times in range(1, 400):
-                for robot_trigger_times in range(1, 400):
-                    t_transition_feature = state[:2]
+            print("construct:")
+            print("construct 0:", next_state)
+
+
+
+
+            for wmu_trigger_times in range(1, 1):
+                for robot_trigger_times in range(1, 800):
+                    t_transition_feature = state[0][:2]
                     t_battery_feature = [wmu_cam_times]
-                    t_current_activity_feature = state[3:-1]
+                    t_current_activity_feature = state[0][3:-1]
                     t_robot_feature = [robot_trigger_times]
+
+                    # print("t_transition_feature:", t_transition_feature)
+                    # print("t_battery_feature:", t_battery_feature)
+                    # print("t_current_activity_feature:", t_current_activity_feature)
+                    # print("t_robot_feature:", t_robot_feature)
                     
-                    new_state = t_transition_feature + t_battery_feature + t_current_activity_feature + t_robot_feature
+                    new_state = list(t_transition_feature) + list(t_battery_feature) + list(t_current_activity_feature) + list(t_robot_feature)
+                    # print("new state:", new_state)
+                    new_state = np.reshape(new_state, [1, state_size])
                     
                     tn_battery_feature = [wmu_cam_times+1]
                     tn_robot_feature = [robot_trigger_times]
                     new_next_state = transition_feature + tn_battery_feature + current_activity_feature + tn_robot_feature
+                    new_next_state = np.reshape(new_next_state, [1, state_size])
+                    print("construct 1-1 :", new_next_state)
 
-                    agent.remember_transition(new_state, 0, reward, new_next_state, env.done)
+                    # agent.remember_transition(new_state, 1, reward, new_next_state, env.done)
+                    construct_reward = construct_reward(1)
+                    agent.remember(new_state, 0, construct_reward, new_next_state, env.done)
 
 
                     tn_battery_feature = [wmu_cam_times]
                     tn_robot_feature = [robot_trigger_times+1]
                     new_next_state = transition_feature + tn_battery_feature + current_activity_feature + tn_robot_feature
-                    agent.remember_transition(new_state, 1, reward, new_next_state, env.done)
+                    new_next_state = np.reshape(new_next_state, [1, state_size])
 
 
-            rember_cnt = rember_cnt + 1
+                    print("construct 1-2 :", new_next_state)
+
+                    # agent.remember_transition(new_state, 1, reward, new_next_state, env.done)
+
+                    construct_reward = construct_reward(1)
+
+                    agent.remember(new_state, 1, construct_reward, new_next_state, env.done)
+
+
+
         else:
             agent.remember(state, action, reward, next_state, env.done)
-        
+
+        # agent.remember(state, action, reward, next_state, env.done)    
+
+        rember_cnt = rember_cnt + 1
+
         state = next_state
         total_reward += reward
         previous_motion_feature = next_motion_feature
@@ -1332,11 +1423,18 @@ for episode in range(episode_count):
 
         print("===================================================")
 
-        if rember_cnt >= batch_size:
+        if rember_cnt >= batch_size or motion_transition_occur_flag:
             start_t = timer()
             #agent.replay(batch_size)
-            agent.replay2(batch_size)
-            agent.replay2(batch_size, transition=True)
+            len_mem = len(agent.memory)
+            print("len mem:", len_mem)
+            if len_mem > batch_size:
+                agent.replay(batch_size)
+            else:
+                agent.replay(len_mem-1)
+            
+            # agent.replay2(batch_size)
+            # agent.replay2(batch_size, transition=True)
             end_t = timer()
             print("replay takes:", end_t - start_t, 'replay times:', agent.replay_counter)
             #print("agent replay(len memeory):", len(agent.memory))
@@ -1345,9 +1443,16 @@ for episode in range(episode_count):
         if env.done:
             print("episode: {}/{}, episode_reward: {}, e: {:.2}, end time {}"
             .format(episode, episode_count-1, total_reward, agent.epsilon, env.get_running_time()))
+
+
+
             if rember_cnt > 0:
-                agent.replay2(rember_cnt)
-                agent.replay2(rember_cnt, transition=True)
+                # agent.replay(rember_cnt)
+                len_mem = len(agent.memory)
+                agent.replay(len_mem-1)
+                
+                # agent.replay2(rember_cnt)
+                # agent.replay2(rember_cnt, transition=True)
             print('replay times:', agent.replay_counter, ' len memory:', len(agent.memory), ' ', len(agent.memory_transition))
 
             #agent.update_replay_memory()
