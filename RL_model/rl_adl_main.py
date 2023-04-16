@@ -462,6 +462,7 @@ def transition_feature_extractor(pre_motion_type, motion_type):
 
     output_matrix = to_categorical(class_vector, num_classes = 2, dtype ="int32")
 
+    print('in transition feature extractor:', pre_motion_type, ' ,', motion_type, ' feature:', output_matrix[0])
     # print(output_matrix)
     # [[0 0 0 0 0 1]]
 
@@ -565,8 +566,8 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 100 # 200 
-batch_size = 256
+episode_count = 20 # 200 
+batch_size = 128
 
 # stores the reward per episode
 scores = deque(maxlen=1000)
@@ -884,6 +885,7 @@ def construct_reward(action):
 
 
     reward_privacy = env.get_reward_privacy(action, ground_truth_activity)
+    reward_privacy = 0
 
     reward_accuracy = 0
 
@@ -895,29 +897,25 @@ def construct_reward(action):
         reward_accuracy = 1
 
 
-    else:
-        detected_activity = get_activity_by_action(cur_time_str, action)
-        print("detected_activity:", detected_activity)
-        print("pre_activity:", pre_activity)
+#    else:
+#        detected_activity = get_activity_by_action(cur_time_str, action)
+#        print("detected_activity:", detected_activity)
+#        print("pre_activity:", pre_activity)
+#
+#        if detected_activity == '':
+#            activity_rank_empty_times += 1
+#            reward_accuracy = 0
+#        
+#        elif detected_activity == ground_truth_activity or (BATHROOM in detected_activity and BATHROOM in ground_truth_activity):
+#            activity_rank_hit_times += 1
+#            if detected_activity != pre_activity:
+#                reward_accuracy = 1 * new_activity_factor
+#            else:
+#                reward_accuracy = 1
+#        elif ground_truth_activity != '':
+#            reward_accuracy = -1
 
-        if detected_activity == '':
-            activity_rank_empty_times += 1
-            reward_accuracy = 0
-        
-        elif detected_activity == ground_truth_activity or (BATHROOM in detected_activity and BATHROOM in ground_truth_activity):
-            activity_rank_hit_times += 1
-            if detected_activity != pre_activity:
-                reward_accuracy = 1 * new_activity_factor
-            else:
-                reward_accuracy = 1
-        elif ground_truth_activity != '':
-            reward_accuracy = -1
 
-
-    if ground_truth_activity == '':
-        activity_rank_empty_times += 1
-        reward_accuracy = 0
-        reward_energy = 0
 
 
     if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Nothing:
@@ -926,6 +924,7 @@ def construct_reward(action):
 
 
     reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
+    motion_transition_occur_flag == True
 
     if motion_transition_occur_flag == True:
         if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion:
@@ -1009,7 +1008,7 @@ actions = []
 action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 
 import rl_ascc_dqn
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*2, memory_size = 5120)
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*2, memory_size = 5120*2)
 
 train_cnt = 3
 
@@ -1017,7 +1016,7 @@ train_cnt = 3
 #train_cnt = train_cnt - 1
 
 # for test and reload the pretrained model
-#agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*2.5, epsilon = 0.1)
+#agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*2.5, epsilon = 0.1, memory_size = 5120)
 #agent.load_weights()
 
 
@@ -1343,20 +1342,24 @@ for episode in range(episode_count):
         #next_state = current_activity_feature
         next_state = np.reshape(next_state, [1, state_size])
 
-        if motion_transition_occur_flag == True:
+        t_transition_feature = state[0][:2]
+        print("t_transition_feature:", t_transition_feature)
+        #print("t_transition_feature:", list(t_transition_feature))
+        #if motion_transition_occur_flag == True:
+        if t_transition_feature[0] == 0:
             #agent.remember(state, action, reward, next_state, env.done)
             # agent.remember_transition(state, action, reward, next_state, env.done)
             agent.remember(state, action, reward, next_state, env.done)
 
             # construction_state()
-            print("construct:")
+            print("construct:", motion_transition_occur_flag)
             print("construct 0:", next_state)
 
 
 
 
-            for wmu_trigger_times in range(1, 1):
-                for robot_trigger_times in range(1, 800):
+            for wmu_trigger_times in range(1, 2):
+                for robot_trigger_times in range(1, 400):
                     t_transition_feature = state[0][:2]
                     t_battery_feature = [wmu_cam_times]
                     t_current_activity_feature = state[0][3:-1]
@@ -1368,18 +1371,19 @@ for episode in range(episode_count):
                     # print("t_robot_feature:", t_robot_feature)
                     
                     new_state = list(t_transition_feature) + list(t_battery_feature) + list(t_current_activity_feature) + list(t_robot_feature)
-                    # print("new state:", new_state)
+                    print("new state:", new_state)
                     new_state = np.reshape(new_state, [1, state_size])
                     
                     tn_battery_feature = [wmu_cam_times+1]
                     tn_robot_feature = [robot_trigger_times]
                     new_next_state = transition_feature + tn_battery_feature + current_activity_feature + tn_robot_feature
                     new_next_state = np.reshape(new_next_state, [1, state_size])
-                    print("construct 1-1 :", new_next_state)
 
                     # agent.remember_transition(new_state, 1, reward, new_next_state, env.done)
-                    construct_reward = construct_reward(1)
-                    agent.remember(new_state, 0, construct_reward, new_next_state, env.done)
+                    # todo update reward function
+                    con_reward = construct_reward(1)
+                    agent.remember(new_state, 0, con_reward, new_next_state, env.done)
+                    print("construct 1-1 :", new_next_state, ' r:', con_reward)
 
 
                     tn_battery_feature = [wmu_cam_times]
@@ -1388,13 +1392,13 @@ for episode in range(episode_count):
                     new_next_state = np.reshape(new_next_state, [1, state_size])
 
 
-                    print("construct 1-2 :", new_next_state)
 
                     # agent.remember_transition(new_state, 1, reward, new_next_state, env.done)
 
-                    construct_reward = construct_reward(1)
+                    con_reward = construct_reward(1)
 
-                    agent.remember(new_state, 1, construct_reward, new_next_state, env.done)
+                    agent.remember(new_state, 1, con_reward, new_next_state, env.done)
+                    print("construct 1-2 :", new_next_state, ' r:', con_reward)
 
 
 
@@ -1423,7 +1427,7 @@ for episode in range(episode_count):
 
         print("===================================================")
 
-        if rember_cnt >= batch_size or motion_transition_occur_flag:
+        if rember_cnt >= batch_size:
             start_t = timer()
             #agent.replay(batch_size)
             len_mem = len(agent.memory)

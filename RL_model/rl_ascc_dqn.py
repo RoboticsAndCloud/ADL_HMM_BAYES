@@ -371,7 +371,7 @@ class DQNAgent:
 
         # copy new params on old target after 
         # every 10 training updates
-        if self.replay_counter % 5 == 0:
+        if self.replay_counter % 20 == 0:
             self.update_weights()
 
         self.replay_counter += 1
