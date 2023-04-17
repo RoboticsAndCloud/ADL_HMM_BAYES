@@ -939,7 +939,7 @@ def get_activity_prediction_by_hmm():
 
 time_detected_act_dict = {}
 
-def get_activity_by_action(cur_time_str, action, pre_act = ''):
+def get_activity_by_action(cur_time_str, action, pre_act = '', pre_act_symbol_list = []):
     # env.running_time
     # test_time_str = '2009-12-11 12:58:33'
     # cur_time = env.get_running_time()
@@ -1039,6 +1039,7 @@ def get_activity_by_action(cur_time_str, action, pre_act = ''):
     # 7: Nothing
     # }
 
+    # TODO: update HMM_START_MATRIX, the min pro should be MIN_Prob, not 0
     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
         # hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
         hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
@@ -1096,6 +1097,14 @@ def get_activity_by_action(cur_time_str, action, pre_act = ''):
                     res_object_p = prob
                     bayes_model_object.set_object_prob(res_object_p)
                     p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
+
+        print("act:", act)
+        print("p1:", p1)
+        print("p2:", p2)
+        print("p3:", p3)
+        print("p4:", p4)
+        print("hmm_prob:", hmm_prob)
+        # print("pre_act_symbol_list:", pre_act_symbol_list)
 
         p = p1*p2*p3*p4 * hmm_prob
             
@@ -1286,6 +1295,8 @@ def real_time_test_run():
         rank_res = []
 
         pre_act_list = []
+        global pre_act_symbol_list
+
         pre_act_symbol_list = []
 
         pre_activity = ''
@@ -1325,7 +1336,7 @@ def real_time_test_run():
             bayes_model_audio.set_time(cur_time_str)
             bayes_model_object.set_time(cur_time_str)
 
-            detected_activity, _ = get_activity_by_action(cur_time_str, rl_env_ascc_test.WMU_FUSION_ACTION)
+            detected_activity, _ = get_activity_by_action(cur_time_str, rl_env_ascc_test.WMU_FUSION_ACTION, pre_act_symbol_list)
             if detected_activity == '':
                 continue
             
@@ -1508,7 +1519,7 @@ def real_time_test_run():
             if rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.Nothing:
                 detected_activity = pre_act_list[-1]
             else:
-                detected_activity, location = get_activity_by_action(cur_time_str, action, pre_act_list[-1])
+                detected_activity, location = get_activity_by_action(cur_time_str, action, pre_act_list[-1], pre_act_symbol_list)
 
 
 
@@ -1753,10 +1764,10 @@ def real_time_test_run():
     # end episode for
     print("plotone scores:", scores)
     print("plotone time scores:", time_scores)
-    print("q_table:", agent.q_table)
+    #print("q_table:", agent.q_table)
     print("q_table size:", len(agent.q_table))
 
-    tools_ascc.save_dict(agent.q_table, Q_TABLE)
+    #tools_ascc.save_dict(agent.q_table, Q_TABLE)
 
 
     plot(total_wmu_cam_trigger_times, total_wmu_mic_trigger_times, label1="camera", label2="microphone")
