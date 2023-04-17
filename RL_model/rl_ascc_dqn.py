@@ -42,7 +42,7 @@ class DQNAgent:
     def __init__(self,
                  state_space, 
                  action_space, 
-                 episodes=500, epsilon = 1.0, memory_size = 51200):
+                 episodes=500, epsilon = 1.0, memory_size = 512):
         """DQN Agent on CartPole-v0 environment
 
         Arguments:
@@ -120,7 +120,7 @@ class DQNAgent:
         """
         inputs = Input(shape=(n_inputs, ), name='state')
         x = Dense(64, activation='relu')(inputs)
-        x = Dense(64, activation='relu')(x)
+        #x = Dense(64, activation='relu')(x)
         #x = Dense(64, activation='relu')(x)
         #x = Dense(64, activation='relu')(x)
       #  x = Dense(64, activation='relu')(x)
@@ -282,12 +282,13 @@ class DQNAgent:
                 sample size
         """
         # sars = state, action, reward, state' (next_state)
-        print('len memory:', len(self.memory), ' ', len(self.memory_transition))
-        sars_batch = random.sample(self.memory, batch_size)
+        #print('len memory:', len(self.memory), ' ', len(self.memory_transition))
         state_batch, q_values_batch = [], []
 
         if transition:
             sars_batch = random.sample(self.memory_transition, batch_size)
+        else:
+            sars_batch = random.sample(self.memory, batch_size)
 
 
         # fixme: for speedup, this could be done on the tensor level
