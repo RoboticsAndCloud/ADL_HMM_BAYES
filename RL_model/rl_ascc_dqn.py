@@ -26,6 +26,9 @@ from tensorflow.keras import backend as K
 
 MODEL_SAVED_PATH = 'ascc_rl_dqn-saved-model'
 
+# when to synchronize the two network
+UPDATE_TAU = 100
+
 def plot(rewards, figure = 'ascc_rl_reward.png'):
     plt.figure(figsize=(20,5))
     plt.plot(rewards)
@@ -64,7 +67,7 @@ class DQNAgent:
         self.epsilon = epsilon
         # iteratively applying decay til 
         # 10% exploration/90% exploitation
-        self.epsilon_min = 0.1
+        self.epsilon_min = 0.001
         self.epsilon_decay = self.epsilon_min / self.epsilon
         self.epsilon_decay = self.epsilon_decay ** \
                              (1. / float(episodes))
@@ -324,7 +327,7 @@ class DQNAgent:
 
         # copy new params on old target after 
         # every 10 or 5 training updates
-        if self.replay_counter % 10 == 0:
+        if self.replay_counter % UPDATE_TAU == 0:
             self.update_weights()
 
         self.replay_counter += 1
@@ -372,7 +375,7 @@ class DQNAgent:
 
         # copy new params on old target after 
         # every 10 training updates
-        if self.replay_counter % 20 == 0:
+        if self.replay_counter % UPDATE_TAU == 0:
             self.update_weights()
 
         self.replay_counter += 1

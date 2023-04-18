@@ -567,7 +567,7 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 10 # 200 
+episode_count = 15 # 200 
 batch_size = 128
 
 # stores the reward per episode
@@ -1479,15 +1479,16 @@ for episode in range(episode_count):
             print("episode: {}/{}, episode_reward: {}, e: {:.2}, end time {}"
             .format(episode, episode_count-1, total_reward, agent.epsilon, env.get_running_time()))
 
+            # len_mem = len(agent.memory)
+            # len_mem_tra = len(agent.memory_transition)
 
-
-            if rember_cnt > 0:
-                # agent.replay(rember_cnt)
-                len_mem = len(agent.memory)
-                # agent.replay(len_mem-1)
-                agent.replay2(len_mem-1)
-                agent.replay2(len_mem-1, transition=True)
-                print('replay times:', agent.replay_counter, ' len memory:', len(agent.memory), ' ', len(agent.memory_transition))
+            # if rember_cnt > 0:
+            #     # agent.replay(rember_cnt)
+            #     len_mem = len(agent.memory)
+            #     # agent.replay(len_mem-1)
+            #     agent.replay2(len_mem-1)
+            #     agent.replay2(len_mem_tra-1, transition=True)
+            #     print('replay times:', agent.replay_counter, ' len memory:', len(agent.memory), ' ', len(agent.memory_transition))
 
             #agent.update_replay_memory()
             #print("agent update replay  memeory:", len(agent.memory))
