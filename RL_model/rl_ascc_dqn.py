@@ -27,7 +27,7 @@ from tensorflow.keras import backend as K
 MODEL_SAVED_PATH = 'ascc_rl_dqn-saved-model'
 
 # when to synchronize the two network
-UPDATE_TAU = 100
+UPDATE_TAU = 200
 
 def plot(rewards, figure = 'ascc_rl_reward.png'):
     plt.figure(figsize=(20,5))
