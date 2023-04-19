@@ -10,6 +10,7 @@ import random
 from re import T
 from collections import deque
 import gc
+import sys
 # Applying the function on input class vector
 from keras.utils import to_categorical
 
@@ -41,7 +42,7 @@ print(mem_top(limit=15,width=180))
 
 
 OUTPUT_RANK = False
-DEBUG = False
+DEBUG = True
 
 MILAN_BASE_DATE = '2009-10-16'
 
@@ -67,6 +68,8 @@ BATHROOM = 'athroom'
 
 new_activity_factor = 1.0 # when detect new activity, reward more 
 MOTION_TRANSITION_REWARD = 1 # when detect the walking transition, reward + 1
+
+update_cache_cnt = 0
 
 """
 Given the duration, return the probability that the activity may be finished
@@ -567,7 +570,7 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 15 # 200 
+episode_count = 50 # 200 
 batch_size = 128
 
 # stores the reward per episode
@@ -858,7 +861,7 @@ def get_activity_by_action(cur_time_str, action):
     #rank2_res_prob.append(top3_prob[1])
     #rank3_res_prob.append(top3_prob[2])
 
-    rank1_res_prob_norm.append(p_activity_end)
+    #rank1_res_prob_norm.append(p_activity_end)
    # p_rank2 = (1-p_activity_end) * (rank2_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
    # rank2_res_prob_norm.append(p_rank2)
    # p_rank3 = (1-p_activity_end) * (rank3_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
@@ -996,8 +999,8 @@ transition_feature = list(transition_feature)
 
 #state = motion_feature + battery_feature + motion_feature + current_activity_feature + current_activity_duration_feature
 #state = motion_feature + battery_feature + motion_feature + current_activity_feature 
-state = transition_feature + battery_feature + current_activity_feature 
-state = transition_feature + battery_feature + current_activity_feature + robot_trigger_feature
+state = transition_feature + current_activity_feature 
+#state = transition_feature + battery_feature + current_activity_feature + robot_trigger_feature
 #state = motion_feature + battery_feature + current_activity_feature 
 #state = battery_feature + current_activity_feature  
 #state = current_activity_feature  # works well
@@ -1011,7 +1014,7 @@ actions = []
 action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 
 import rl_ascc_dqn
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, memory_size = 5120)
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, memory_size = 1280)
 
 train_cnt = 3
 
@@ -1019,7 +1022,7 @@ train_cnt = 3
 #train_cnt = train_cnt - 1
 
 # for test and reload the pretrained model
-#agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, epsilon = 0.1, memory_size = 5120)
+#agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, epsilon = 0.01, memory_size = 1280)
 #agent.load_weights()
 
 
@@ -1123,8 +1126,8 @@ for episode in range(episode_count):
     current_activity_duration_feature = [current_activity_duration_feature]
     #state = motion_feature + battery_feature + motion_feature + current_activity_feature + current_activity_duration_feature
     #state = motion_feature + battery_feature + motion_feature + current_activity_feature  
-#    state = transition_feature + battery_feature + current_activity_feature 
-    state = transition_feature + battery_feature + current_activity_feature + robot_trigger_feature
+    state = transition_feature + current_activity_feature 
+    #state = transition_feature + battery_feature + current_activity_feature + robot_trigger_feature
 
     #state = motion_feature + battery_feature + current_activity_feature  
     #state = battery_feature + current_activity_feature 
@@ -1334,7 +1337,7 @@ for episode in range(episode_count):
         transition_feature = transition_feature_extractor(pre_motion_type, motion_type)
         transition_feature = list(transition_feature)
 
-
+        # todo get_activity_by_time_str (episode), if episode > 10, do not update dict
         current_activity = get_activity_by_time_str(cur_time_str)
         current_activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
 
@@ -1351,8 +1354,8 @@ for episode in range(episode_count):
         current_activity_duration_feature = [current_activity_duration_feature]
         #next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature + current_activity_duration_feature
         #next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature  
-        #next_state = transition_feature + battery_feature + current_activity_feature 
-        next_state = transition_feature + battery_feature + current_activity_feature + robot_trigger_feature
+        next_state = transition_feature + current_activity_feature 
+        #next_state = transition_feature + battery_feature + current_activity_feature + robot_trigger_feature
 
         #next_state = next_motion_feature + battery_feature + current_activity_feature  
         #next_state = battery_feature + current_activity_feature
@@ -1375,12 +1378,13 @@ for episode in range(episode_count):
 
 
 
-            for samples in range(1, 200):
-                robot_trigger_times = random.randint(1, 3000)
+            for samples in range(1, 2):
+                #robot_trigger_times = random.randint(env.robot_trigger_times, env.robot_trigger_times + 100)
+                robot_trigger_times = env.robot_trigger_times
                 # for robot_trigger_times in range(1, 3000):
                 t_transition_feature = state[0][:2]
                 t_battery_feature = [wmu_cam_times]
-                t_current_activity_feature = state[0][3:-1]
+                t_current_activity_feature = state[0][2:]
                 t_robot_feature = [robot_trigger_times]
 
                 # print("t_transition_feature:", t_transition_feature)
@@ -1388,13 +1392,15 @@ for episode in range(episode_count):
                 # print("t_current_activity_feature:", t_current_activity_feature)
                 # print("t_robot_feature:", t_robot_feature)
                 
-                new_state = list(t_transition_feature) + list(t_battery_feature) + list(t_current_activity_feature) + list(t_robot_feature)
+                new_state = list(t_transition_feature) + list(t_current_activity_feature) 
+                #new_state = list(t_transition_feature) + list(t_battery_feature) + list(t_current_activity_feature) + list(t_robot_feature)
                 #print("new state:", new_state)
                 new_state = np.reshape(new_state, [1, state_size])
                 
                 tn_battery_feature = [wmu_cam_times+1]
                 tn_robot_feature = [robot_trigger_times]
-                new_next_state = transition_feature + tn_battery_feature + current_activity_feature + tn_robot_feature
+                new_next_state = transition_feature + current_activity_feature 
+                #new_next_state = transition_feature + tn_battery_feature + current_activity_feature + tn_robot_feature
                 new_next_state = np.reshape(new_next_state, [1, state_size])
 
                 
@@ -1409,11 +1415,9 @@ for episode in range(episode_count):
 
                 tn_battery_feature = [wmu_cam_times]
                 tn_robot_feature = [robot_trigger_times+1]
-                new_next_state = transition_feature + tn_battery_feature + current_activity_feature + tn_robot_feature
+                new_next_state = transition_feature + current_activity_feature 
+                #new_next_state = transition_feature + tn_battery_feature + current_activity_feature + tn_robot_feature
                 new_next_state = np.reshape(new_next_state, [1, state_size])
-
-
-
 
                 con_reward = construct_reward(1)
 
@@ -1424,6 +1428,16 @@ for episode in range(episode_count):
                 if DEBUG:
                     print("construct 1-2 :", new_next_state, ' r:', con_reward)
 
+                tn_battery_feature = [wmu_cam_times]
+                tn_robot_feature = [robot_trigger_times]
+                new_next_state = transition_feature + current_activity_feature 
+                #new_next_state = transition_feature + tn_battery_feature + current_activity_feature + tn_robot_feature
+                new_next_state = np.reshape(new_next_state, [1, state_size])
+                con_reward = construct_reward(2)
+                agent.remember_transition(new_state, 2, reward, new_next_state, env.done)
+
+                if DEBUG:
+                    print("construct 1-3 :", new_next_state, ' r:', con_reward)
 
 
         else:
@@ -1496,14 +1510,23 @@ for episode in range(episode_count):
     # print(mem_top(limit=15,width=180))
     # tools_ascc.show_memory()
 
-    print("time_location_dict:", time_location_dict)
-    print("time_object_dict:", time_object_dict)
-    print("time_sound_dict:", time_sound_dict)
-    print("time_motion_dict:", time_motion_dict)
-    print("time_exist_dict:", time_exist_dict)
-    print("time_detected_act_dict:", time_detected_act_dict)
-    print("cache_ground_truth_dict:", cache_ground_truth_dict)
-    print("cache_ground_truth_dict:", len(cache_ground_truth_dict))
+    if DEBUG:
+        print("time_location_dict:", time_location_dict)
+        print("time_object_dict:", time_object_dict)
+        print("time_sound_dict:", time_sound_dict)
+        print("time_motion_dict:", time_motion_dict)
+        print("time_exist_dict:", time_exist_dict)
+        print("time_detected_act_dict:", time_detected_act_dict)
+        print("cache_ground_truth_dict:", cache_ground_truth_dict)
+        print("cache_ground_truth_dict:", len(cache_ground_truth_dict))
+    print("time_location_dict len:", len(time_location_dict))
+    print("time_object_dict len:", len(time_object_dict))
+    print("time_sound_dict len:", len(time_sound_dict))
+    print("time_motion_dict len:", len(time_motion_dict))
+    print("time_exist_dict len:", len(time_exist_dict), ' ', sys.getsizeof(time_exist_dict))
+    print("time_detected_act_dict len:", len(time_detected_act_dict), ' ', sys.getsizeof(time_detected_act_dict))
+    print("cache_ground_truth_dict len:", len(cache_ground_truth_dict), ' ', sys.getsizeof(cache_ground_truth_dict))
+    print("cache_ground_truth_dict len:", len(cache_ground_truth_dict))
 
    
     #agent.replay2(len(agent.memory)-1)
@@ -1548,8 +1571,21 @@ for episode in range(episode_count):
 
 
 print("===================================================")
-print("rank res", rank_res)
-# end episode for
+exit(0)
+# for testing memeorys
+for i in range(1, 100):
+    print("episode: {} ".format(episode))
+
+    len_mem = len(agent.memory)
+    len_mem_tra = len(agent.memory_transition)
+
+    # agent.replay(rember_cnt)
+    len_mem = len(agent.memory)
+    # agent.replay(len_mem-1)
+    agent.replay2(len_mem-1)
+    agent.replay2(len_mem_tra-1, transition=True)
+    print('replay times:', agent.replay_counter, ' len memory:', len(agent.memory), ' ', len(agent.memory_transition))
+
 
 
 
