@@ -50,6 +50,8 @@ DEBUG = False
 
 STATE_TIME_TRANS = 1000*1000*1000*10
 
+MAX_TRIGGER_TIMES = 1000
+
 
 np.random.seed(1)
 
