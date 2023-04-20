@@ -5,6 +5,7 @@ Date: 07/10/2022
 """
 
 from datetime import datetime
+from datetime import timedelta
 from pickle import TRUE
 import random
 from re import T
@@ -570,7 +571,7 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 50 # 200 
+episode_count = 20 # 200 
 batch_size = 128
 
 # stores the reward per episode
@@ -610,6 +611,8 @@ time_object_dict = time_adl_res_dict.time_object_dict
 
 print('len time_location_dict:', len(time_location_dict))
 time_exist_dict = time_adl_res_dict.time_exist_dict
+
+time_perdict_dict = {}
 
 
 import ground_truth_dict_dataset0819
@@ -666,8 +669,50 @@ def get_target_folder_time_str(cur_time_str):
 
     return target_time_str
 
+def get_activity_prediction_by_time(time_str):
+    cur_activity = get_activity_by_time_str(cur_time_str)
+    new_activity = ''
+
+    if cur_time_str in time_perdict_dict.keys():
+        return time_perdict_dict[cur_time_str]
+
+
+
+    # increase the time, get the activity
+    # cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
+    # 2009-12-11 12:58:12
+
+    d_act = datetime.strptime(time_str, rl_env_ascc.DATE_HOUR_TIME_FORMAT)
+
+    i = 0
+    while(True):
+        i += 1
+
+        new_time = d_act + timedelta(seconds = 10*i)
+
+        new_time_str = new_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
+
+        new_activity = get_activity_by_time_str(new_time_str)
+        if DEBUG:
+            print('new time str:', new_time_str)
+            print('cur activity, new_activity:',cur_activity, ' ', new_activity)
+
+        if new_activity != cur_activity:
+            break
+
+        if '2009-12-11 23:56' in new_time_str:
+            print('out of day:', new_time_str)
+            break
+    
+
+    time_perdict_dict[cur_time_str] = new_activity
+
+    return new_activity
+
+
 def get_activity_prediction_by_hmm():
     res = {}
+
     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
         # hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
         hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
@@ -676,9 +721,15 @@ def get_activity_prediction_by_hmm():
     sd = sorted(res.items(), key=sorter_take_count, reverse=True)
 
     # return the act with high prob TODO
+    i = 0
     for k,v in sd:
-        print('res2:', k, ' v:', v)
-        return k
+        if DEBUG:
+            print('predict_res2:', k, ' v:', v)
+            print('len(pre_act_symbol_list):', len(pre_act_symbol_list))
+            print('pre_act_symbol_list:', pre_act_symbol_list)
+        i += 1
+        if i==2:
+            return k
     # break
 
     return ''
@@ -983,13 +1034,20 @@ robot_trigger_feature = [0]
 #battery_level = env.get_battery_level()
 #battery_feature = battery_feature_extractor(battery_level)
 #adl_hidden_feature = [1, 2, 4, 5, 5, 5]  # to be done
-predicted_activity = get_activity_prediction_by_hmm()
-# adl_hidden_feature = adl_hidden_feature_extractor(predicted_activity) # seems useless
+#predicted_activity = get_activity_prediction_by_hmm()
+predicted_activity = get_activity_prediction_by_time(cur_time_str)
+predicted_act_feature = adl_hidden_feature_extractor(predicted_activity) 
+predicted_act_feature = list(predicted_act_feature)
+
 current_activity = get_activity_by_time_str(cur_time_str)
 current_activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
 
 current_activity_feature = adl_hidden_feature_extractor(current_activity)
 current_activity_duration_feature = current_activity_duration
+
+if DEBUG:
+    print('current_activity, next activity:', current_activity, ' ', predicted_activity)
+
 
 battery_feature = list(battery_feature)
 robot_trigger_feature = list(robot_trigger_feature)
@@ -1002,6 +1060,8 @@ transition_feature = list(transition_feature)
 
 #state = transition_feature + current_activity_feature 
 state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
+state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature + predicted_act_feature
+state = transition_feature + current_activity_feature + predicted_act_feature
 
 state_size = len(state)
 state = np.reshape(state, [1, state_size])
@@ -1100,7 +1160,10 @@ for episode in range(episode_count):
     robot_trigger_feature = [trigger_times_normalization(env.robot_trigger_times)]
 
     #adl_hidden_feature = [1, 2, 4, 5, 5, 5]  # to be done
-    predicted_activity = get_activity_prediction_by_hmm()
+    #predicted_activity = get_activity_prediction_by_hmm()
+    predicted_activity = get_activity_prediction_by_time(cur_time_str)
+    predicted_act_feature = adl_hidden_feature_extractor(predicted_activity) 
+    predicted_act_feature = list(predicted_act_feature)
     # adl_hidden_feature = adl_hidden_feature_extractor(predicted_activity) # seems useless
     current_activity = get_activity_by_time_str(cur_time_str)
     current_activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
@@ -1121,15 +1184,11 @@ for episode in range(episode_count):
 
     current_activity_feature = list(current_activity_feature)
     current_activity_duration_feature = [current_activity_duration_feature]
-    #state = motion_feature + battery_feature + motion_feature + current_activity_feature + current_activity_duration_feature
-    #state = motion_feature + battery_feature + motion_feature + current_activity_feature  
-    #state = transition_feature + current_activity_feature 
-    state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
-    #state = transition_feature + battery_feature + current_activity_feature + robot_trigger_feature
 
-    #state = motion_feature + battery_feature + current_activity_feature  
-    #state = battery_feature + current_activity_feature 
-    #state = current_activity_feature 
+    #state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
+    state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature + predicted_act_feature
+    state = transition_feature + current_activity_feature + predicted_act_feature
+
     state_size = len(state)
     state = np.reshape(state, [1, state_size])
     print("state_size:", state_size)
@@ -1350,15 +1409,16 @@ for episode in range(episode_count):
         next_motion_feature = list(next_motion_feature)
         current_activity_feature = list(current_activity_feature)
         current_activity_duration_feature = [current_activity_duration_feature]
-        #next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature + current_activity_duration_feature
-        #next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature  
-        next_state = transition_feature + current_activity_feature 
-        next_state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
-        #next_state = transition_feature + battery_feature + current_activity_feature + robot_trigger_feature
+        #predicted_activity = get_activity_prediction_by_hmm()
+        predicted_activity = get_activity_prediction_by_time(cur_time_str)
+        predicted_act_feature = adl_hidden_feature_extractor(predicted_activity) 
+        predicted_act_feature = list(predicted_act_feature)
 
-        #next_state = next_motion_feature + battery_feature + current_activity_feature  
-        #next_state = battery_feature + current_activity_feature
-        #next_state = current_activity_feature
+        #next_state = transition_feature + current_activity_feature 
+        #next_state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
+        next_state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature + predicted_act_feature
+        next_state = transition_feature + current_activity_feature + predicted_act_feature
+
         next_state = np.reshape(next_state, [1, state_size])
 
         t_transition_feature = state[0][:2]
@@ -1385,6 +1445,7 @@ for episode in range(episode_count):
                 t_battery_feature = [trigger_times_normalization(wmu_cam_times)]
                 t_current_activity_feature = state[0][2:2+len(current_activity_feature)]
                 t_robot_feature = [trigger_times_normalization(robot_trigger_times)]
+                t_predicted_act_feature = state[0][-len(predicted_act_feature):]
 
                 # print("t_transition_feature:", t_transition_feature)
                 # print("t_battery_feature:", t_battery_feature)
@@ -1393,6 +1454,8 @@ for episode in range(episode_count):
                 
                 new_state = list(t_transition_feature) + list(t_current_activity_feature) 
                 new_state = list(t_transition_feature) + list(t_current_activity_feature) + list(t_robot_feature) + list(t_battery_feature)
+                new_state = list(t_transition_feature) + list(t_current_activity_feature) + list(t_predicted_act_feature)
+
                 #print("new state:", new_state)
                 new_state = np.reshape(new_state, [1, state_size])
                 
@@ -1400,6 +1463,8 @@ for episode in range(episode_count):
                 tn_robot_feature = [trigger_times_normalization(robot_trigger_times)]
                 #new_next_state = transition_feature + current_activity_feature 
                 new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature
+                new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature + predicted_act_feature
+                new_next_state = transition_feature + current_activity_feature + predicted_act_feature
                 new_next_state = np.reshape(new_next_state, [1, state_size])
 
                 
@@ -1416,6 +1481,9 @@ for episode in range(episode_count):
                 tn_robot_feature = [trigger_times_normalization(robot_trigger_times+1)]
                 #new_next_state = transition_feature + current_activity_feature 
                 new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature
+                new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature + predicted_act_feature
+                new_next_state = transition_feature + current_activity_feature + predicted_act_feature
+
                 new_next_state = np.reshape(new_next_state, [1, state_size])
 
                 con_reward = construct_reward(1)
@@ -1431,6 +1499,8 @@ for episode in range(episode_count):
                 tn_robot_feature = [trigger_times_normalization(robot_trigger_times)]
                 #new_next_state = transition_feature + current_activity_feature 
                 new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature
+                new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature + predicted_act_feature
+                new_next_state = transition_feature + current_activity_feature + predicted_act_feature
                 new_next_state = np.reshape(new_next_state, [1, state_size])
                 con_reward = construct_reward(2)
                 agent.remember_transition(new_state, 2, reward, new_next_state, env.done)
@@ -1518,6 +1588,9 @@ for episode in range(episode_count):
         print("time_detected_act_dict:", time_detected_act_dict)
         print("cache_ground_truth_dict:", cache_ground_truth_dict)
         print("cache_ground_truth_dict:", len(cache_ground_truth_dict))
+        print("time_perdict_dict:", time_perdict_dict)
+        print("time_perdict_dict:", len(time_perdict_dict))
+
     print("time_location_dict len:", len(time_location_dict))
     print("time_object_dict len:", len(time_object_dict))
     print("time_sound_dict len:", len(time_sound_dict))
@@ -1526,6 +1599,7 @@ for episode in range(episode_count):
     print("time_detected_act_dict len:", len(time_detected_act_dict), ' ', sys.getsizeof(time_detected_act_dict))
     print("cache_ground_truth_dict len:", len(cache_ground_truth_dict), ' ', sys.getsizeof(cache_ground_truth_dict))
     print("cache_ground_truth_dict len:", len(cache_ground_truth_dict))
+    print("time_perdict_dict:", time_perdict_dict)
 
    
     #agent.replay2(len(agent.memory)-1)
