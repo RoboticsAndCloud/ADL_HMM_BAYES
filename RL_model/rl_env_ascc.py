@@ -50,7 +50,7 @@ DEBUG = False
 
 STATE_TIME_TRANS = 1000*1000*1000*10
 
-MAX_TRIGGER_TIMES = 1000
+MAX_TRIGGER_TIMES = 1500 *2
 
 
 np.random.seed(1)
@@ -682,7 +682,7 @@ class EnvASCC():
             # self.done_energy_cost = self.done_energy_cost + sensors_power_consumption
             # self.done_total_time_cost = self.done_total_time_cost + sensors_time_cost
 
-        if self.wmu_cam_times > 1500:
+        if self.wmu_cam_times > MAX_TRIGGER_TIMES or self.robot_trigger_times > MAX_TRIGGER_TIMES:
             done = True #  Battery is dead
             self.done = True
             # print("Done = True, self.residual_power: ", self.residual_power)

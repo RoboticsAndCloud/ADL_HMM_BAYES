@@ -462,6 +462,8 @@ def transition_feature_extractor(pre_motion_type, motion_type):
     if pre_motion_type != motion_type and (pre_motion_type == 'walking' or motion_type == 'walking'):
         print('in transition feature extractor:', pre_motion_type, ' ,', motion_type)
         tran = 1
+    #elif pre_motion_type != motion_type and (pre_motion_type == 'sitting' or motion_type == 'sitting'):
+    #    tran = 3
 
     class_vector =[tran]
 
@@ -598,6 +600,10 @@ w_accuracy = 0.02
 w_energy = 0.49
 w_privacy = 0.49
 
+w_accuracy = 0.02
+w_energy = 0.3
+w_privacy = 0.58
+
 
 #w_accuracy = 0.3
 #w_energy = 0.5
@@ -687,6 +693,9 @@ def get_activity_prediction_by_time(time_str):
     i = 0
     while(True):
         i += 1
+
+        if i >= 7:
+            break
 
         new_time = d_act + timedelta(seconds = 10*i)
 
@@ -936,14 +945,14 @@ def trigger_times_normalization(times):
     n_t = times*1.0/rl_env_ascc.MAX_TRIGGER_TIMES
     return n_t
 
-def construct_reward(action):
+def construct_reward(action, ground_truth_act):
 
 
     reward_energy = env.get_reward_energy(action)
 
 
-    reward_privacy = env.get_reward_privacy(action, ground_truth_activity)
-    reward_privacy = 0
+    reward_privacy = env.get_reward_privacy(action, ground_truth_act)
+    #reward_privacy = 0
 
     reward_accuracy = 0
 
@@ -1060,8 +1069,8 @@ transition_feature = list(transition_feature)
 
 #state = transition_feature + current_activity_feature 
 state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
-state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature + predicted_act_feature
-state = transition_feature + current_activity_feature + predicted_act_feature
+#state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature + predicted_act_feature
+#state = transition_feature + current_activity_feature + predicted_act_feature  # need train more times
 
 state_size = len(state)
 state = np.reshape(state, [1, state_size])
@@ -1086,6 +1095,7 @@ agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, memory_s
 
 total_wmu_cam_trigger_times = []
 total_wmu_mic_trigger_times = []
+total_robot_trigger_times = []
 total_privacy_times = []
 
 rember_cnt = 0
@@ -1185,9 +1195,9 @@ for episode in range(episode_count):
     current_activity_feature = list(current_activity_feature)
     current_activity_duration_feature = [current_activity_duration_feature]
 
-    #state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
-    state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature + predicted_act_feature
-    state = transition_feature + current_activity_feature + predicted_act_feature
+    state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
+    #state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature + predicted_act_feature
+    #state = transition_feature + current_activity_feature + predicted_act_feature
 
     state_size = len(state)
     state = np.reshape(state, [1, state_size])
@@ -1272,11 +1282,16 @@ for episode in range(episode_count):
         # walking motion
         motion_transition_occur_flag = False
         if pre_motion_type != motion_type and (pre_motion_type == 'walking' or motion_type == 'walking'):
-        #if motion_type == 'walking':
             print('activity:', pre_activity, ' ', ground_truth_activity)
             motion_transition_occur_cnt += 1
             print('motion_transition_occur_cnt:', motion_transition_occur_cnt)
             motion_transition_occur_flag = True
+
+       # if pre_motion_type != motion_type and (pre_motion_type == 'sitting' or motion_type == 'sitting'):
+       #     print('activity:', pre_activity, ' ', ground_truth_activity)
+       #     motion_transition_occur_cnt += 1
+       #     print('motion_transition_occur_cnt:', motion_transition_occur_cnt)
+       #     motion_transition_occur_flag = True
 
         if pre_activity != ground_truth_activity and ground_truth_activity!='':
             if DEBUG:
@@ -1369,8 +1384,10 @@ for episode in range(episode_count):
             print("Env action: ", action, " ", rl_env_ascc.RL_ACTION_DICT[action])
             print("Env reward:", reward, " accuracy|energy|privacy:", reward_accuracy, ", ", reward_energy, ", ", reward_privacy)
             print("Env truth activity:", ground_truth_activity)
+            print("predicted_activity:", predicted_activity)
             print('Env Running (after step):', cur_time_str, " evn.runing:", env.get_running_time()) 
             print('motion_transition_:', motion_transition_occur_flag)
+        
 
         wmu_mic_times, wmu_cam_times = env.get_wmu_sensor_trigger_times()
         #battery_feature = [wmu_mic_times, wmu_cam_times]
@@ -1415,9 +1432,9 @@ for episode in range(episode_count):
         predicted_act_feature = list(predicted_act_feature)
 
         #next_state = transition_feature + current_activity_feature 
-        #next_state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
-        next_state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature + predicted_act_feature
-        next_state = transition_feature + current_activity_feature + predicted_act_feature
+        next_state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
+        #next_state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature + predicted_act_feature
+        #next_state = transition_feature + current_activity_feature + predicted_act_feature
 
         next_state = np.reshape(next_state, [1, state_size])
 
@@ -1454,7 +1471,7 @@ for episode in range(episode_count):
                 
                 new_state = list(t_transition_feature) + list(t_current_activity_feature) 
                 new_state = list(t_transition_feature) + list(t_current_activity_feature) + list(t_robot_feature) + list(t_battery_feature)
-                new_state = list(t_transition_feature) + list(t_current_activity_feature) + list(t_predicted_act_feature)
+                #new_state = list(t_transition_feature) + list(t_current_activity_feature) + list(t_predicted_act_feature)
 
                 #print("new state:", new_state)
                 new_state = np.reshape(new_state, [1, state_size])
@@ -1463,13 +1480,13 @@ for episode in range(episode_count):
                 tn_robot_feature = [trigger_times_normalization(robot_trigger_times)]
                 #new_next_state = transition_feature + current_activity_feature 
                 new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature
-                new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature + predicted_act_feature
-                new_next_state = transition_feature + current_activity_feature + predicted_act_feature
+                #new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature + predicted_act_feature
+                #new_next_state = transition_feature + current_activity_feature + predicted_act_feature
                 new_next_state = np.reshape(new_next_state, [1, state_size])
 
                 
                 # todo update reward function
-                con_reward = construct_reward(0)
+                con_reward = construct_reward(0, current_activity )
                 # agent.remember(new_state, 0, con_reward, new_next_state, env.done)
                 agent.remember_transition(new_state, 0, reward, new_next_state, env.done)
 
@@ -1481,12 +1498,12 @@ for episode in range(episode_count):
                 tn_robot_feature = [trigger_times_normalization(robot_trigger_times+1)]
                 #new_next_state = transition_feature + current_activity_feature 
                 new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature
-                new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature + predicted_act_feature
-                new_next_state = transition_feature + current_activity_feature + predicted_act_feature
+                #new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature + predicted_act_feature
+                #new_next_state = transition_feature + current_activity_feature + predicted_act_feature
 
                 new_next_state = np.reshape(new_next_state, [1, state_size])
 
-                con_reward = construct_reward(1)
+                con_reward = construct_reward(1,current_activity)
 
                 #agent.remember(new_state, 1, con_reward, new_next_state, env.done)
 
@@ -1499,10 +1516,10 @@ for episode in range(episode_count):
                 tn_robot_feature = [trigger_times_normalization(robot_trigger_times)]
                 #new_next_state = transition_feature + current_activity_feature 
                 new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature
-                new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature + predicted_act_feature
-                new_next_state = transition_feature + current_activity_feature + predicted_act_feature
+                #new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature + predicted_act_feature
+                #new_next_state = transition_feature + current_activity_feature + predicted_act_feature
                 new_next_state = np.reshape(new_next_state, [1, state_size])
-                con_reward = construct_reward(2)
+                con_reward = construct_reward(2, current_activity)
                 agent.remember_transition(new_state, 2, reward, new_next_state, env.done)
 
                 if DEBUG:
@@ -1612,17 +1629,19 @@ for episode in range(episode_count):
     time_scores.append(cur_time_str)
     scores.append(total_reward)
     # plot rewards 
-    plotone(scores, "rl_reward.png")
+    #plotone(scores, "rl_reward.png")
     print("plotone scores:", scores)
     print("plotone time scores:", time_scores)
 
     total_wmu_cam_trigger_times.append(env.wmu_cam_times)
     total_wmu_mic_trigger_times.append(env.wmu_mic_times)
+    total_robot_trigger_times.append(env.robot_trigger_times)
     total_privacy_times.append(env.privacy_occur_cnt)
 
-    plot(total_wmu_cam_trigger_times, total_wmu_mic_trigger_times, label1="camera", label2="microphone")
+    #plot(total_wmu_cam_trigger_times, total_wmu_mic_trigger_times, label1="camera", label2="microphone")
     print("total_wmu_cam_trigger_times:", total_wmu_cam_trigger_times)
     print("total_wmu_mic_trigger_times:", total_wmu_mic_trigger_times)
+    print("total_robot_trigger_times:", total_robot_trigger_times)
     print("total_privacy_times:", total_privacy_times)
 
     print("rank res", len(rank_res))
