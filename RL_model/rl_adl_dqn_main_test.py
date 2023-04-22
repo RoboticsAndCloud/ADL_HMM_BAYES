@@ -5,15 +5,15 @@ Date: 07/10/2022
 """
 
 from datetime import datetime
-from datetime import timedelta
 from pickle import TRUE
 import random
 from re import T
 from collections import deque
 import gc
-import sys
 # Applying the function on input class vector
 from keras.utils import to_categorical
+
+# cat tmp.txt  | awk -F 'd:' '{print $2}' | awk -F ',' '{print $1}' > score.txt
 
 
 
@@ -41,9 +41,10 @@ from timeit import default_timer as timer
 from mem_top import mem_top
 print(mem_top(limit=15,width=180))
 
+REAL_TEST = False
 
-OUTPUT_RANK = False
-DEBUG = True
+
+OUTPUT_RANK = True
 
 MILAN_BASE_DATE = '2009-10-16'
 
@@ -67,10 +68,9 @@ LOCATION_DIR_SPLIT_SYMBOL = ':'
 
 BATHROOM = 'athroom'
 
+
 new_activity_factor = 1.0 # when detect new activity, reward more 
 MOTION_TRANSITION_REWARD = 1 # when detect the walking transition, reward + 1
-
-update_cache_cnt = 0
 
 """
 Given the duration, return the probability that the activity may be finished
@@ -375,7 +375,7 @@ def get_motion_type_by_activity_cnn(time_str):
         return motion_type, float(prob)
 
     # as we recognize all the motion action and store in the dict, here we just returl null
-    return '', -1
+    # return '', -1
 
     motion_type_list, prob_list = tools_ascc.get_activity_by_motion_dnn(time_str, action='vision')
     motion_type = ''
@@ -456,6 +456,7 @@ MOTION_ACTIVITY_MAPPING = {
     5: 'walking'
 }
 
+
 def transition_feature_extractor(pre_motion_type, motion_type):
     tran = 0
 
@@ -475,9 +476,16 @@ def transition_feature_extractor(pre_motion_type, motion_type):
 
     return output_matrix[0]
 
+
+def trigger_times_normalization(times):
+    n_t = times*1.0/rl_env_ascc.MAX_TRIGGER_TIMES
+    return n_t
+
 def battery_feature_extractor(battery_level):
 
     class_vector =[battery_level]
+
+    return class_vector
 
     output_matrix = to_categorical(class_vector, num_classes = 4, dtype ="int32")
 
@@ -492,7 +500,9 @@ def motion_feature_extractor(motion_type):
     motion_id = tools_ascc.get_key(MOTION_ACTIVITY_MAPPING, motion_type)
 
     class_vector =[motion_id]
-    print(class_vector)
+
+
+    #print(class_vector)
 
     output_matrix = to_categorical(class_vector, num_classes = 6, dtype ="int32")
 
@@ -508,6 +518,8 @@ def adl_hidden_feature_extractor(act):
     act_id = tools_ascc.get_key(tools_ascc.ACTIVITY_DICT, act)
 
     class_vector =[act_id]
+
+    #return class_vector
     # print(class_vector)
 
     # Applying the function on input class vector
@@ -573,8 +585,8 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 20 # 200 
-batch_size = 128
+episode_count = 1 # 2000
+batch_size = 256
 
 # stores the reward per episode
 scores = deque(maxlen=1000)
@@ -600,10 +612,6 @@ w_accuracy = 0.02
 w_energy = 0.49
 w_privacy = 0.49
 
-w_accuracy = 0.02
-w_energy = 0.3
-w_privacy = 0.58
-
 
 #w_accuracy = 0.3
 #w_energy = 0.5
@@ -618,7 +626,12 @@ time_object_dict = time_adl_res_dict.time_object_dict
 print('len time_location_dict:', len(time_location_dict))
 time_exist_dict = time_adl_res_dict.time_exist_dict
 
-time_perdict_dict = {}
+if REAL_TEST:
+    time_location_dict = {}
+    time_sound_dict = {}
+    time_motion_dict = {}
+    time_object_dict = {}
+    time_exist_dict = {}
 
 
 import ground_truth_dict_dataset0819
@@ -675,53 +688,8 @@ def get_target_folder_time_str(cur_time_str):
 
     return target_time_str
 
-def get_activity_prediction_by_time(time_str):
-    cur_activity = get_activity_by_time_str(cur_time_str)
-    new_activity = ''
-
-    if cur_time_str in time_perdict_dict.keys():
-        return time_perdict_dict[cur_time_str]
-
-
-
-    # increase the time, get the activity
-    # cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
-    # 2009-12-11 12:58:12
-
-    d_act = datetime.strptime(time_str, rl_env_ascc.DATE_HOUR_TIME_FORMAT)
-
-    i = 0
-    while(True):
-        i += 1
-
-        if i >= 7:
-            break
-
-        new_time = d_act + timedelta(seconds = 10*i)
-
-        new_time_str = new_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
-
-        new_activity = get_activity_by_time_str(new_time_str)
-        if DEBUG:
-            print('new time str:', new_time_str)
-            print('cur activity, new_activity:',cur_activity, ' ', new_activity)
-
-        if new_activity != cur_activity:
-            break
-
-        if '2009-12-11 23:56' in new_time_str:
-            print('out of day:', new_time_str)
-            break
-    
-
-    time_perdict_dict[cur_time_str] = new_activity
-
-    return new_activity
-
-
 def get_activity_prediction_by_hmm():
     res = {}
-
     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
         # hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_list, act, activity_duration)
         hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
@@ -730,26 +698,23 @@ def get_activity_prediction_by_hmm():
     sd = sorted(res.items(), key=sorter_take_count, reverse=True)
 
     # return the act with high prob TODO
-    i = 0
     for k,v in sd:
-        if DEBUG:
-            print('predict_res2:', k, ' v:', v)
-            print('len(pre_act_symbol_list):', len(pre_act_symbol_list))
-            print('pre_act_symbol_list:', pre_act_symbol_list)
-        i += 1
-        if i==2:
-            return k
+        print('res2:', k, ' v:', v)
+        return k
     # break
 
     return ''
 
-time_detected_act_dict =  time_adl_res_dict.time_detected_act_dict
+# for dqn
+# time_detected_act_dict =  time_adl_res_dict.time_detected_act_dict  
 
-def get_activity_by_action(cur_time_str, action):
+time_detected_act_dict = {}
+
+def get_activity_by_action(cur_time_str, action, pre_act = ''):
     # env.running_time
     # test_time_str = '2009-12-11 12:58:33'
     # cur_time = env.get_running_time()
-    # cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
+    # cur_time_str = cur_time.strftime(rl_env_ascc_test.DATE_HOUR_TIME_FORMAT)
     # print('cur_time:', cur_time)
     
     bayes_model_location.set_time(cur_time_str)
@@ -766,11 +731,11 @@ def get_activity_by_action(cur_time_str, action):
     target_folder_time_str = get_target_folder_time_str(cur_time_str)
     key = (target_folder_time_str, action)
     # print("target_folder_time_str:", target_folder_time_str, " time_str:", cur_time_str, ' location:', location)
-    if key in time_detected_act_dict.keys():
-        return time_detected_act_dict[key] 
+    #if key in time_detected_act_dict.keys():
+    #    return time_detected_act_dict[key] 
 
     if target_folder_time_str == '':
-        return ''
+        return '', ''
 
     if target_folder_time_str in time_location_dict.keys():
         location, location_prob = time_location_dict[target_folder_time_str]
@@ -822,6 +787,12 @@ def get_activity_by_action(cur_time_str, action):
     print('audio_type:', audio_type)
     print('motion_type:', motion_type)
 
+
+    if location == constants.LOCATION_LOBBY:
+        cur_activity = pre_act
+        print('++++++++++++++Around lobby,', cur_time_str)
+        return cur_activity, location
+
     
     
     heap_prob = []
@@ -845,13 +816,13 @@ def get_activity_by_action(cur_time_str, action):
         hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
 
         p1 = 1
-        if action == 1 or action == 2 or action == 5 or action == 6:
+        if action == 0 or action == 1 or action == 5 or action == 6:
             p1 = bayes_model_location.get_prob(pre_act_list, act, location, 0)
 
         p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, 0)
 
         p3 = 1
-        if action == 0 or action == 2 or action == 4 or action == 6:
+        if action == 0 or action == 1 or action == 4 or action == 6:
             p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, 0)
         
         p4 =1 
@@ -921,7 +892,7 @@ def get_activity_by_action(cur_time_str, action):
     #rank2_res_prob.append(top3_prob[1])
     #rank3_res_prob.append(top3_prob[2])
 
-    #rank1_res_prob_norm.append(p_activity_end)
+    rank1_res_prob_norm.append(p_activity_end)
    # p_rank2 = (1-p_activity_end) * (rank2_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
    # rank2_res_prob_norm.append(p_rank2)
    # p_rank3 = (1-p_activity_end) * (rank3_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
@@ -939,49 +910,7 @@ def get_activity_by_action(cur_time_str, action):
 
     del heap_prob
 
-    return cur_activity
-
-def trigger_times_normalization(times):
-    n_t = times*1.0/rl_env_ascc.MAX_TRIGGER_TIMES
-    return n_t
-
-def construct_reward(action, ground_truth_act):
-
-
-    reward_energy = env.get_reward_energy(action)
-
-
-    reward_privacy = env.get_reward_privacy(action, ground_truth_act)
-    #reward_privacy = 0
-
-    reward_accuracy = 0
-
-
-    if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion \
-        or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_audio or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision \
-        or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion:
-            
-        reward_accuracy = 1
-
-
-    if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Nothing:
-        reward_accuracy = 0
-
-
-
-    reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
-    motion_transition_occur_flag == True
-
-    if motion_transition_occur_flag == True:
-        if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion:
-            reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD + MOTION_TRANSITION_REWARD
-            #reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
-        if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision:
-            reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD + MOTION_TRANSITION_REWARD
-            #reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
-
-    return reward
-
+    return cur_activity, location
 
 
 # init DQN agent
@@ -1001,7 +930,7 @@ while(pre_activity == ''):
     bayes_model_audio.set_time(cur_time_str)
     bayes_model_object.set_time(cur_time_str)
 
-    detected_activity = get_activity_by_action(cur_time_str, rl_env_ascc.WMU_FUSION_ACTION)
+    detected_activity, _ = get_activity_by_action(cur_time_str, rl_env_ascc.WMU_FUSION_ACTION)
     if detected_activity == '':
         continue
     
@@ -1019,23 +948,16 @@ motion_feature = motion_feature_extractor(motion_type) # [0, 0, 0, 0, 0, 1]
 # todo battery_feature = battery_feature_extractor(battery_level)
 battery_feature = [0] # wmu_cam trigger times
 robot_trigger_feature = [0]
-#battery_level = env.get_battery_level()
-#battery_feature = battery_feature_extractor(battery_level)
+# battery_level = env.get_battery_level()
+# battery_feature = battery_feature_extractor(battery_level)
 #adl_hidden_feature = [1, 2, 4, 5, 5, 5]  # to be done
-#predicted_activity = get_activity_prediction_by_hmm()
-predicted_activity = get_activity_prediction_by_time(cur_time_str)
-predicted_act_feature = adl_hidden_feature_extractor(predicted_activity) 
-predicted_act_feature = list(predicted_act_feature)
-
+predicted_activity = get_activity_prediction_by_hmm()
+# adl_hidden_feature = adl_hidden_feature_extractor(predicted_activity) # seems useless
 current_activity = get_activity_by_time_str(cur_time_str)
 current_activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
 
 current_activity_feature = adl_hidden_feature_extractor(current_activity)
 current_activity_duration_feature = current_activity_duration
-
-if DEBUG:
-    print('current_activity, next activity:', current_activity, ' ', predicted_activity)
-
 
 battery_feature = list(battery_feature)
 robot_trigger_feature = list(robot_trigger_feature)
@@ -1046,16 +968,15 @@ current_activity_duration_feature = [current_activity_duration_feature]
 transition_feature = transition_feature_extractor(motion_type, motion_type)
 transition_feature = list(transition_feature)
 
-state = transition_feature + current_activity_feature 
+#state = motion_feature + battery_feature + motion_feature + current_activity_feature + current_activity_duration_feature
+#state = motion_feature + battery_feature + motion_feature + current_activity_feature 
 state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
-#state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature + predicted_act_feature
-#state = transition_feature + current_activity_feature + predicted_act_feature  # need train more times
-
+#state = motion_feature + battery_feature + current_activity_feature 
+#state = battery_feature + current_activity_feature  
+#state = current_activity_feature  # works well
 state_size = len(state)
 state = np.reshape(state, [1, state_size])
-print("robot_trigger_feature:", robot_trigger_feature)
-print("state:", state)
-print("state_size 1:", state_size)
+print("state_size:", state_size)
 print("features:", state)
 
 actions = []
@@ -1063,21 +984,25 @@ actions = []
 action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 
 import rl_ascc_dqn
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, memory_size = 1280)
+# agent = rl_ascc_q.QLearningAgent(len(action_space), episodes=500*5)
 
 
 # for test and reload the pretrained model
-#agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, epsilon = 0.01, memory_size = 1280)
-#agent.load_weights()
+
+# for test and reload the pretrained model
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, epsilon = 0.001, memory_size = 1280)
+agent.load_weights()
 
 
 
 total_wmu_cam_trigger_times = []
 total_wmu_mic_trigger_times = []
 total_robot_trigger_times = []
+total_transition_nothing_times = []
+total_transition_wmu_times = []
+total_transition_robot_times = []
+total_motion_transition_occur_cnt = []
 total_privacy_times = []
-
-rember_cnt = 0
 
 for episode in range(episode_count):
 
@@ -1104,6 +1029,10 @@ for episode in range(episode_count):
     
     transition_occur_cnt = 0
     motion_transition_occur_cnt = 0
+    transition_nothing_times = 0
+    transition_wmu_times = 0
+    transition_robot_times = 0
+
     env.reset()
     while(pre_activity == ''):
         # open camera
@@ -1121,7 +1050,7 @@ for episode in range(episode_count):
         bayes_model_audio.set_time(cur_time_str)
         bayes_model_object.set_time(cur_time_str)
 
-        detected_activity = get_activity_by_action(cur_time_str, rl_env_ascc.WMU_FUSION_ACTION)
+        detected_activity, _ = get_activity_by_action(cur_time_str, rl_env_ascc.WMU_FUSION_ACTION)
         if detected_activity == '':
             continue
         
@@ -1142,17 +1071,12 @@ for episode in range(episode_count):
     pre_motion_type = motion_type
     motion_feature = motion_feature_extractor(motion_type) # [0, 0, 0, 0, 0, 1]
     #battery_feature = [0, 0]
-    battery_feature = [0]
-    #battery_level = env.get_battery_level()
-    #battery_feature = battery_feature_extractor(battery_level)
     battery_feature = [trigger_times_normalization(env.wmu_cam_times)]
     robot_trigger_feature = [trigger_times_normalization(env.robot_trigger_times)]
-
+    # battery_level = env.get_battery_level()
+    # battery_feature = battery_feature_extractor(battery_level)
     #adl_hidden_feature = [1, 2, 4, 5, 5, 5]  # to be done
-    #predicted_activity = get_activity_prediction_by_hmm()
-    predicted_activity = get_activity_prediction_by_time(cur_time_str)
-    predicted_act_feature = adl_hidden_feature_extractor(predicted_activity) 
-    predicted_act_feature = list(predicted_act_feature)
+    predicted_activity = get_activity_prediction_by_hmm()
     # adl_hidden_feature = adl_hidden_feature_extractor(predicted_activity) # seems useless
     current_activity = get_activity_by_time_str(cur_time_str)
     current_activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
@@ -1166,19 +1090,19 @@ for episode in range(episode_count):
     # print("features:", features)
     battery_feature = list(battery_feature)
     robot_trigger_feature = list(robot_trigger_feature)
-
     motion_feature = list(motion_feature)
     transition_feature = transition_feature_extractor(motion_type, motion_type)
     transition_feature = list(transition_feature)
 
     current_activity_feature = list(current_activity_feature)
     current_activity_duration_feature = [current_activity_duration_feature]
-
-    state = transition_feature + current_activity_feature
+    #state = motion_feature + battery_feature + motion_feature + current_activity_feature + current_activity_duration_feature
+    #state = motion_feature + battery_feature + motion_feature + current_activity_feature  
+    state = transition_feature + battery_feature + current_activity_feature + robot_trigger_feature
     state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
-    #state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature + predicted_act_feature
-    #state = transition_feature + current_activity_feature + predicted_act_feature
-
+    #state = motion_feature + battery_feature + current_activity_feature  
+    #state = battery_feature + current_activity_feature 
+    #state = current_activity_feature 
     state_size = len(state)
     state = np.reshape(state, [1, state_size])
     print("state_size:", state_size)
@@ -1201,7 +1125,11 @@ for episode in range(episode_count):
     activity_rank_empty_times = 0
     # reinforcement learning part
 
-    run_cnt =0
+    rember_cnt = 0
+
+    need_recollect_data = False
+    double_check = 2
+    living_room_check_flag = False
     while(not env.done):
         start_t_iter = timer()
 
@@ -1210,114 +1138,132 @@ for episode in range(episode_count):
         #motion_type = ''
         audio_type = ''
 
-        living_room_check_flag = False
+
 
         object_dict = {}
 
         # agent chose an action based on the state
-        if run_cnt % 1000 == 0:
-            print('Env Running:', cur_time_str, " evn.runing:", env.get_running_time()) 
-
-        run_cnt +=1
+        print('Env Running:', cur_time_str, " evn.runing:", env.get_running_time()) 
 
         ignore_time1 =  datetime.strptime('2009-12-11 18:53:00', rl_env_ascc.DATE_HOUR_TIME_FORMAT)
         ignore_time2 =  datetime.strptime('2009-12-11 20:36:40', rl_env_ascc.DATE_HOUR_TIME_FORMAT)
         if env.running_time > ignore_time1  and env.running_time < ignore_time2:
             #print("ignore time:", env.running_time)
-            env.step(2)
+            env.step(2) # nothing
             continue
 
-        action = agent.act(state)
+        if living_room_check_flag:
+            env.set_current_running_time(10) # wait 6 seconds
+            living_room_check_flag = False
+
+        if need_recollect_data:
+            env.step(0, need_recollect_data)
+        else:
+            action = agent.act(state)
+            env.step(action)
+
         # print("Env state:", state)
-        # print("Env action: ", action, " ", rl_env_ascc.RL_ACTION_DICT[action])
+        # print("Env action: ", action, " ", rl_env_ascc_test.RL_ACTION_DICT[action])
 
         # env check the action and the cost time
-        # action = 6 # rl_env_ascc.Robot_WMU_fusion # to get the time recognition dict
-        env.step(action)
+        # action = 6 # rl_env_ascc_test.Robot_WMU_fusion # to get the time recognition dict
 
+
+        need_recollect_data = False
+        # living_room_check_flag = False
 
         reward_energy = env.get_reward_energy(action)
 
-        ground_truth_activity = get_activity_by_time_str(cur_time_str) # TODO
-        detected_activity = ground_truth_activity
+        # # detected_activity = ground_truth_activity
 
-        if DEBUG:
-            end_t_iter = timer()
-            print(" 0 after get activity by time each iter takes:", end_t_iter - start_t_iter)
+        # # end_t_iter = timer()
+        # # print(" 0 after get activity by time each iter takes:", end_t_iter - start_t_iter)
 
-        reward_privacy = env.get_reward_privacy(action, ground_truth_activity)
 
-        reward_accuracy = 0
-
-        # Todo 
-        # detected_activity = get_activity_by_action(cur_time_str, action)
+        # pre_activity = pre_act_list[-1]
+        # if rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.Nothing:
+        #     detected_activity = pre_activity 
+        # elif rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.Robot_audio_vision:
+        #     detected_activity = ground_truth_activity
+        # else:
+        #     # Todo 
+        #     detected_activity = get_activity_by_action(cur_time_str, action)
         # print("detected_activity:", detected_activity)
         # print("pre_activity:", pre_activity)
-        # cur_time = env.get_running_time()
-        # cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
+        cur_time = env.get_running_time()
+        cur_time_str = cur_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
 
-        pre_activity = pre_act_list[-1]
+        ground_truth_activity = get_activity_by_time_str(cur_time_str) # TODO
 
+
+        reward_privacy = env.get_reward_privacy(action, detected_activity)
+
+        reward_accuracy = 0
 
         # walking motion
         motion_transition_occur_flag = False
         if pre_motion_type != motion_type and (pre_motion_type == 'walking' or motion_type == 'walking'):
-            print('activity:', pre_activity, ' ', ground_truth_activity)
+        #if motion_type == 'walking':
+            # print('activity:', pre_activity, ' ', ground_truth_activity)
+            print('motion transiction occur, action:', action)
             motion_transition_occur_cnt += 1
-            print('motion_transition_occur_cnt:', motion_transition_occur_cnt)
             motion_transition_occur_flag = True
 
-       # if pre_motion_type != motion_type and (pre_motion_type == 'sitting' or motion_type == 'sitting'):
-       #     print('activity:', pre_activity, ' ', ground_truth_activity)
-       #     motion_transition_occur_cnt += 1
-       #     print('motion_transition_occur_cnt:', motion_transition_occur_cnt)
-       #     motion_transition_occur_flag = True
-
-        if pre_activity != ground_truth_activity and ground_truth_activity!='':
-            if DEBUG:
-                print("motion_type:", pre_motion_type, " ", motion_type)
-                print('activity:', pre_activity, ' ', ground_truth_activity)
-            transition_occur_cnt += 1
-            #real_transition_occur_cnt += 1
-            if DEBUG:
-                print('transition_occur_cnt:', transition_occur_cnt)
+        # if pre_activity != ground_truth_activity and ground_truth_activity!='':
+        #     print("motion_type:", pre_motion_type, " ", motion_type)
+        #     print('activity:', pre_activity, ' ', ground_truth_activity)
+        #     transition_occur_cnt += 1
+        #     #real_transition_occur_cnt += 1
+        #     print('transition_occur_cnt:', transition_occur_cnt)
  
 
         pre_motion_type = motion_type
 
 
-        if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion \
-            or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_audio or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision \
-            or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion:
+        # if rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.Robot_audio_vision or rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.Robot_WMU_fusion \
+        #     or rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.Robot_WMU_audio or rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.Robot_WMU_vision \
+        #     or rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.WMU_vision or rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.WMU_fusion:
                 
-            activity_rank_hit_times += 1
-            reward_accuracy = 1
-            #if pre_activity != ground_truth_activity and ground_truth_activity!='':
-            #    reward_accuracy = 1 * new_activity_factor
+        #     activity_rank_hit_times += 1
+        #     reward_accuracy = 1
+        #     #if pre_activity != ground_truth_activity and ground_truth_activity!='':
+        #     #    reward_accuracy = 1 * new_activity_factor
 
-        else:
-            detected_activity = get_activity_by_action(cur_time_str, action)
-            print("detected_activity:", detected_activity)
-            print("pre_activity:", pre_activity)
+        # else:
+        #     detected_activity = get_activity_by_action(cur_time_str, action)
+        #     print("detected_activity:", detected_activity)
+        #     print("pre_activity:", pre_activity)
 
-            if detected_activity == '':
-                activity_rank_empty_times += 1
-                reward_accuracy = 0
+        #     if detected_activity == '':
+        #         activity_rank_empty_times += 1
+        #         reward_accuracy = 0
             
-            elif detected_activity == ground_truth_activity or (BATHROOM in detected_activity and BATHROOM in ground_truth_activity):
-                activity_rank_hit_times += 1
-                if detected_activity != pre_activity:
-                    reward_accuracy = 1 * new_activity_factor
-                else:
-                    reward_accuracy = 1
-            elif ground_truth_activity != '':
-                reward_accuracy = -1
+        #     elif detected_activity == ground_truth_activity or (BATHROOM in detected_activity and BATHROOM in ground_truth_activity):
+        #         activity_rank_hit_times += 1
+        #         if detected_activity != pre_activity:
+        #             reward_accuracy = 1 * new_activity_factor
+        #         else:
+        #             reward_accuracy = 1
+        #     elif ground_truth_activity != '':
+        #         reward_accuracy = -1
 
+        # # check the activities which can not be detected by robot
+        # reward_acc = env.get_reward_accuracy(action, ground_truth_activity)
+        # if reward_acc == -1:
+        #     print('reward_acc == 0, with: ', action, ', ', ground_truth_activity)
+        #     reward_accuracy = -1
 
-        if ground_truth_activity == '':
-            activity_rank_empty_times += 1
-            reward_accuracy = 0
-            reward_energy = 0
+        # if ground_truth_activity == '':
+        #     activity_rank_empty_times += 1
+        #     reward_accuracy = 0
+        #     reward_energy = 0
+
+        location = ''
+        detected_activity = pre_act_list[-1]
+        if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Nothing:
+            detected_activity = pre_act_list[-1]
+        else:
+            detected_activity, location = get_activity_by_action(cur_time_str, action, pre_act_list[-1])
 
 
 
@@ -1327,55 +1273,82 @@ for episode in range(episode_count):
         if OUTPUT_RANK:
             rank_res.append((detected_activity, '1', cur_time_str))
         
-        if DEBUG:
-            end_t_iter = timer()
-            print(" 1 each iter takes:", end_t_iter - start_t_iter)
+        end_t_iter = timer()
+        print(" 1 each iter takes:", end_t_iter - start_t_iter)
 
         # TODO: in real test, cur_activity = detected_activity
-        cur_activity = ground_truth_activity
+
+        cur_activity = detected_activity
 
         if cur_activity != pre_act_list[-1] and cur_activity != '':
-            if DEBUG:
+            if double_check == 2:
+                need_recollect_data = True
+                double_check -= 1
+                print('need_recollect_data:', env.need_recollect_data_cnt)
+                print("pre_activity:", pre_act_list[-1], " cur_activity:", cur_activity)
+
+                if location == constants.LOCATION_LIVINGROOM:
+                    if living_room_check_flag == False:
+                        # wait and check again
+                        living_room_check_flag = True
+                        print("living_room_check_flag: ", living_room_check_flag)
+                        
+
+                continue
+
+            else:
+
+                double_check = 2
+                print("not need_recollect_data ")
                 print("pre_activity:", pre_act_list[-1], " cur_activity:", cur_activity)
                 print("pre_act_list:", pre_act_list)
-            pre_act_list.append(cur_activity)
-            node = tools_ascc.Activity_Node_Observable(cur_activity, tools_ascc.get_activity_type(cur_time_str), 0)
-            pre_activity_symbol = node.activity_res_generation()
-            pre_act_symbol_list.append(pre_activity_symbol)
-            # pre_activity = detected_activity
-            activity_begin_time = env.get_running_time()
+                pre_act_list.append(cur_activity)
+                node = tools_ascc.Activity_Node_Observable(cur_activity, tools_ascc.get_activity_type(cur_time_str), 0)
+                pre_activity_symbol = node.activity_res_generation()
+                pre_act_symbol_list.append(pre_activity_symbol)
+                # pre_activity = detected_activity
+                activity_begin_time = env.get_running_time()
+        else:
+            double_check = 2 # not a new activity
         
-        if DEBUG:
-            end_t_iter = timer()
-            print(" 2 each iter takes:", end_t_iter - start_t_iter)
+
+#         end_t_iter = timer()
+#         print(" 2 each iter takes:", end_t_iter - start_t_iter)
 
         reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
-        if motion_transition_occur_flag == True:
-            if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion:
-                reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD + MOTION_TRANSITION_REWARD
-                #reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
-            if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision:
-                reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD + MOTION_TRANSITION_REWARD
-                #reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
+# #         if motion_transition_occur_flag == True:
+#             print('motion_transtion_action:', rl_env_ascc_test.RL_ACTION_DICT[action])
+#             if rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.WMU_fusion or rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.Robot_WMU_fusion:
+#                 reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD
+#                 transition_wmu_times += 1
+#             if rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.Robot_audio_vision:
+#                 reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD
+#                 transition_robot_times += 1
 
-        if DEBUG:
-            print("Env motion:", pre_motion_type)
-            print("Env state:", state)
-            print("Env action: ", action, " ", rl_env_ascc.RL_ACTION_DICT[action])
-            print("Env reward:", reward, " accuracy|energy|privacy:", reward_accuracy, ", ", reward_energy, ", ", reward_privacy)
-            print("Env truth activity:", ground_truth_activity)
-            print("predicted_activity:", predicted_activity)
-            print('Env Running (after step):', cur_time_str, " evn.runing:", env.get_running_time()) 
-            print('motion_transition_:', motion_transition_occur_flag)
-        
+# #                reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
+#             if rl_env_ascc_test.RL_ACTION_DICT[action] == rl_env_ascc_test.Nothing:
+#                 reward = reward - MOTION_TRANSITION_REWARD
+#                 transition_nothing_times += 1
+
+
+        print("Env motion:", pre_motion_type)
+        print("Env state:", state)
+        print("Env action: ", action, " ", rl_env_ascc.RL_ACTION_DICT[action])
+        print("Env reward:", reward, " accuracy|energy|privacy:", reward_accuracy, ", ", reward_energy, ", ", reward_privacy)
+        print("Env truth activity:", ground_truth_activity)
+        print("Env detected_activity:", detected_activity)
+        print('Env Running (after step):', cur_time_str, " evn.runing:", env.get_running_time()) 
+
+
+
+
 
         wmu_mic_times, wmu_cam_times = env.get_wmu_sensor_trigger_times()
         #battery_feature = [wmu_mic_times, wmu_cam_times]
-        #battery_level = env.get_battery_level()
-        #battery_feature = battery_feature_extractor(battery_level)
-
         battery_feature = [trigger_times_normalization(wmu_cam_times)]
         robot_trigger_feature = [trigger_times_normalization(env.robot_trigger_times)]
+        # battery_level = env.get_battery_level()
+        # battery_feature = battery_feature_extractor(battery_level)
 
         #battery_feature = [wmu_cam_times]
 
@@ -1387,12 +1360,16 @@ for episode in range(episode_count):
             motion_type = pre_motion_type
             print('pre_motion for empty detection:', pre_motion_type)
 
+        if need_recollect_data:
+            continue        
+
         next_motion_feature = motion_feature_extractor(motion_type)
         transition_feature = transition_feature_extractor(pre_motion_type, motion_type)
         transition_feature = list(transition_feature)
 
-        # todo get_activity_by_time_str (episode), if episode > 10, do not update dict
-        current_activity = get_activity_by_time_str(cur_time_str)
+
+        # detected_activity = get_activity_by_action(cur_time_str, action)
+        current_activity = detected_activity
         current_activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
 
         #end_t_iter = timer()
@@ -1406,113 +1383,18 @@ for episode in range(episode_count):
         next_motion_feature = list(next_motion_feature)
         current_activity_feature = list(current_activity_feature)
         current_activity_duration_feature = [current_activity_duration_feature]
-        #predicted_activity = get_activity_prediction_by_hmm()
-        predicted_activity = get_activity_prediction_by_time(cur_time_str)
-        predicted_act_feature = adl_hidden_feature_extractor(predicted_activity) 
-        predicted_act_feature = list(predicted_act_feature)
-
-        next_state = transition_feature + current_activity_feature 
+        #next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature + current_activity_duration_feature
+        # next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature  
+        #next_state = transition_feature + battery_feature + current_activity_feature + robot_trigger_feature
         next_state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
-        #next_state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature + predicted_act_feature
-        #next_state = transition_feature + current_activity_feature + predicted_act_feature
-
+        #next_state = next_motion_feature + battery_feature + current_activity_feature  
+        #next_state = battery_feature + current_activity_feature
+        #next_state = current_activity_feature
         next_state = np.reshape(next_state, [1, state_size])
 
-        t_transition_feature = state[0][:2]
-        print("t_transition_feature:", t_transition_feature)
-        #print("t_transition_feature:", list(t_transition_feature))
-        #if motion_transition_occur_flag == True:
-        if t_transition_feature[0] == 0:
-            #agent.remember(state, action, reward, next_state, env.done)
-            agent.remember_transition(state, action, reward, next_state, env.done)
-            #agent.remember(state, action, reward, next_state, env.done)
-
-            # construction_state()
-            print("construct:", motion_transition_occur_flag)
-            print("construct 0:", next_state)
-
-
-
-
-            for samples in range(1, 2):
-                #robot_trigger_times = random.randint(env.robot_trigger_times, env.robot_trigger_times + 100)
-                robot_trigger_times = env.robot_trigger_times
-                # for robot_trigger_times in range(1, 3000):
-                t_transition_feature = state[0][:2]
-                t_battery_feature = [trigger_times_normalization(wmu_cam_times)]
-                t_current_activity_feature = state[0][2:2+len(current_activity_feature)]
-                t_robot_feature = [trigger_times_normalization(robot_trigger_times)]
-                t_predicted_act_feature = state[0][-len(predicted_act_feature):]
-
-                # print("t_transition_feature:", t_transition_feature)
-                # print("t_battery_feature:", t_battery_feature)
-                # print("t_current_activity_feature:", t_current_activity_feature)
-                # print("t_robot_feature:", t_robot_feature)
-                
-                new_state = list(t_transition_feature) + list(t_current_activity_feature) 
-                new_state = list(t_transition_feature) + list(t_current_activity_feature) + list(t_robot_feature) + list(t_battery_feature)
-                #new_state = list(t_transition_feature) + list(t_current_activity_feature) + list(t_predicted_act_feature)
-
-                #print("new state:", new_state)
-                new_state = np.reshape(new_state, [1, state_size])
-                
-                tn_battery_feature = [trigger_times_normalization(wmu_cam_times+1)]
-                tn_robot_feature = [trigger_times_normalization(robot_trigger_times)]
-                new_next_state = transition_feature + current_activity_feature 
-                new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature
-                #new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature + predicted_act_feature
-                #new_next_state = transition_feature + current_activity_feature + predicted_act_feature
-                new_next_state = np.reshape(new_next_state, [1, state_size])
-
-                
-                # todo update reward function
-                con_reward = construct_reward(0, current_activity )
-                # agent.remember(new_state, 0, con_reward, new_next_state, env.done)
-                agent.remember_transition(new_state, 0, reward, new_next_state, env.done)
-
-                if DEBUG:
-                    print("construct 1-1 :", new_next_state, ' r:', con_reward)
-
-
-                tn_battery_feature = [trigger_times_normalization(wmu_cam_times)]
-                tn_robot_feature = [trigger_times_normalization(robot_trigger_times+1)]
-                new_next_state = transition_feature + current_activity_feature 
-                new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature
-                #new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature + predicted_act_feature
-                #new_next_state = transition_feature + current_activity_feature + predicted_act_feature
-
-                new_next_state = np.reshape(new_next_state, [1, state_size])
-
-                con_reward = construct_reward(1,current_activity)
-
-                #agent.remember(new_state, 1, con_reward, new_next_state, env.done)
-
-                agent.remember_transition(new_state, 1, reward, new_next_state, env.done)
-
-                if DEBUG:
-                    print("construct 1-2 :", new_next_state, ' r:', con_reward)
-
-                tn_battery_feature = [trigger_times_normalization(wmu_cam_times)]
-                tn_robot_feature = [trigger_times_normalization(robot_trigger_times)]
-                new_next_state = transition_feature + current_activity_feature 
-                new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature
-                #new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature + predicted_act_feature
-                #new_next_state = transition_feature + current_activity_feature + predicted_act_feature
-                new_next_state = np.reshape(new_next_state, [1, state_size])
-                con_reward = construct_reward(2, current_activity)
-                agent.remember_transition(new_state, 2, reward, new_next_state, env.done)
-
-                if DEBUG:
-                    print("construct 1-3 :", new_next_state, ' r:', con_reward)
-
-
-        else:
-            agent.remember(state, action, reward, next_state, env.done)
-
-        # agent.remember(state, action, reward, next_state, env.done)    
-
+        agent.remember(str(state), action, reward, str(next_state), env.done)
         rember_cnt = rember_cnt + 1
-
+        
         state = next_state
         total_reward += reward
         previous_motion_feature = next_motion_feature
@@ -1532,97 +1414,67 @@ for episode in range(episode_count):
         print("===================================================")
 
         if rember_cnt >= batch_size:
-            start_t = timer()
-            #agent.replay(batch_size)
-            len_mem = len(agent.memory)
-            len_mem_tra = len(agent.memory_transition)
-            print("len mem:", len_mem)
-            print("len mem tra:", len_mem_tra)
-            if len_mem > batch_size and len_mem_tra > batch_size:
-                #agent.replay(batch_size)
-                agent.replay2(batch_size)
-                agent.replay2(batch_size, transition=True)
-            else:
-                #agent.replay(len_mem-1)
-                agent.replay2(len(agent.memory))
-                if len(agent.memory_transition) > 0:
-                    agent.replay2(len(agent.memory_transition), transition=True)
-            
-            # agent.replay2(batch_size)
-            # agent.replay2(batch_size, transition=True)
-            end_t = timer()
-            print("replay takes:", end_t - start_t, 'replay times:', agent.replay_counter)
-            #print("agent replay(len memeory):", len(agent.memory))
+            # start_t = timer()
+            # agent.replay(batch_size)
+            # end_t = timer()
+            # print("replay takes:", end_t - start_t, 'replay times:', agent.replay_counter, ' rate:', agent.learning_rate)
+            # #print("agent replay(len memeory):", len(agent.memory))
             rember_cnt = 0
 
         if env.done:
             print("episode: {}/{}, episode_reward: {}, e: {:.2}, end time {}"
             .format(episode, episode_count-1, total_reward, agent.epsilon, env.get_running_time()))
 
-            # len_mem = len(agent.memory)
-            # len_mem_tra = len(agent.memory_transition)
+    print(mem_top(limit=15,width=180))
+    tools_ascc.show_memory()
 
-            # if rember_cnt > 0:
-            #     # agent.replay(rember_cnt)
-            #     len_mem = len(agent.memory)
-            #     # agent.replay(len_mem-1)
-            #     agent.replay2(len_mem-1)
-            #     agent.replay2(len_mem_tra-1, transition=True)
-            #     print('replay times:', agent.replay_counter, ' len memory:', len(agent.memory), ' ', len(agent.memory_transition))
 
-            #agent.update_replay_memory()
-            #print("agent update replay  memeory:", len(agent.memory))
-
-    # print(mem_top(limit=15,width=180))
-    # tools_ascc.show_memory()
-
-    if DEBUG:
-        print("time_location_dict:", time_location_dict)
-        print("time_object_dict:", time_object_dict)
-        print("time_sound_dict:", time_sound_dict)
-        print("time_motion_dict:", time_motion_dict)
-        print("time_exist_dict:", time_exist_dict)
-        print("time_detected_act_dict:", time_detected_act_dict)
-        print("cache_ground_truth_dict:", cache_ground_truth_dict)
-        print("cache_ground_truth_dict:", len(cache_ground_truth_dict))
-        print("time_perdict_dict:", time_perdict_dict)
-        print("time_perdict_dict:", len(time_perdict_dict))
-
-    print("time_location_dict len:", len(time_location_dict))
-    print("time_object_dict len:", len(time_object_dict))
-    print("time_sound_dict len:", len(time_sound_dict))
-    print("time_motion_dict len:", len(time_motion_dict))
-    print("time_exist_dict len:", len(time_exist_dict), ' ', sys.getsizeof(time_exist_dict))
-    print("time_detected_act_dict len:", len(time_detected_act_dict), ' ', sys.getsizeof(time_detected_act_dict))
-    print("cache_ground_truth_dict len:", len(cache_ground_truth_dict), ' ', sys.getsizeof(cache_ground_truth_dict))
-    print("cache_ground_truth_dict len:", len(cache_ground_truth_dict))
-    print("time_perdict_dict:", time_perdict_dict)
 
    
-    #agent.replay2(len(agent.memory)-1)
-
-
-    
-    
-
-    
-    time_scores.append(cur_time_str)
-    scores.append(total_reward)
-    # plot rewards 
-    #plotone(scores, "rl_reward.png")
-    print("plotone scores:", scores)
-    print("plotone time scores:", time_scores)
 
     total_wmu_cam_trigger_times.append(env.wmu_cam_times)
     total_wmu_mic_trigger_times.append(env.wmu_mic_times)
     total_robot_trigger_times.append(env.robot_trigger_times)
     total_privacy_times.append(env.privacy_occur_cnt)
 
-    #plot(total_wmu_cam_trigger_times, total_wmu_mic_trigger_times, label1="camera", label2="microphone")
+    total_transition_nothing_times.append(transition_nothing_times) 
+    total_transition_wmu_times.append(transition_wmu_times) 
+    total_transition_robot_times.append(transition_robot_times) 
+    total_motion_transition_occur_cnt.append(motion_transition_occur_cnt)
+
+    
+    time_scores.append(cur_time_str)
+    scores.append(total_reward)
+    # plot rewards 
+    # if episode % 100 != 0:
+    #     continue
+
+    print("time_location_dict:", time_location_dict)
+    print("time_object_dict:", time_object_dict)
+    print("time_sound_dict:", time_sound_dict)
+    print("time_motion_dict:", time_motion_dict)
+    print("time_exist_dict:", time_exist_dict)
+    print("time_detected_act_dict:", time_detected_act_dict)
+    print("cache_ground_truth_dict:", cache_ground_truth_dict)
+    print("cache_ground_truth_dict:", len(cache_ground_truth_dict))
+
+    # plotone(scores, "rl_reward.png")
+    print("plotone scores:", scores)
+    print("plotone time scores:", time_scores)
+
+
+
+    plot(total_wmu_cam_trigger_times, total_wmu_mic_trigger_times, label1="camera", label2="microphone")
     print("total_wmu_cam_trigger_times:", total_wmu_cam_trigger_times)
     print("total_wmu_mic_trigger_times:", total_wmu_mic_trigger_times)
     print("total_robot_trigger_times:", total_robot_trigger_times)
     print("total_privacy_times:", total_privacy_times)
+    print("total_transition_nothing_times:", total_transition_nothing_times) 
+    print("total_transition_wmu_times:", total_transition_wmu_times) 
+    print("total_transition_robot_times:", total_transition_robot_times) 
+    print('total_motion_transition_occur_cnt:', total_motion_transition_occur_cnt)
+    print('total_need_recollect_cnt:', env.need_recollect_data_cnt)
+
 
     print("rank res", len(rank_res))
     print("rank res", rank_res)
@@ -1636,28 +1488,15 @@ for episode in range(episode_count):
     # plot(total_wmu_mic_trigger_times, "wmu_mic_times.png")
     # while not env.done
 
-    agent.save_weights()
+    # agent.save_weights()
     gc.collect()
 
 
 
 
 print("===================================================")
-exit(0)
-# for testing memeorys
-for i in range(1, 100):
-    print("episode: {} ".format(episode))
-
-    len_mem = len(agent.memory)
-    len_mem_tra = len(agent.memory_transition)
-
-    # agent.replay(rember_cnt)
-    len_mem = len(agent.memory)
-    # agent.replay(len_mem-1)
-    agent.replay2(len_mem-1)
-    agent.replay2(len_mem_tra-1, transition=True)
-    print('replay times:', agent.replay_counter, ' len memory:', len(agent.memory), ' ', len(agent.memory_transition))
-
+print("rank res", rank_res)
+# end episode for
 
 
 
