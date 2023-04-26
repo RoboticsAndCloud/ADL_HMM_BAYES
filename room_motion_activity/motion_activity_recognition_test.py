@@ -24,7 +24,7 @@ TEST_DIR = './test'
 ASCC_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/ascc_data/notice.txt'
 ASCC_DATA_RES_FILE = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/ascc_data/recognition_result.txt'
 
-DATA_SET_FILE = 'ascc_dataset/ascc_v1_raw.txt'
+DATA_SET_FILE = 'ascc_dataset/ascc_watch_v1_raw.txt'
 
 MOTION_ACTIVITY_MAPPING = {
     0: 'jogging',
@@ -36,7 +36,7 @@ MOTION_ACTIVITY_MAPPING = {
 }
 
 # sample rate
-Fs = 90
+Fs = 45
 
 def create_generators(train_data_dir, validation_data_dir):
     # Read Data and Augment it: Make sure to select augmentations that are appropriate to your images.
@@ -150,7 +150,7 @@ def predict(file, model, to_class):
 def test():
     # execute this when you want to load the model
     from keras.models import load_model
-    MODEL_SAVED_PATH = 'motion-saved-model'
+    MODEL_SAVED_PATH = 'motion-watch-saved-cnn-model'
 
     model = load_model(MODEL_SAVED_PATH)
     # bathroom: 0, bedroom:1, kitchen:2, livingroom:3
@@ -915,7 +915,7 @@ def write_res_into_file_converter(file_name, res_list):
 def run():
     # execute this when you want to load the model
     from keras.models import load_model
-    MODEL_SAVED_PATH = 'motion-saved-model'
+    MODEL_SAVED_PATH = 'motion-watch-saved-cnn-model'
 
     ml = load_model(MODEL_SAVED_PATH)
     
@@ -1272,6 +1272,8 @@ def get_activity_by_motion_dnn(time_str, action='moiton'):
     d_act = time_str
         # image_dir_name = get_exist_image_dir(time_str, action)
     motion_file = MOTION_FOLDER_TEST + d_act + '/' + MOTION_TXT
+    motion_file = '/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_motion_activity/watch_data/Motion/walktest/20230427022801_motion.txt'
+    motion_file = '/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_motion_activity/watch_data/Motion/walktest/20230427022803_motion.txt'
     get_activity_prediction(motion_file)
 
 def get_activity_prediction(motion_file, act = 'Sitting', time_str = '0'):
@@ -1283,14 +1285,18 @@ def get_activity_prediction(motion_file, act = 'Sitting', time_str = '0'):
     user = 'ascc'
 
     c_len = convert(act, int(time), motion_file, target, user)
-    # print('convert len:', c_len)
+    print('convert len:', c_len)
 
     X, y = get_data_from_motion_file(target)
+    print(X)
+    print(y)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.8, random_state = 0, stratify = y)
+    #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.99, random_state = 0, stratify = y)
 
-    X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2], 1)
-    X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
+    #X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2], 1)
+    #X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
+
+    X_test = X
 
     # print('x_train shape:', X_train[0].shape)
     # print('X_test shape:', X_test[0].shape)
@@ -1310,7 +1316,7 @@ def get_activity_prediction(motion_file, act = 'Sitting', time_str = '0'):
 
     # execute this when you want to load the model
     from keras.models import load_model
-    MODEL_SAVED_PATH = 'motion-saved-model'
+    MODEL_SAVED_PATH = 'motion-watch-saved-cnn-model'
 
     model = load_model(MODEL_SAVED_PATH)
 
@@ -1381,7 +1387,7 @@ def get_activity_by_motion_dnn_back(time_str, action='moiton'):
 
     # execute this when you want to load the model
     from keras.models import load_model
-    MODEL_SAVED_PATH = 'motion-saved-model'
+    MODEL_SAVED_PATH = 'motion-watch-saved-cnn-model'
 
     model = load_model(MODEL_SAVED_PATH)
     scaler = get_data_scaler()
@@ -1442,8 +1448,8 @@ if __name__ == "__main__":
     log.init_log("./log/my_program")  # ./log/my_program.log./log/my_program.log.wf7
     logging.info("Hello World!!!")
     #test()
-    # test_dnn()
-    run()
+    test_dnn()
+    #run()
     
 
 

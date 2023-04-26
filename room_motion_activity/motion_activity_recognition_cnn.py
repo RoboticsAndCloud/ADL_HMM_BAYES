@@ -35,7 +35,7 @@ def sorter_take_count(elem):
 # file = open('WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt')
 
 # DATA_SET_FILE = 'WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt'
-DATA_SET_FILE = './ascc_dataset/ascc_v1_raw.txt'
+DATA_SET_FILE = './ascc_dataset/ascc_watch_v1_raw.txt'
 pd.read_csv(DATA_SET_FILE)
 file = open(DATA_SET_FILE)
 
@@ -79,7 +79,7 @@ data['z'] = data['z'].astype('float')
 data.info()
 
 # sample rate
-Fs = 90
+Fs = 45
 
 activities = data['activity'].value_counts().index
 print('activities:', activities)
@@ -247,7 +247,7 @@ model.add(Dense(6, activation='softmax'))
 
 model.compile(optimizer=Adam(learning_rate = 0.00001), loss = 'sparse_categorical_crossentropy', metrics = ['accuracy'])
 
-epochs = 500
+epochs = 700
 
 history = model.fit(X_train, y_train, epochs = epochs, validation_data= (X_test, y_test), verbose=1)
 
@@ -314,7 +314,7 @@ plt.savefig("cm.png")
 # plt.show()
 # plt.savefig("confusion_matrix.png")
 
-MODEL_SAVED_PATH = 'motion-saved-model'
+MODEL_SAVED_PATH = 'motion-watch-saved-cnn-model'
 # model.save_weights('model.h5')
 model.save(MODEL_SAVED_PATH)
 
