@@ -86,7 +86,7 @@ def CNN_train(test_fold, feat):
     # train_features, train_labels, test_features, test_labels = esc10_input.get_data(test_fold, feat)
     # ob_folder = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/data/ascc_activity_1second/feature/ascc_logmel_total.npz' # acc:0.9396
     # ob_folder = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/room_sound/sound_dataset/ascc_activity_1second/feature/ascc_logmel_total.npz'
-    ob_folder = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/room_sound/sound_dataset/ascc_activity_1second/feature/ascc_logmel_total.npz'
+    ob_folder = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/room_sound/sound_dataset/ascc_activity_1second/feature/ascc_logmel_total_watch.npz'
     train_features, train_labels, test_features, test_labels = esc10_input.get_data_all(ob_folder, feat, number_class=num_class)
 
     # print('train_labels: ',train_labels.shape)
@@ -156,7 +156,7 @@ def CNN_train(test_fold, feat):
 
 
     # 保存模型
-    model.save('./saved_model/cnn_{}_fold{}.h5'.format(feat, test_fold))
+    model.save('./saved_model/watch_cnn_{}_fold{}.h5'.format(feat, test_fold))
 
     # 输出训练好的模型在测试集上的表现
     score = model.evaluate(test_features, test_labels)
