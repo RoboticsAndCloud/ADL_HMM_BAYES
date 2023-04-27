@@ -94,6 +94,9 @@ def train2(train_generator, validation_generator, model, epoch = 1):
                         steps_per_epoch=3,
                         validation_steps=2,
                         verbose=1)
+
+    #print(history.history['accuracy'])
+    #print(history.history['val_accuracy'])
     
     plot_learningCurve(history, epoch)
 
@@ -117,8 +120,9 @@ def predict(file, model, to_class):
     
 
 DIR = "/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/room_dataset/"
+DIR = '/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/watch_dataset/Image/'
 IMG_WIDTH, IMG_HEIGHT = 299, 299 # set this according to keras documentation, each model has its own size
-BATCH_SIZE = 200 # decrease this if your computer explodes
+BATCH_SIZE = 50 # decrease this if your computer explodes
 
 train_generator, validation_generator = create_generators(DIR + "labelled", DIR + "validation")
 
@@ -130,12 +134,12 @@ m = create_model(total_classes)
 # Run this several times until you get good acurracy in validation (wachout of overfitting)
 # for i in range(MAX_EPOCH):
 #     train(train_generator, validation_generator, m)
-train2(train_generator, validation_generator, m, epoch=12)
+train2(train_generator, validation_generator, m, epoch=10)
 
 
 
 # execute this when you want to save the model
-MODEL_SAVED_PATH = 'saved-model2'
+MODEL_SAVED_PATH = 'watch-saved-model'
 m.save(MODEL_SAVED_PATH)
 
 # execute this when you want to load the model

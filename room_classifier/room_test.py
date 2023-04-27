@@ -165,7 +165,7 @@ def room_sample_plot():
 def test():
     # execute this when you want to load the model
     from keras.models import load_model
-    MODEL_SAVED_PATH = 'saved-model2'
+    MODEL_SAVED_PATH = 'watch-saved-model'
 
     ml = load_model(MODEL_SAVED_PATH)
     ml.summary()
@@ -209,6 +209,7 @@ def test():
 
 def get_confusion_matrix():
     dir = './room_dataset/test/'
+    dir = '/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/watch_dataset/Image/test/'
     path = dir
     y_test = []
     y_pred = []
@@ -263,7 +264,7 @@ def get_confusion_matrix():
 
 def test_confusion_matrix(file_dir):
     from keras.models import load_model
-    MODEL_SAVED_PATH = 'saved-model2'
+    MODEL_SAVED_PATH = 'watch-saved-model'
 
     ml = load_model(MODEL_SAVED_PATH)
     
