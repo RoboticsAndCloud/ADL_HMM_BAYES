@@ -462,12 +462,12 @@ def transition_feature_extractor(pre_motion_type, motion_type):
     if pre_motion_type != motion_type and (pre_motion_type == 'walking' or motion_type == 'walking'):
         print('in transition feature extractor:', pre_motion_type, ' ,', motion_type)
         tran = 1
-    #elif pre_motion_type != motion_type and (pre_motion_type == 'sitting' or motion_type == 'sitting'):
-    #    tran = 3
+    elif pre_motion_type != motion_type and (motion_type == 'sitting'):
+        tran = 2
 
     class_vector =[tran]
 
-    output_matrix = to_categorical(class_vector, num_classes = 2, dtype ="int32")
+    output_matrix = to_categorical(class_vector, num_classes = 3, dtype ="int32")
 
     print('in transition feature extractor:', pre_motion_type, ' ,', motion_type, ' feature:', output_matrix[0])
     # print(output_matrix)
@@ -600,9 +600,14 @@ w_accuracy = 0.02
 w_energy = 0.49
 w_privacy = 0.49
 
+# redo this
 w_accuracy = 0.02
 w_energy = 0.3
 w_privacy = 0.58
+
+w_accuracy = 0.02
+w_energy = 0.3
+w_privacy = 0.98
 
 
 #w_accuracy = 0.3
@@ -957,12 +962,17 @@ def construct_reward(action, ground_truth_act):
     reward_accuracy = 0
 
 
-    if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion \
-        or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_audio or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision \
-        or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion:
+    if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_WMU_vision \
+        or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion:
             
         reward_accuracy = 1
 
+    elif rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_vision:
+        activity_rank_hit_times += 1
+        reward_accuracy = 1
+        if ground_truth_activity == 'Read' or ground_truth_activity == 'Desk_Activity' or ground_truth_activity == 'Kitchen_Activity':
+            # may miss the activity, 0-1
+            reward_accuracy = random.random()
 
     if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Nothing:
         reward_accuracy = 0
@@ -973,12 +983,11 @@ def construct_reward(action, ground_truth_act):
     motion_transition_occur_flag == True
 
     if motion_transition_occur_flag == True:
-        if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion:
+        if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_WMU_vision:
             reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD + MOTION_TRANSITION_REWARD
-            #reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
+
         if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision:
             reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD + MOTION_TRANSITION_REWARD
-            #reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
 
     return reward
 
@@ -1074,6 +1083,9 @@ agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, memory_s
 
 total_wmu_cam_trigger_times = []
 total_wmu_mic_trigger_times = []
+total_wmu_trigger_times = []
+total_robot_cam_trigger_times = []
+total_robot_mic_trigger_times = []
 total_robot_trigger_times = []
 total_privacy_times = []
 
@@ -1267,11 +1279,11 @@ for episode in range(episode_count):
             print('motion_transition_occur_cnt:', motion_transition_occur_cnt)
             motion_transition_occur_flag = True
 
-       # if pre_motion_type != motion_type and (pre_motion_type == 'sitting' or motion_type == 'sitting'):
-       #     print('activity:', pre_activity, ' ', ground_truth_activity)
-       #     motion_transition_occur_cnt += 1
-       #     print('motion_transition_occur_cnt:', motion_transition_occur_cnt)
-       #     motion_transition_occur_flag = True
+        if pre_motion_type != motion_type and (motion_type == 'sitting'):
+            print('activity:', pre_activity, ' ', ground_truth_activity)
+            motion_transition_occur_cnt += 1
+            print('motion_transition_occur_cnt:', motion_transition_occur_cnt)
+            motion_transition_occur_flag = True
 
         if pre_activity != ground_truth_activity and ground_truth_activity!='':
             if DEBUG:
@@ -1286,14 +1298,18 @@ for episode in range(episode_count):
         pre_motion_type = motion_type
 
 
-        if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion \
-            or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_audio or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_vision \
-            or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion:
+        if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_WMU_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion:
                 
             activity_rank_hit_times += 1
             reward_accuracy = 1
             #if pre_activity != ground_truth_activity and ground_truth_activity!='':
             #    reward_accuracy = 1 * new_activity_factor
+        elif rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_vision or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_vision:
+            activity_rank_hit_times += 1
+            reward_accuracy = 1
+            if ground_truth_activity == 'Read' or ground_truth_activity == 'Desk_Activity' or ground_truth_activity == 'Kitchen_Activity':
+                # may miss the activity, 0-1
+                reward_accuracy = random.random()
 
         else:
             detected_activity = get_activity_by_action(cur_time_str, action)
@@ -1351,11 +1367,17 @@ for episode in range(episode_count):
 
         reward = reward_accuracy*w_accuracy - reward_energy*w_energy - reward_privacy*w_privacy
         if motion_transition_occur_flag == True:
-            if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion:
+            if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_WMU_vision:
                 reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD + MOTION_TRANSITION_REWARD
-                #reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
+
             if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision:
                 reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD + MOTION_TRANSITION_REWARD
+
+            #if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_WMU_fusion:
+            #    reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD + MOTION_TRANSITION_REWARD
+                #reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
+            #if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio_vision:
+            #    reward = reward - (reward_energy+reward_privacy-reward_accuracy)*MOTION_TRANSITION_REWARD + MOTION_TRANSITION_REWARD
                 #reward = reward - (reward_energy+reward_privacy-1)*MOTION_TRANSITION_REWARD
 
         if DEBUG:
@@ -1407,9 +1429,9 @@ for episode in range(episode_count):
         current_activity_feature = list(current_activity_feature)
         current_activity_duration_feature = [current_activity_duration_feature]
         #predicted_activity = get_activity_prediction_by_hmm()
-        predicted_activity = get_activity_prediction_by_time(cur_time_str)
-        predicted_act_feature = adl_hidden_feature_extractor(predicted_activity) 
-        predicted_act_feature = list(predicted_act_feature)
+        #predicted_activity = get_activity_prediction_by_time(cur_time_str)
+        #predicted_act_feature = adl_hidden_feature_extractor(predicted_activity) 
+        #predicted_act_feature = list(predicted_act_feature)
 
         next_state = transition_feature + current_activity_feature 
         next_state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
@@ -1418,11 +1440,11 @@ for episode in range(episode_count):
 
         next_state = np.reshape(next_state, [1, state_size])
 
-        t_transition_feature = state[0][:2]
+        t_transition_feature = state[0][:len(transition_feature)]
         print("t_transition_feature:", t_transition_feature)
         #print("t_transition_feature:", list(t_transition_feature))
         #if motion_transition_occur_flag == True:
-        if t_transition_feature[0] == 0:
+        if t_transition_feature[0] == 0 :
             #agent.remember(state, action, reward, next_state, env.done)
             agent.remember_transition(state, action, reward, next_state, env.done)
             #agent.remember(state, action, reward, next_state, env.done)
@@ -1438,9 +1460,9 @@ for episode in range(episode_count):
                 #robot_trigger_times = random.randint(env.robot_trigger_times, env.robot_trigger_times + 100)
                 robot_trigger_times = env.robot_trigger_times
                 # for robot_trigger_times in range(1, 3000):
-                t_transition_feature = state[0][:2]
+                t_transition_feature = state[0][:len(transition_feature)]
                 t_battery_feature = [trigger_times_normalization(wmu_cam_times)]
-                t_current_activity_feature = state[0][2:2+len(current_activity_feature)]
+                t_current_activity_feature = state[0][len(transition_feature):len(transition_feature)+len(current_activity_feature)]
                 t_robot_feature = [trigger_times_normalization(robot_trigger_times)]
                 t_predicted_act_feature = state[0][-len(predicted_act_feature):]
 
@@ -1615,12 +1637,18 @@ for episode in range(episode_count):
 
     total_wmu_cam_trigger_times.append(env.wmu_cam_times)
     total_wmu_mic_trigger_times.append(env.wmu_mic_times)
+    total_wmu_trigger_times.append(env.wmu_times)
+    total_robot_mic_trigger_times.append(env.robot_mic_trigger_times)
+    total_robot_cam_trigger_times.append(env.robot_cam_trigger_times)
     total_robot_trigger_times.append(env.robot_trigger_times)
     total_privacy_times.append(env.privacy_occur_cnt)
 
     #plot(total_wmu_cam_trigger_times, total_wmu_mic_trigger_times, label1="camera", label2="microphone")
     print("total_wmu_cam_trigger_times:", total_wmu_cam_trigger_times)
     print("total_wmu_mic_trigger_times:", total_wmu_mic_trigger_times)
+    print("total_wmu_trigger_times:", total_wmu_trigger_times)
+    print("total_robot_mic_trigger_times:", total_robot_mic_trigger_times)
+    print("total_robot_cam_trigger_times:", total_robot_cam_trigger_times)
     print("total_robot_trigger_times:", total_robot_trigger_times)
     print("total_privacy_times:", total_privacy_times)
 

@@ -50,7 +50,7 @@ DEBUG = False
 
 STATE_TIME_TRANS = 1000*1000*1000*10
 
-MAX_TRIGGER_TIMES = 1500 *6
+MAX_TRIGGER_TIMES = 1500 *4
 
 
 np.random.seed(1)
@@ -122,25 +122,32 @@ WMU_FUSION_ACTION = 0
 
 WMU_audio = "WMU_audio"
 WMU_vision = "WMU_vision"
-WMU_fusion = WMU_audio + WMU_vision
-Robot_audio_vision = "Robot_fusion"
-Robot_WMU_audio = Robot_audio_vision + WMU_audio
-Robot_WMU_vision = Robot_audio_vision + WMU_vision
-Robot_WMU_fusion = Robot_audio_vision + WMU_fusion
-
 Nothing = "Nothing"
 
+WMU_fusion = WMU_audio + WMU_vision
+WMU_audio_vision = WMU_audio + WMU_vision
+#Robot_audio_vision = "Robot_fusion"
+Robot_audio = "Robot_audio"
+Robot_vision = "Robot_vision"
+Robot_audio_vision = Robot_audio + Robot_vision
+Robot_audio_WMU_vision = Robot_audio + WMU_vision
 
-RL_ACTION_DICT_0 = {
-    0: WMU_audio,  
-    1: WMU_vision, 
-    2: WMU_fusion,  
-    3: Robot_audio_vision,
-    4: Robot_WMU_audio, # robot and WMU both capture data
-    5: Robot_WMU_vision,
-    6: Robot_WMU_fusion,
-    7: Nothing
-}
+#Robot_WMU_audio = Robot_audio_vision + WMU_audio
+#Robot_WMU_vision = Robot_audio_vision + WMU_vision
+#Robot_WMU_fusion = Robot_audio_vision + WMU_fusion
+
+
+
+#RL_ACTION_DICT_0 = {
+#    0: WMU_audio,  
+#    1: WMU_vision, 
+#    2: WMU_fusion,  
+#    3: Robot_audio_vision,
+#    4: Robot_WMU_audio, # robot and WMU both capture data
+#    5: Robot_WMU_vision,
+#    6: Robot_WMU_fusion,
+#    7: Nothing
+#}
 
 
 MOTION_RECORD_TIME = 2.3 # 2 seconds for motion data collection
@@ -159,15 +166,25 @@ ACTION_INTERVAL_DICT_0 = {
 RL_ACTION_DICT = {
     0: WMU_fusion,  
     1: Robot_audio_vision,
-   # 2: Robot_WMU_fusion,
-    2: Nothing
+    2: Nothing,
+
+    3: WMU_audio,  
+    4: WMU_vision,
+    5: Robot_audio,
+    6: Robot_vision,  
+    7: Robot_audio_WMU_vision,
 }
 
 ACTION_INTERVAL_DICT = {
     0: 1, # fusion  # multi-thread, audio, vision simultanously
     1: 0, # robot
-   # 2: 1, # Robot_WMU_fusion
-    2: 0
+    2: 0,
+
+    3: 1, # WMU_audio
+    4: 0, # WMU_vision 
+    5: 0, # Robot_audio
+    6: 0, # Robot_vision
+    7: 0, # Robot_audio_WMU_vision
 }
 
 
@@ -516,6 +533,9 @@ class EnvASCC():
 
         self.wmu_mic_times = 0
         self.wmu_cam_times = 0
+        self.wmu_times = 0
+        self.robot_mic_trigger_times = 0
+        self.robot_cam_trigger_times = 0
         self.robot_trigger_times = 0
         self.privacy_occur_cnt = 0
         # Reset the running time to day_begin
@@ -596,6 +616,9 @@ class EnvASCC():
 
         self.wmu_mic_times = 0
         self.wmu_cam_times = 0
+        self.wmu_times = 0
+        self.robot_mic_trigger_times = 0
+        self.robot_cam_trigger_times = 0
         self.robot_trigger_times = 0
         self.privacy_occur_cnt = 0
 
@@ -729,7 +752,13 @@ class EnvASCC():
                 self.wmu_mic_times += 1
             if WMU_vision in RL_ACTION_DICT[action]:
                 self.wmu_cam_times += 1
+            if WMU_audio_vision in RL_ACTION_DICT[action]:
+                self.wmu_times += 1
 
+            if Robot_audio in RL_ACTION_DICT[action]:
+                self.robot_mic_trigger_times += 1
+            if Robot_vision in RL_ACTION_DICT[action]:
+                self.robot_cam_trigger_times += 1
             if Robot_audio_vision in RL_ACTION_DICT[action]:
                 self.robot_trigger_times += 1
         else:
@@ -752,15 +781,17 @@ class EnvASCC():
 
     def get_reward_energy(self, action):
         reward = 0
-        #if WMU_audio in RL_ACTION_DICT[action]:
-        #     reward = reward + 0.6
+        if WMU_audio in RL_ACTION_DICT[action]:
+             reward = reward + 0.3
         if WMU_vision in RL_ACTION_DICT[action]:
              reward = reward + 1
-             battery_level = self.get_battery_level()
-             reward = reward + battery_level * 0.1
+             #battery_level = self.get_battery_level()
+             #reward = reward + battery_level * 0.1
 
-        if Robot_audio_vision in RL_ACTION_DICT[action]:
-             reward = reward + 0.1
+        if Robot_audio in RL_ACTION_DICT[action]:
+             reward = reward + 0.03
+        if Robot_vision in RL_ACTION_DICT[action]:
+             reward = reward + 0.07
 
         return reward
     
@@ -800,7 +831,7 @@ class EnvASCC():
         reward = 0
 
         if activity in PRIVACY_ACTIVITY_LIST:
-            if Robot_audio_vision in RL_ACTION_DICT[action]:
+            if Robot_vision in RL_ACTION_DICT[action]:
                 reward = reward + 1
                 self.privacy_occur_cnt = self.privacy_occur_cnt + 1
             #else:
