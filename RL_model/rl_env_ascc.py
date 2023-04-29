@@ -706,7 +706,7 @@ class EnvASCC():
             # self.done_energy_cost = self.done_energy_cost + sensors_power_consumption
             # self.done_total_time_cost = self.done_total_time_cost + sensors_time_cost
 
-        if self.wmu_cam_times > MAX_TRIGGER_TIMES or self.robot_trigger_times > MAX_TRIGGER_TIMES:
+        if self.wmu_cam_times > MAX_TRIGGER_TIMES or self.robot_cam_trigger_times > MAX_TRIGGER_TIMES:
             done = True #  Battery is dead
             self.done = True
             # print("Done = True, self.residual_power: ", self.residual_power)
@@ -789,9 +789,9 @@ class EnvASCC():
              #reward = reward + battery_level * 0.1
 
         if Robot_audio in RL_ACTION_DICT[action]:
-             reward = reward + 0.03
+             reward = reward + 0.2
         if Robot_vision in RL_ACTION_DICT[action]:
-             reward = reward + 0.07
+             reward = reward + 0.5
 
         return reward
     

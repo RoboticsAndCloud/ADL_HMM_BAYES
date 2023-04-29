@@ -573,7 +573,7 @@ def get_pre_act_list():
 for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
     res_prob[act] = []
 
-episode_count = 20 # 200 
+episode_count = 12 # 200 
 batch_size = 128
 
 # stores the reward per episode
@@ -609,6 +609,9 @@ w_accuracy = 0.02
 w_energy = 0.3
 w_privacy = 0.98
 
+w_accuracy = 0.1
+w_energy = 0.9
+w_privacy = 0.9
 
 #w_accuracy = 0.3
 #w_energy = 0.5
@@ -850,13 +853,13 @@ def get_activity_by_action(cur_time_str, action):
         hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
 
         p1 = 1
-        if action == 1 or action == 2 or action == 5 or action == 6:
+        if action == 0 or action == 1 or action == 4 or action == 6 or action == 7:
             p1 = bayes_model_location.get_prob(pre_act_list, act, location, 0)
 
         p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, 0)
 
         p3 = 1
-        if action == 0 or action == 2 or action == 4 or action == 6:
+        if action == 0 or action == 1 or action == 3 or action == 5 or action == 7:
             p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, 0)
         
         p4 =1 
@@ -972,7 +975,14 @@ def construct_reward(action, ground_truth_act):
         reward_accuracy = 1
         if ground_truth_activity == 'Read' or ground_truth_activity == 'Desk_Activity' or ground_truth_activity == 'Kitchen_Activity':
             # may miss the activity, 0-1
-            reward_accuracy = random.random()
+            #reward_accuracy = random.random()
+            reward_accuracy = 0.1
+    elif rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio:
+        activity_rank_hit_times += 1
+        if ground_truth_activity == 'Watch_TV' or ground_truth_activity == 'Guest_Bathroom':
+            # may miss the activity, 0-1
+            reward_accuracy = 1
+
 
     if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Nothing:
         reward_accuracy = 0
@@ -1076,7 +1086,7 @@ agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, memory_s
 
 
 # for test and reload the pretrained model
-#agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, epsilon = 0.01, memory_size = 1280)
+#agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, epsilon = 0.001, memory_size = 1280)
 #agent.load_weights()
 
 
@@ -1158,7 +1168,7 @@ for episode in range(episode_count):
     #battery_level = env.get_battery_level()
     #battery_feature = battery_feature_extractor(battery_level)
     battery_feature = [trigger_times_normalization(env.wmu_cam_times)]
-    robot_trigger_feature = [trigger_times_normalization(env.robot_trigger_times)]
+    robot_trigger_feature = [trigger_times_normalization(env.robot_cam_trigger_times)]
 
     #adl_hidden_feature = [1, 2, 4, 5, 5, 5]  # to be done
     #predicted_activity = get_activity_prediction_by_hmm()
@@ -1259,7 +1269,7 @@ for episode in range(episode_count):
 
         reward_privacy = env.get_reward_privacy(action, ground_truth_activity)
 
-        reward_accuracy = 0
+        reward_accuracy = -1
 
         # Todo 
         # detected_activity = get_activity_by_action(cur_time_str, action)
@@ -1309,7 +1319,13 @@ for episode in range(episode_count):
             reward_accuracy = 1
             if ground_truth_activity == 'Read' or ground_truth_activity == 'Desk_Activity' or ground_truth_activity == 'Kitchen_Activity':
                 # may miss the activity, 0-1
-                reward_accuracy = random.random()
+                #reward_accuracy = random.random()
+                reward_accuracy = -1
+        elif rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_audio:
+            activity_rank_hit_times += 1
+            if ground_truth_activity == 'Watch_TV' or ground_truth_activity == 'Guest_Bathroom':
+                # may miss the activity, 0-1
+                reward_accuracy = 1
 
         else:
             detected_activity = get_activity_by_action(cur_time_str, action)
@@ -1320,14 +1336,14 @@ for episode in range(episode_count):
                 activity_rank_empty_times += 1
                 reward_accuracy = 0
             
-            elif detected_activity == ground_truth_activity or (BATHROOM in detected_activity and BATHROOM in ground_truth_activity):
-                activity_rank_hit_times += 1
-                if detected_activity != pre_activity:
-                    reward_accuracy = 1 * new_activity_factor
-                else:
-                    reward_accuracy = 1
-            elif ground_truth_activity != '':
-                reward_accuracy = -1
+          #  elif detected_activity == ground_truth_activity or (BATHROOM in detected_activity and BATHROOM in ground_truth_activity):
+          #      activity_rank_hit_times += 1
+          #      if detected_activity != pre_activity:
+          #          reward_accuracy = 1 * new_activity_factor
+          #      else:
+          #          reward_accuracy = 1
+          #  elif ground_truth_activity != '':
+          #      reward_accuracy = -1
 
 
         if ground_truth_activity == '':
@@ -1397,7 +1413,7 @@ for episode in range(episode_count):
         #battery_feature = battery_feature_extractor(battery_level)
 
         battery_feature = [trigger_times_normalization(wmu_cam_times)]
-        robot_trigger_feature = [trigger_times_normalization(env.robot_trigger_times)]
+        robot_trigger_feature = [trigger_times_normalization(env.robot_cam_trigger_times)]
 
         #battery_feature = [wmu_cam_times]
 

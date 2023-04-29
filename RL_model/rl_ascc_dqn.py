@@ -122,7 +122,7 @@ class DQNAgent:
             q_model (Model): DQN
         """
         inputs = Input(shape=(n_inputs, ), name='state')
-        x = Dense(64, activation='relu')(inputs)
+        x = Dense(128, activation='relu')(inputs)
         #x = Dense(64, activation='relu')(x)
         #x = Dense(64, activation='relu')(x)
         #x = Dense(64, activation='relu')(x)
