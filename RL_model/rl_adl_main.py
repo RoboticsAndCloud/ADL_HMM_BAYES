@@ -610,7 +610,7 @@ w_energy = 0.3
 w_privacy = 0.98
 
 w_accuracy = 0.1
-w_energy = 0.9
+w_energy = 0.6
 w_privacy = 0.9
 
 #w_accuracy = 0.3
