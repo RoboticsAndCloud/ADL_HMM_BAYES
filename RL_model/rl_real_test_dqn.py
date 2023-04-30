@@ -65,7 +65,7 @@ g_audio_data_location = ''
 
 g_stop = False
 
-CHECK_AND_WAIT_THRESHOLD = 8
+CHECK_AND_WAIT_THRESHOLD = 10
 
 
 REAL_TEST = False
@@ -678,8 +678,6 @@ def adl_hidden_feature_extractor(act):
     act_id = tools_ascc.get_key(tools_ascc.ACTIVITY_DICT, act)
 
     class_vector =[act_id]
-
-    return class_vector
     # print(class_vector)
 
     # Applying the function on input class vector
@@ -687,8 +685,6 @@ def adl_hidden_feature_extractor(act):
     output_matrix = to_categorical(class_vector, num_classes = len(tools_ascc.ACTIVITY_DICT), dtype ="int32")
 
     return output_matrix[0]
-
-
 
 def check_and_wait_l_o_s_m_result():
 
@@ -753,7 +749,7 @@ def check_and_wait_motion_result():
         end = timer()
         # print("Get_prediction time cost:", end-start)  
 
-        if (end-start) > CHECK_AND_WAIT_THRESHOLD:
+        if (end-start) > 1:
             print("Get_prediction moiton time out cost:", end-start)  
 
             break
@@ -1432,6 +1428,9 @@ def real_time_test_run():
         pre_motion_type = motion_type
 
         while(not env.done):
+
+            time.sleep(2)
+
             start_t_iter = timer()
 
             location = ''
@@ -1460,7 +1459,7 @@ def real_time_test_run():
                     # pass
                     continue
             else:
-                action = agent.act(str(state))
+                action = agent.act(state)
                 env.step(action)
 
             if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_fusion  \
@@ -1469,6 +1468,14 @@ def real_time_test_run():
                 if check_and_wait_l_o_s_m_result() == False:
                     # pass
                     continue
+            
+            if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Nothing:
+                # wait for motion data
+                if check_and_wait_motion_result() == False:
+                    print("check_and_wait_motion_result:")
+                    continue
+
+                transition_nothing_times += 1
 
 
 
@@ -1521,6 +1528,15 @@ def real_time_test_run():
                 motion_transition_occur_flag = True
 
 
+            if pre_motion_type != motion_type and (pre_motion_type == 'sitting' or motion_type == 'sitting'):
+            #if motion_type == 'walking':
+                # print('activity:', pre_activity, ' ', ground_truth_activity)
+                print('motion transiction occur, action:', action)
+                motion_transition_occur_cnt += 1
+                motion_transition_occur_flag = True
+
+
+
     
 
             pre_motion_type = motion_type
@@ -1531,6 +1547,8 @@ def real_time_test_run():
             detected_activity = pre_act_list[-1]
             if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Nothing:
                 detected_activity = pre_act_list[-1]
+                global g_motion_recognition_flag
+                g_motion_recognition_flag = False
             else:
                 detected_activity, location = get_activity_by_action(cur_time_str, action, pre_act_list[-1], pre_act_symbol_list)
 
@@ -1741,7 +1759,7 @@ def real_time_test_run():
 
 
 
-        plot(total_wmu_cam_trigger_times, total_wmu_mic_trigger_times, label1="camera", label2="microphone")
+        # plot(total_wmu_cam_trigger_times, total_wmu_mic_trigger_times, label1="camera", label2="microphone")
 
         print("total_wmu_cam_trigger_times:", total_wmu_cam_trigger_times)
         print("total_wmu_mic_trigger_times:", total_wmu_mic_trigger_times)
