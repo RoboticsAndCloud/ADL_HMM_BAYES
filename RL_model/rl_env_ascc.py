@@ -647,7 +647,34 @@ class EnvASCC():
         # if(p_action[0] in {'NaN','infinity','nan','Infinity'}):
         #     action = 0
 
+        import adl_env_client_lib
+        import adl_type_constants
+        try:
+            if RL_ACTION_DICT[p_action] == WMU_fusion or RL_ACTION_DICT[p_action] == Robot_audio_vision or RL_ACTION_DICT[p_action] == Robot_audio_WMU_vision:
+                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_FUSION)
+                #self.fusion_check_times += 1
+
+            elif RL_ACTION_DICT[p_action] == Nothing:
+                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+                                                                adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_MOTION)
+                #self.motion_check_times += 1
+            elif RL_ACTION_DICT[p_action] == WMU_vision or RL_ACTION_DICT[p_action] == Robot_vision:
+                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_IMAGE)
+            elif RL_ACTION_DICT[p_action] == WMU_audio or RL_ACTION_DICT[p_action] == Robot_audio:
+                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_AUDIO)
         
+        except Exception as e:
+            print("Got error when Send cmd to WMU, err:", e, " p_action:", p_action)
+            #logging.warn('Got error when Send cmd to WMU')
+            #logging.warn(e)
+
+        
+        
+
+        running_time_str = self.running_time.strftime(TRAIN_RUNNING_TIME_FORMAT)
 
         running_time_str = self.running_time.strftime(TRAIN_RUNNING_TIME_FORMAT)
         self.runing_time_action_dict[running_time_str] = action
