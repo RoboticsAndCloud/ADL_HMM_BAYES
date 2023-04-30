@@ -457,24 +457,44 @@ MOTION_ACTIVITY_MAPPING = {
 }
 
 
+
 def transition_feature_extractor(pre_motion_type, motion_type):
     tran = 0
 
     if pre_motion_type != motion_type and (pre_motion_type == 'walking' or motion_type == 'walking'):
         print('in transition feature extractor:', pre_motion_type, ' ,', motion_type)
         tran = 1
-    #elif pre_motion_type != motion_type and (pre_motion_type == 'sitting' or motion_type == 'sitting'):
-    #    tran = 3
+    elif pre_motion_type != motion_type and (motion_type == 'sitting'):
+        tran = 2
 
     class_vector =[tran]
 
-    output_matrix = to_categorical(class_vector, num_classes = 2, dtype ="int32")
+    output_matrix = to_categorical(class_vector, num_classes = 3, dtype ="int32")
 
     print('in transition feature extractor:', pre_motion_type, ' ,', motion_type, ' feature:', output_matrix[0])
     # print(output_matrix)
     # [[0 0 0 0 0 1]]
 
     return output_matrix[0]
+
+#def transition_feature_extractor(pre_motion_type, motion_type):
+#    tran = 0
+#
+#    if pre_motion_type != motion_type and (pre_motion_type == 'walking' or motion_type == 'walking'):
+#        print('in transition feature extractor:', pre_motion_type, ' ,', motion_type)
+#        tran = 1
+#    #elif pre_motion_type != motion_type and (pre_motion_type == 'sitting' or motion_type == 'sitting'):
+#    #    tran = 3
+#
+#    class_vector =[tran]
+#
+#    output_matrix = to_categorical(class_vector, num_classes = 2, dtype ="int32")
+#
+#    print('in transition feature extractor:', pre_motion_type, ' ,', motion_type, ' feature:', output_matrix[0])
+#    # print(output_matrix)
+#    # [[0 0 0 0 0 1]]
+#
+#    return output_matrix[0]
 
 
 def trigger_times_normalization(times):
@@ -611,6 +631,11 @@ time_scores = deque(maxlen=1000)
 w_accuracy = 0.02
 w_energy = 0.49
 w_privacy = 0.49
+
+
+w_accuracy = 0.1
+w_energy = 0.9
+w_privacy = 0.9
 
 
 #w_accuracy = 0.3
@@ -816,13 +841,13 @@ def get_activity_by_action(cur_time_str, action, pre_act = ''):
         hmm_prob = bayes_model_location.prob_prior_act_by_prelist(pre_act_symbol_list, act, activity_duration)
 
         p1 = 1
-        if action == 0 or action == 1 or action == 5 or action == 6:
+        if action == 0 or action == 1 or action == 4 or action == 6 or action == 7:
             p1 = bayes_model_location.get_prob(pre_act_list, act, location, 0)
 
         p2 = bayes_model_motion.get_prob(pre_act_list, act, motion_type, 0)
 
         p3 = 1
-        if action == 0 or action == 1 or action == 4 or action == 6:
+        if action == 0 or action == 1 or action == 3 or action == 5 or action == 7:
             p3 = bayes_model_audio.get_prob(pre_act_list, act, audio_type, 0)
         
         p4 =1 
@@ -1004,6 +1029,15 @@ total_transition_robot_times = []
 total_motion_transition_occur_cnt = []
 total_privacy_times = []
 
+total_wmu_cam_trigger_times = []
+total_wmu_mic_trigger_times = []
+total_wmu_trigger_times = []
+total_robot_cam_trigger_times = []
+total_robot_mic_trigger_times = []
+total_robot_trigger_times = []
+total_privacy_times = []
+
+
 for episode in range(episode_count):
 
     location_res = []
@@ -1072,7 +1106,7 @@ for episode in range(episode_count):
     motion_feature = motion_feature_extractor(motion_type) # [0, 0, 0, 0, 0, 1]
     #battery_feature = [0, 0]
     battery_feature = [trigger_times_normalization(env.wmu_cam_times)]
-    robot_trigger_feature = [trigger_times_normalization(env.robot_trigger_times)]
+    robot_trigger_feature = [trigger_times_normalization(env.robot_cam_trigger_times)]
     # battery_level = env.get_battery_level()
     # battery_feature = battery_feature_extractor(battery_level)
     #adl_hidden_feature = [1, 2, 4, 5, 5, 5]  # to be done
@@ -1346,7 +1380,7 @@ for episode in range(episode_count):
         wmu_mic_times, wmu_cam_times = env.get_wmu_sensor_trigger_times()
         #battery_feature = [wmu_mic_times, wmu_cam_times]
         battery_feature = [trigger_times_normalization(wmu_cam_times)]
-        robot_trigger_feature = [trigger_times_normalization(env.robot_trigger_times)]
+        robot_trigger_feature = [trigger_times_normalization(env.robot_cam_trigger_times)]
         # battery_level = env.get_battery_level()
         # battery_feature = battery_feature_extractor(battery_level)
 
@@ -1462,9 +1496,26 @@ for episode in range(episode_count):
     print("plotone scores:", scores)
     print("plotone time scores:", time_scores)
 
+    total_wmu_cam_trigger_times.append(env.wmu_cam_times)
+    total_wmu_mic_trigger_times.append(env.wmu_mic_times)
+    total_wmu_trigger_times.append(env.wmu_times)
+    total_robot_mic_trigger_times.append(env.robot_mic_trigger_times)
+    total_robot_cam_trigger_times.append(env.robot_cam_trigger_times)
+    total_robot_trigger_times.append(env.robot_trigger_times)
+    total_privacy_times.append(env.privacy_occur_cnt)
+
+    #plot(total_wmu_cam_trigger_times, total_wmu_mic_trigger_times, label1="camera", label2="microphone")
+    print("total_wmu_cam_trigger_times:", total_wmu_cam_trigger_times)
+    print("total_wmu_mic_trigger_times:", total_wmu_mic_trigger_times)
+    print("total_wmu_trigger_times:", total_wmu_trigger_times)
+    print("total_robot_mic_trigger_times:", total_robot_mic_trigger_times)
+    print("total_robot_cam_trigger_times:", total_robot_cam_trigger_times)
+    print("total_robot_trigger_times:", total_robot_trigger_times)
+    print("total_privacy_times:", total_privacy_times)
 
 
-    plot(total_wmu_cam_trigger_times, total_wmu_mic_trigger_times, label1="camera", label2="microphone")
+
+    #plot(total_wmu_cam_trigger_times, total_wmu_mic_trigger_times, label1="camera", label2="microphone")
     print("total_wmu_cam_trigger_times:", total_wmu_cam_trigger_times)
     print("total_wmu_mic_trigger_times:", total_wmu_mic_trigger_times)
     print("total_robot_trigger_times:", total_robot_trigger_times)
