@@ -402,9 +402,11 @@ Env requirements:
 source  ~/LF_Workspace/venv3.7_energy/bin/activate
 
 0) Launch adl_web_mq_server
+cd /home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES
 python adl_web_mq_server.py
 
 1) Launch server for receiving the data from WMU
+cd /home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/
 python adl_server_main_node.py
 
 2) Launch recognition model
