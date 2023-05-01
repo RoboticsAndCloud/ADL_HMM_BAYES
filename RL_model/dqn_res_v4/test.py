@@ -84,7 +84,7 @@ plt.plot(total_wmu_mic_trigger_times, label='wmu_mic_trigger_times')
 plt.plot(total_robot_mic_trigger_times, label='total_robot_mic_trigger_times')
 plt.plot(total_robot_cam_trigger_times, label='total_robot_cam_trigger_times')
 #plt.plot(total_robot_trigger_times, label='total_robot_mic_cam_trigger_times')
-plt.plot(total_privacy_times, label='privacy_occur_times')
+plt.plot(total_privacy_times, label='privacy_violation_occurring_times')
 
 
 
