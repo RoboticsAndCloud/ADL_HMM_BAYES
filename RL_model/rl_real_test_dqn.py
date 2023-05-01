@@ -65,7 +65,8 @@ g_audio_data_location = ''
 
 g_stop = False
 
-CHECK_AND_WAIT_THRESHOLD = 10
+CHECK_AND_WAIT_THRESHOLD = 5 # due to wifi environment, 20 seconds is good
+CHECK_AND_WAIT_THRESHOLD_MOTION = 4 # due to wifi environment, 2 seconds is good
 
 
 REAL_TEST = False
@@ -749,7 +750,7 @@ def check_and_wait_motion_result():
         end = timer()
         # print("Get_prediction time cost:", end-start)  
 
-        if (end-start) > 1:
+        if (end-start) > CHECK_AND_WAIT_THRESHOLD_MOTION:
             print("Get_prediction moiton time out cost:", end-start)  
 
             break
@@ -1429,7 +1430,7 @@ def real_time_test_run():
 
         while(not env.done):
 
-            time.sleep(2)
+            # time.sleep(1)
 
             start_t_iter = timer()
 
