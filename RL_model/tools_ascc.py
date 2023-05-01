@@ -364,6 +364,7 @@ class Activity_Node_Observable:
         return self.name, self.time_type
     
     def activity_res_generation(self):
+        # print("activity_res_generation:", self.name, ',', self.time_type, ',', self.duration)
         return self.name + '_' + str(self.time_type) + '_' + str(self.duration)
     
     def duration_converter(self, duration):
