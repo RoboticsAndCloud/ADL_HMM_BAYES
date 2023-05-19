@@ -35,6 +35,7 @@ def sorter_take_count(elem):
 
 # DATA_SET_FILE = 'WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt'
 DATA_SET_FILE = './ascc_v1_raw.txt'
+DATA_SET_FILE = '/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_motion_activity/ascc_dataset/ascc_watch_v1_raw.txt'
 pd.read_csv(DATA_SET_FILE)
 file = open(DATA_SET_FILE)
 
@@ -72,7 +73,7 @@ data['z'] = data['z'].astype('float')
 # data.info()
 
 # sample rate
-Fs = 90
+Fs = 45
 
 activities = data['activity'].value_counts().index
 # print('activities:', activities)
