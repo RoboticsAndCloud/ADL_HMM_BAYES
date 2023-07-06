@@ -342,6 +342,22 @@ def get_location_by_activity_cnn(time_str):
 
     return location, float(prob)
 
+def get_location_type_by_activity_cnn(time_str):
+    # Location
+
+    target_folder_time_str = get_target_folder_time_str(time_str)
+    print("target_folder_time_str:", target_folder_time_str, " time_str:", cur_time_str)
+
+    if target_folder_time_str in time_location_dict.keys():
+        location_type, prob = time_location_dict[target_folder_time_str]
+        print('get_location_by_activity_CNN time_str:', time_str, ' location_type:', location_type, ' prob:', prob)
+        return location_type, float(prob)
+
+    location, prob = tools_ascc.get_activity_by_vision_dnn(time_str, action='vision')
+    print('get_location_by_activity_CNN time_str:', time_str, ' location:', location, ' prob:', prob)
+
+    return location, float(prob)
+
 def get_motion_type_by_activity(activity):
     # motion type: sitting, standing, walking, random by the probs
 
@@ -516,6 +532,19 @@ def adl_hidden_feature_extractor(act):
 
     return output_matrix[0]
 
+def adl_location_feature_extractor(location):
+    # motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
+
+    act_id = tools_ascc.get_key(tools_ascc.LOCATION_DICT, location)
+
+    class_vector =[act_id]
+    # print(class_vector)
+
+    # Applying the function on input class vector
+    #from keras.utils import to_categorical
+    output_matrix = to_categorical(class_vector, num_classes = len(tools_ascc.LOCATION_DICT), dtype ="int32")
+
+    return output_matrix[0]
 
 env = rl_env_ascc.EnvASCC(TEST_BASE_DATE + ' 00:00:00')
 env.reset()
@@ -1070,6 +1099,10 @@ state = transition_feature + current_activity_feature + robot_trigger_feature + 
 #state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature + predicted_act_feature
 #state = transition_feature + current_activity_feature + predicted_act_feature  # need train more times
 
+location_type, type_prob = get_location_type_by_activity_cnn(cur_time_str)
+location_feature = adl_location_feature_extractor(location_type) # [0, 0, 0, 0, 0, 1]
+state = state + list(location_feature)
+
 state_size = len(state)
 state = np.reshape(state, [1, state_size])
 print("robot_trigger_feature:", robot_trigger_feature)
@@ -1082,12 +1115,12 @@ actions = []
 action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 
 import rl_ascc_dqn
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, memory_size = 1280)
+#agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, memory_size = 1280)
 
 
 # for test and reload the pretrained model
-#agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, epsilon = 0.001, memory_size = 1280)
-#agent.load_weights()
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, epsilon = 0.001, memory_size = 1280)
+agent.load_weights()
 
 
 
@@ -1200,6 +1233,11 @@ for episode in range(episode_count):
     state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
     #state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature + predicted_act_feature
     #state = transition_feature + current_activity_feature + predicted_act_feature
+
+    location_type, type_prob = get_location_type_by_activity_cnn(cur_time_str)
+    location_feature = adl_location_feature_extractor(location_type) # [0, 0, 0, 0, 0, 1]
+    location_feature = list(location_feature)
+    state = state + location_feature
 
     state_size = len(state)
     state = np.reshape(state, [1, state_size])
@@ -1453,6 +1491,10 @@ for episode in range(episode_count):
         next_state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
         #next_state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature + predicted_act_feature
         #next_state = transition_feature + current_activity_feature + predicted_act_feature
+        location_type, type_prob = get_location_type_by_activity_cnn(cur_time_str)
+        location_feature = adl_location_feature_extractor(location_type) # [0, 0, 0, 0, 0, 1]
+        location_feature = list(location_feature)
+        next_state = next_state + location_feature
 
         next_state = np.reshape(next_state, [1, state_size])
 
@@ -1490,6 +1532,7 @@ for episode in range(episode_count):
                 new_state = list(t_transition_feature) + list(t_current_activity_feature) 
                 new_state = list(t_transition_feature) + list(t_current_activity_feature) + list(t_robot_feature) + list(t_battery_feature)
                 #new_state = list(t_transition_feature) + list(t_current_activity_feature) + list(t_predicted_act_feature)
+                new_state = new_state + location_feature
 
                 #print("new state:", new_state)
                 new_state = np.reshape(new_state, [1, state_size])
@@ -1500,6 +1543,10 @@ for episode in range(episode_count):
                 new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature
                 #new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature + predicted_act_feature
                 #new_next_state = transition_feature + current_activity_feature + predicted_act_feature
+                #location_type, type_prob = get_location_type_by_activity_cnn(cur_time_str)
+                #location_feature = adl_location_feature_extractor(location_type) # [0, 0, 0, 0, 0, 1]
+                #location_feature = list(location_feature)
+                new_next_state = new_next_state + location_feature
                 new_next_state = np.reshape(new_next_state, [1, state_size])
 
                 
@@ -1518,6 +1565,7 @@ for episode in range(episode_count):
                 new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature
                 #new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature + predicted_act_feature
                 #new_next_state = transition_feature + current_activity_feature + predicted_act_feature
+                new_next_state = new_next_state + location_feature
 
                 new_next_state = np.reshape(new_next_state, [1, state_size])
 
@@ -1536,6 +1584,7 @@ for episode in range(episode_count):
                 new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature
                 #new_next_state = transition_feature + current_activity_feature + tn_robot_feature + tn_battery_feature + predicted_act_feature
                 #new_next_state = transition_feature + current_activity_feature + predicted_act_feature
+                new_next_state = new_next_state + location_feature
                 new_next_state = np.reshape(new_next_state, [1, state_size])
                 con_reward = construct_reward(2, current_activity)
                 agent.remember_transition(new_state, 2, reward, new_next_state, env.done)
@@ -1689,8 +1738,8 @@ for episode in range(episode_count):
 print("===================================================")
 exit(0)
 # for testing memeorys
-for i in range(1, 100):
-    print("episode: {} ".format(episode))
+for i in range(1, 2000):
+    print("episode: {} ".format(i))
 
     len_mem = len(agent.memory)
     len_mem_tra = len(agent.memory_transition)
