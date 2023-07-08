@@ -533,7 +533,15 @@ def adl_hidden_feature_extractor(act):
     return output_matrix[0]
 
 def adl_location_feature_extractor(location):
-    # motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
+    # todo use private/unprivate types for the features
+    location_id = 0
+    if location in rl_env_ascc.PRIVACY_LOCATION_LIST:
+        location_id = 1
+
+    class_vector =[location_id]
+    output_matrix = to_categorical(class_vector, num_classes = len(rl_env_ascc.PRIVACY_LOCATION_LIST), dtype ="int32")
+
+    return output_matrix[0]
 
     act_id = tools_ascc.get_key(tools_ascc.LOCATION_DICT, location)
 
@@ -982,13 +990,13 @@ def trigger_times_normalization(times):
     n_t = times*1.0/rl_env_ascc.MAX_TRIGGER_TIMES
     return n_t
 
-def construct_reward(action, ground_truth_act):
+def construct_reward(action, ground_truth_act, location = ''):
 
 
     reward_energy = env.get_reward_energy(action)
 
 
-    reward_privacy = env.get_reward_privacy(action, ground_truth_act)
+    reward_privacy = env.get_reward_privacy(action, ground_truth_act, location)
     #reward_privacy = 0
 
     reward_accuracy = 0
@@ -1119,7 +1127,7 @@ import rl_ascc_dqn
 
 
 # for test and reload the pretrained model
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, epsilon = 0.001, memory_size = 1280)
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, epsilon = 0.003, memory_size = 1280)
 agent.load_weights()
 
 
@@ -1274,6 +1282,8 @@ for episode in range(episode_count):
 
         object_dict = {}
 
+        location_type, type_prob = get_location_type_by_activity_cnn(cur_time_str)
+
         # agent chose an action based on the state
         if run_cnt % 1000 == 0:
             print('Env Running:', cur_time_str, " evn.runing:", env.get_running_time()) 
@@ -1305,7 +1315,7 @@ for episode in range(episode_count):
             end_t_iter = timer()
             print(" 0 after get activity by time each iter takes:", end_t_iter - start_t_iter)
 
-        reward_privacy = env.get_reward_privacy(action, ground_truth_activity)
+        reward_privacy = env.get_reward_privacy(action, ground_truth_activity, location_type)
 
         reward_accuracy = -1
 
@@ -1551,9 +1561,9 @@ for episode in range(episode_count):
 
                 
                 # todo update reward function
-                con_reward = construct_reward(0, current_activity )
+                con_reward = construct_reward(0, current_activity, location_type)
                 # agent.remember(new_state, 0, con_reward, new_next_state, env.done)
-                agent.remember_transition(new_state, 0, reward, new_next_state, env.done)
+                agent.remember_transition(new_state, 0, con_reward, new_next_state, env.done)
 
                 if DEBUG:
                     print("construct 1-1 :", new_next_state, ' r:', con_reward)
@@ -1569,11 +1579,11 @@ for episode in range(episode_count):
 
                 new_next_state = np.reshape(new_next_state, [1, state_size])
 
-                con_reward = construct_reward(1,current_activity)
+                con_reward = construct_reward(1,current_activity, location_type)
 
                 #agent.remember(new_state, 1, con_reward, new_next_state, env.done)
 
-                agent.remember_transition(new_state, 1, reward, new_next_state, env.done)
+                agent.remember_transition(new_state, 1, con_reward, new_next_state, env.done)
 
                 if DEBUG:
                     print("construct 1-2 :", new_next_state, ' r:', con_reward)
@@ -1586,8 +1596,8 @@ for episode in range(episode_count):
                 #new_next_state = transition_feature + current_activity_feature + predicted_act_feature
                 new_next_state = new_next_state + location_feature
                 new_next_state = np.reshape(new_next_state, [1, state_size])
-                con_reward = construct_reward(2, current_activity)
-                agent.remember_transition(new_state, 2, reward, new_next_state, env.done)
+                con_reward = construct_reward(2, current_activity, location_type)
+                agent.remember_transition(new_state, 2, con_reward, new_next_state, env.done)
 
                 if DEBUG:
                     print("construct 1-3 :", new_next_state, ' r:', con_reward)

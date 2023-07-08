@@ -342,6 +342,33 @@ def get_location_by_activity_cnn(time_str):
 
     return location, float(prob)
 
+def adl_location_feature_extractor(location):
+    # todo use private/unprivate types for the features
+    location_id = 0
+    if location in rl_env_ascc.PRIVACY_LOCATION_LIST:
+        location_id = 1
+
+    class_vector =[location_id]
+    output_matrix = to_categorical(class_vector, num_classes = len(rl_env_ascc.PRIVACY_LOCATION_LIST), dtype ="int32")
+
+    return output_matrix[0]
+
+def get_location_type_by_activity_cnn(time_str):
+    # Location
+
+    target_folder_time_str = get_target_folder_time_str(time_str)
+    print("target_folder_time_str:", target_folder_time_str, " time_str:", cur_time_str)
+
+    if target_folder_time_str in time_location_dict.keys():
+        location_type, prob = time_location_dict[target_folder_time_str]
+        print('get_location_by_activity_CNN time_str:', time_str, ' location_type:', location_type, ' prob:', prob)
+        return location_type, float(prob)
+
+    location, prob = tools_ascc.get_activity_by_vision_dnn(time_str, action='vision')
+    print('get_location_by_activity_CNN time_str:', time_str, ' location:', location, ' prob:', prob)
+
+    return location, float(prob)
+
 def get_motion_type_by_activity(activity):
     # motion type: sitting, standing, walking, random by the probs
 
@@ -903,7 +930,7 @@ def get_activity_by_action(cur_time_str, action, pre_act = ''):
         
     print('heap_prob len:', len(heap_prob))
     top3_prob = sorted(heap_prob, key=sorter_take_count,reverse=True)[:3]
-    #print('top3_prob:', top3_prob)
+    print('top3_prob:', top3_prob)
 
     
     activity_detected = top3_prob[0][0]
@@ -996,9 +1023,14 @@ transition_feature = list(transition_feature)
 #state = motion_feature + battery_feature + motion_feature + current_activity_feature + current_activity_duration_feature
 #state = motion_feature + battery_feature + motion_feature + current_activity_feature 
 state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
+
 #state = motion_feature + battery_feature + current_activity_feature 
 #state = battery_feature + current_activity_feature  
 #state = current_activity_feature  # works well
+location_type, type_prob = get_location_type_by_activity_cnn(cur_time_str)
+location_feature = adl_location_feature_extractor(location_type) # [0, 0, 0, 0, 0, 1]
+state = state + list(location_feature)
+
 state_size = len(state)
 state = np.reshape(state, [1, state_size])
 print("state_size:", state_size)
@@ -1137,6 +1169,10 @@ for episode in range(episode_count):
     #state = motion_feature + battery_feature + current_activity_feature  
     #state = battery_feature + current_activity_feature 
     #state = current_activity_feature 
+    location_type, type_prob = get_location_type_by_activity_cnn(cur_time_str)
+    location_feature = adl_location_feature_extractor(location_type) # [0, 0, 0, 0, 0, 1]
+    state = state + list(location_feature)
+
     state_size = len(state)
     state = np.reshape(state, [1, state_size])
     print("state_size:", state_size)
@@ -1424,6 +1460,10 @@ for episode in range(episode_count):
         #next_state = next_motion_feature + battery_feature + current_activity_feature  
         #next_state = battery_feature + current_activity_feature
         #next_state = current_activity_feature
+        location_type, type_prob = get_location_type_by_activity_cnn(cur_time_str)
+        location_feature = adl_location_feature_extractor(location_type) # [0, 0, 0, 0, 0, 1]
+        next_state = next_state + list(location_feature)
+
         next_state = np.reshape(next_state, [1, state_size])
 
         agent.remember(str(state), action, reward, str(next_state), env.done)
