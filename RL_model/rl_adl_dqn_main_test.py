@@ -1227,6 +1227,7 @@ for episode in range(episode_count):
             living_room_check_flag = False
 
         if need_recollect_data:
+            action = 0
             env.step(0, need_recollect_data)
         else:
             action = agent.act(state)
@@ -1460,7 +1461,9 @@ for episode in range(episode_count):
         #next_state = next_motion_feature + battery_feature + current_activity_feature  
         #next_state = battery_feature + current_activity_feature
         #next_state = current_activity_feature
-        location_type, type_prob = get_location_type_by_activity_cnn(cur_time_str)
+        if rl_env_ascc.RL_ACTION_DICT[action].find(rl_env_ascc.WMU_vision) != -1 or rl_env_ascc.RL_ACTION_DICT[action].find(rl_env_ascc.Robot_vision) != -1:
+            print("rl_env_ascc.RL_ACTION_DICT[action]:", rl_env_ascc.RL_ACTION_DICT[action])
+            location_type, type_prob = get_location_type_by_activity_cnn(cur_time_str)
         location_feature = adl_location_feature_extractor(location_type) # [0, 0, 0, 0, 0, 1]
         next_state = next_state + list(location_feature)
 
