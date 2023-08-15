@@ -807,7 +807,7 @@ actions = []
 action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 
 import rl_ascc_dqn
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space)
+#agent = rl_ascc_dqn.DQNAgent(state.size, action_space)
 
 
 # for test and reload the pretrained model
@@ -1055,8 +1055,8 @@ for episode in range(episode_count):
             print("episode: {}/{}, episode_reward: {}, e: {:.2}"
             .format(episode, episode_count-1, total_reward, agent.epsilon))
 
-            agent.update_replay_memory()
-            print("agent update replay  memeory:", len(agent.memory))
+            #agent.update_replay_memory()
+            #print("agent update replay  memeory:", len(agent.memory))
 
     print("time_location_dict:", time_location_dict)
     print("time_object_dict:", time_object_dict)

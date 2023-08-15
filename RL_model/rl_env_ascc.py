@@ -188,7 +188,12 @@ ACTION_INTERVAL_DICT = {
 }
 
 
+MAX_LOCATION_CLASS = 6
 PRIVACY_LOCATION_LIST = [constants.LOCATION_BEDROOM, constants.LOCATION_BATHROOM]
+# PRIVACY_LOCATION_LIST = [constants.LOCATION_BEDROOM, constants.LOCATION_BATHROOM, constants.LOCATION_KITCHEN]
+# PRIVACY_LOCATION_LIST = [constants.LOCATION_BATHROOM]
+
+
 
 PRIVACY_ACTIVITY_LIST = [constants.ACTIVITY_MASTER_BEDROOM, constants.ACTIVITY_MASTER_BATHROOM, constants.ACTIVITY_GUEST_BATHROOM]
 
@@ -649,27 +654,27 @@ class EnvASCC():
 
         import adl_env_client_lib
         import adl_type_constants
-        try:
-            if RL_ACTION_DICT[p_action] == WMU_fusion or RL_ACTION_DICT[p_action] == Robot_audio_vision or RL_ACTION_DICT[p_action] == Robot_audio_WMU_vision:
-                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
-                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_FUSION)
-                #self.fusion_check_times += 1
-
-            elif RL_ACTION_DICT[p_action] == Nothing:
-                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
-                                                                adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_MOTION)
-                #self.motion_check_times += 1
-            elif RL_ACTION_DICT[p_action] == WMU_vision or RL_ACTION_DICT[p_action] == Robot_vision:
-                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
-                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_IMAGE)
-            elif RL_ACTION_DICT[p_action] == WMU_audio or RL_ACTION_DICT[p_action] == Robot_audio:
-                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
-                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_AUDIO)
-        
-        except Exception as e:
-            print("Got error when Send cmd to WMU, err:", e, " p_action:", p_action)
-            #logging.warn('Got error when Send cmd to WMU')
-            #logging.warn(e)
+#        try:
+#            if RL_ACTION_DICT[p_action] == WMU_fusion or RL_ACTION_DICT[p_action] == Robot_audio_vision or RL_ACTION_DICT[p_action] == Robot_audio_WMU_vision:
+#                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+#                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_FUSION)
+#                #self.fusion_check_times += 1
+#
+#            elif RL_ACTION_DICT[p_action] == Nothing:
+#                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+#                                                                adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_MOTION)
+#                #self.motion_check_times += 1
+#            elif RL_ACTION_DICT[p_action] == WMU_vision or RL_ACTION_DICT[p_action] == Robot_vision:
+#                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+#                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_IMAGE)
+#            elif RL_ACTION_DICT[p_action] == WMU_audio or RL_ACTION_DICT[p_action] == Robot_audio:
+#                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+#                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_AUDIO)
+#        
+#        except Exception as e:
+#            print("Got error when Send cmd to WMU, err:", e, " p_action:", p_action)
+#            #logging.warn('Got error when Send cmd to WMU')
+#            #logging.warn(e)
 
         
         
@@ -791,13 +796,20 @@ class EnvASCC():
         else:
             self.need_recollect_data_cnt += 1
 
-   #     if WMU_audio in RL_ACTION_DICT[action]:
-   #         self.wmu_mic_times += 1
-   #     if WMU_vision in RL_ACTION_DICT[action]:
-   #         self.wmu_cam_times += 1
+            if WMU_audio in RL_ACTION_DICT[action]:
+                self.wmu_mic_times += 1
+            if WMU_vision in RL_ACTION_DICT[action]:
+                self.wmu_cam_times += 1
+            if WMU_audio_vision in RL_ACTION_DICT[action]:
+                self.wmu_times += 1
 
-   #     if Robot_audio_vision in RL_ACTION_DICT[action]:
-   #         self.robot_trigger_times += 1
+            if Robot_audio in RL_ACTION_DICT[action]:
+                self.robot_mic_trigger_times += 1
+            if Robot_vision in RL_ACTION_DICT[action]:
+                self.robot_cam_trigger_times += 1
+            if Robot_audio_vision in RL_ACTION_DICT[action]:
+                self.robot_trigger_times += 1
+
             
         return '', '', '', motion_triggerred_flag
     
@@ -853,9 +865,17 @@ class EnvASCC():
 
         return acc
 
-    def get_reward_privacy(self, action, activity):
+    def get_reward_privacy(self, action, activity, location=''):
 
         reward = 0
+
+        if location != '' and location in PRIVACY_LOCATION_LIST:
+            if Robot_vision in RL_ACTION_DICT[action]:
+                reward = reward + 1
+                self.privacy_occur_cnt = self.privacy_occur_cnt + 1
+                print('location !=', location)
+
+        return reward
 
         if activity in PRIVACY_ACTIVITY_LIST:
             if Robot_vision in RL_ACTION_DICT[action]:

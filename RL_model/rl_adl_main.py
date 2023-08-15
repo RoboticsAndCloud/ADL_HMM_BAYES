@@ -539,7 +539,7 @@ def adl_location_feature_extractor(location):
         location_id = 1
 
     class_vector =[location_id]
-    output_matrix = to_categorical(class_vector, num_classes = len(rl_env_ascc.PRIVACY_LOCATION_LIST), dtype ="int32")
+    output_matrix = to_categorical(class_vector, num_classes = rl_env_ascc.MAX_LOCATION_CLASS, dtype ="int32")
 
     return output_matrix[0]
 
@@ -1123,12 +1123,12 @@ actions = []
 action_space = list(rl_env_ascc.RL_ACTION_DICT.keys())
 
 import rl_ascc_dqn
-#agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, memory_size = 1280)
+agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, memory_size = 1280)
 
 
 # for test and reload the pretrained model
-agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, epsilon = 0.003, memory_size = 1280)
-agent.load_weights()
+# agent = rl_ascc_dqn.DQNAgent(state.size, action_space, episodes=500*10, epsilon = 0.003, memory_size = 1280)
+# agent.load_weights()
 
 
 

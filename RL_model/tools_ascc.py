@@ -203,6 +203,17 @@ ACTIVITY_DICT = {
     # 17: "Medication"
 }
 
+LOCATION_DICT = {
+    0: constants.LOCATION_BATHROOM,
+    1: constants.LOCATION_READINGROOM,
+    2: constants.LOCATION_BEDROOM,
+    3: constants.LOCATION_LIVINGROOM,
+    4: constants.LOCATION_KITCHEN,
+    5: constants.LOCATION_DININGROOM,
+    6: constants.LOCATION_DOOR,
+    7: constants.LOCATION_LOBBY,
+    8: constants.OTHER
+}
 
 ACTIVITY_LIST = ["Desk_Activity",
     "Guest_Bathroom",
