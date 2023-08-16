@@ -202,3 +202,21 @@ total_transition_robot_times: [0]
 total_motion_transition_occur_cnt: [222]
 total_need_recollect_cnt: 95
 
+
+(base) ascc@ascc-XPS-8940:~/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/RL_model$ grep total_ new_user_bath_retrainmodel.txt 
+total_wmu_cam_trigger_times: [73, 73]
+total_wmu_mic_trigger_times: [57, 57]
+total_wmu_trigger_times: [56]
+total_robot_mic_trigger_times: [289]
+total_robot_cam_trigger_times: [277]
+total_robot_trigger_times: [274, 274]
+total_privacy_times: [46, 46]
+total_wmu_cam_trigger_times: [73, 73]
+total_wmu_mic_trigger_times: [57, 57]
+total_robot_trigger_times: [274, 274]
+total_privacy_times: [46, 46]
+total_transition_nothing_times: [0]
+total_transition_wmu_times: [0]
+total_transition_robot_times: [0]
+total_motion_transition_occur_cnt: [232]
+total_need_recollect_cnt: 53
