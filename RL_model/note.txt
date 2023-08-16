@@ -104,3 +104,101 @@ Test 2:
 ps aux |grep rl_adl
 
 grep 'epi' rl_0322_energy_0.5_acc_0.3_3.txt
+
+
+0322 test: 
+4:57 pm
+5:24 pm
+
+
+ignore 0.53
+
+
+rl_0404_new_acc_privacy_0.45_energy_0.25_acc_0.3withoutmotion.txt :  
+state = battery_feature + current_activity_feature
+
+
+
+
+
+# 2009-12-11-08-51-30
+
+2009-12-11-09-16-58
+
+
+
+
+grep total_ new_user_bath_bed_kitchen_basicmodel.txt 
+total_wmu_cam_trigger_times: [118, 118]
+total_wmu_mic_trigger_times: [64, 64]
+total_wmu_trigger_times: [59]
+total_robot_mic_trigger_times: [281]
+total_robot_cam_trigger_times: [227]
+total_robot_trigger_times: [224, 224]
+total_privacy_times: [145, 145]
+total_wmu_cam_trigger_times: [118, 118]
+total_wmu_mic_trigger_times: [64, 64]
+total_robot_trigger_times: [224, 224]
+total_privacy_times: [145, 145]
+total_transition_nothing_times: [0]
+total_transition_wmu_times: [0]
+total_transition_robot_times: [0]
+total_motion_transition_occur_cnt: [226]
+total_need_recollect_cnt: 57
+
+(base) ascc@ascc-XPS-8940:~/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/RL_model$ grep total_ new_user_bath_bed_living_basicmodel.txt 
+total_wmu_cam_trigger_times: [119, 119]
+total_wmu_mic_trigger_times: [67, 67]
+total_wmu_trigger_times: [63]
+total_robot_mic_trigger_times: [283]
+total_robot_cam_trigger_times: [229]
+total_robot_trigger_times: [227, 227]
+total_privacy_times: [45, 45]
+total_wmu_cam_trigger_times: [119, 119]
+total_wmu_mic_trigger_times: [67, 67]
+total_robot_trigger_times: [227, 227]
+total_privacy_times: [45, 45]
+total_transition_nothing_times: [0]
+total_transition_wmu_times: [0]
+total_transition_robot_times: [0]
+total_motion_transition_occur_cnt: [222]
+total_need_recollect_cnt: 60
+
+(base) ascc@ascc-XPS-8940:~/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/RL_model$ grep total_ new_user_bath_basicmodel.txt 
+total_wmu_cam_trigger_times: [122, 122]
+total_wmu_mic_trigger_times: [64, 64]
+total_wmu_trigger_times: [61]
+total_robot_mic_trigger_times: [287]
+total_robot_cam_trigger_times: [226]
+total_robot_trigger_times: [223, 223]
+total_privacy_times: [0, 0]
+total_wmu_cam_trigger_times: [122, 122]
+total_wmu_mic_trigger_times: [64, 64]
+total_robot_trigger_times: [223, 223]
+total_privacy_times: [0, 0]
+total_transition_nothing_times: [0]
+total_transition_wmu_times: [0]
+total_transition_robot_times: [0]
+total_motion_transition_occur_cnt: [228]
+total_need_recollect_cnt: 59
+
+
+
+(base) ascc@ascc-XPS-8940:~/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/RL_model$ grep total_ new_user_bath_bed_living_retrainmodel.txt 
+total_wmu_cam_trigger_times: [199, 199]
+total_wmu_mic_trigger_times: [1747, 1747]
+total_wmu_trigger_times: [97]
+total_robot_mic_trigger_times: [274]
+total_robot_cam_trigger_times: [170]
+total_robot_trigger_times: [170, 170]
+total_privacy_times: [0, 0]
+total_wmu_cam_trigger_times: [199, 199]
+total_wmu_mic_trigger_times: [1747, 1747]
+total_robot_trigger_times: [170, 170]
+total_privacy_times: [0, 0]
+total_transition_nothing_times: [0]
+total_transition_wmu_times: [0]
+total_transition_robot_times: [0]
+total_motion_transition_occur_cnt: [222]
+total_need_recollect_cnt: 95
+
