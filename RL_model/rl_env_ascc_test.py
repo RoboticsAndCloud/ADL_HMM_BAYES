@@ -626,21 +626,21 @@ class EnvASCC():
         # if(p_action[0] in {'NaN','infinity','nan','Infinity'}):
         #     action = 0
 
-        # try:
-        #     if RL_ACTION_DICT[p_action] == WMU_fusion or RL_ACTION_DICT[p_action] == Robot_audio_vision:
-        #         adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
-        #                                                     adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_FUSION)
-        #         self.fusion_check_times += 1
+      #  try:
+      #      if RL_ACTION_DICT[p_action] == WMU_fusion or RL_ACTION_DICT[p_action] == Robot_audio_vision:
+      #          adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+      #                                                      adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_FUSION)
+      #          #self.fusion_check_times += 1
 
-        #     elif RL_ACTION_DICT[p_action] == Nothing:
-        #         # adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
-        #         #                                             adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_MOTION)
-        #         self.motion_check_times += 1
-        
-        # except Exception as e:
-        #     print("Got error when Send cmd to WMU, err:", e, " p_action:", p_action)
-        #     logging.warn('Got error when Send cmd to WMU')
-        #     logging.warn(e)
+      #      elif RL_ACTION_DICT[p_action] == Nothing:
+      #          adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+      #                                                        adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_MOTION)
+      #          #self.motion_check_times += 1
+      #  
+      #  except Exception as e:
+      #      print("Got error when Send cmd to WMU, err:", e, " p_action:", p_action)
+      #      #logging.warn('Got error when Send cmd to WMU')
+      #      #logging.warn(e)
 
         
         
@@ -815,6 +815,19 @@ class EnvASCC():
 
         return reward
     
+    def get_reward_privacy_for_period(self, action, activity):
+
+        reward = 0
+
+        if activity in PRIVACY_ACTIVITY_LIST:
+            if Robot_audio_vision in RL_ACTION_DICT[action]:
+                reward = reward + 1
+                self.privacy_occur_cnt = self.privacy_occur_cnt + 1
+            #else:
+            #    reward = -1 # get higher reward for using wmu sensors to detect private activity
+
+        return reward
+
     #
     def render(self):
         # time.sleep(0.03)

@@ -398,6 +398,24 @@ For real-time test
 ##pip3 install flask
 ##pip3 install flask_socketio
 
+# offline dataset of the day 2009-12-11
+/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES_V2/ADL_HMM_BAYES/Ascc_Dataset_0819//Image/
+# ground_truth_activity
+/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/RL_model/ground_truth_dict_dataset0819.py
+
+# Online daily pattern 
+/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/data
+# Floor map
+milan.png
+
+# Watchdataset
+/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/watch_dataset/Image
+
+
+# simulated user
+/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/RL_model/rl_env_ascc_user_simulation.py
+
+
 Env requirements:
 source  ~/LF_Workspace/venv3.7_energy/bin/activate
 

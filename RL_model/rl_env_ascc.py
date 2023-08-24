@@ -189,8 +189,14 @@ ACTION_INTERVAL_DICT = {
 
 
 MAX_LOCATION_CLASS = 6
+PRIVACY_LOCATION_LIST_BASIC = [constants.LOCATION_BEDROOM, constants.LOCATION_BATHROOM]
+PRIVACY_LOCATION_LIST_BASIC = [constants.LOCATION_BEDROOM, constants.LOCATION_BATHROOM, constants.LOCATION_LIVINGROOM]
+# PRIVACY_LOCATION_LIST_BASIC = [constants.LOCATION_BEDROOM]
+
 PRIVACY_LOCATION_LIST = [constants.LOCATION_BEDROOM, constants.LOCATION_BATHROOM]
 # PRIVACY_LOCATION_LIST = [constants.LOCATION_BEDROOM, constants.LOCATION_BATHROOM, constants.LOCATION_KITCHEN]
+PRIVACY_LOCATION_LIST = [constants.LOCATION_BEDROOM, constants.LOCATION_BATHROOM, constants.LOCATION_LIVINGROOM]
+
 # PRIVACY_LOCATION_LIST = [constants.LOCATION_BATHROOM]
 
 
@@ -868,7 +874,7 @@ class EnvASCC():
     def get_reward_privacy(self, action, activity, location=''):
 
         reward = 0
-
+        print('location checking:', location)
         if location != '' and location in PRIVACY_LOCATION_LIST:
             if Robot_vision in RL_ACTION_DICT[action]:
                 reward = reward + 1
