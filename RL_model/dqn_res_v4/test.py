@@ -65,12 +65,13 @@ print('len(scores):', len(scores))
 #plotone(scores, fig = "dqn_accumulated_rewards.png", xlabel = "Episodes", ylabel="Accumulated Rewards")
 
 plt.figure(figsize=(20,5))
+plt.rcParams.update({'font.size': 23})
 plt.plot(default_x_ticks, scores)
 plt.xticks(default_x_ticks)
-plt.xlabel('Episodes')
-plt.ylabel('Accumulated Rewards')
+# plt.xlabel('Episodes')
+# plt.ylabel('Accumulated Rewards')
 # plt.legend()
-plt.savefig('dqn_accumulated_rewards.png')
+plt.savefig('ddqn_accumulated_rewards.png')
 plt.clf()
 
 
@@ -78,6 +79,7 @@ plt.clf()
 print('len(wmu times):', len(total_wmu_cam_trigger_times))
 
 plt.figure(figsize=(20,5))
+plt.rcParams.update({'font.size': 23})
 plt.plot(total_wmu_cam_trigger_times, label='wmu_cam_trigger_times')
 plt.plot(total_wmu_mic_trigger_times, label='wmu_mic_trigger_times')
 #plt.plot(total_wmu_trigger_times, label='total_wmu_mic_cam_trigger_times')
@@ -90,10 +92,10 @@ plt.plot(total_privacy_times, label='privacy_violation_occurring_times')
 
 plt.xticks(default_x_ticks)
 
-plt.xlabel("Episodes")
-plt.ylabel("Times")
+# plt.xlabel("Episodes")
+# plt.ylabel("Times")
 plt.legend()
-plt.savefig('dqn_multi_reward.png')
+plt.savefig('ddqn_multi_reward.png')
 
 # plt.show()
 plt.clf()
