@@ -658,29 +658,42 @@ class EnvASCC():
         # if(p_action[0] in {'NaN','infinity','nan','Infinity'}):
         #     action = 0
 
+        print("CAMS-DQN: Action:", RL_ACTION_DICT[p_action])
+
         import adl_env_client_lib
         import adl_type_constants
-#        try:
-#            if RL_ACTION_DICT[p_action] == WMU_fusion or RL_ACTION_DICT[p_action] == Robot_audio_vision or RL_ACTION_DICT[p_action] == Robot_audio_WMU_vision:
-#                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
-#                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_FUSION)
-#                #self.fusion_check_times += 1
-#
-#            elif RL_ACTION_DICT[p_action] == Nothing:
-#                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
-#                                                                adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_MOTION)
-#                #self.motion_check_times += 1
-#            elif RL_ACTION_DICT[p_action] == WMU_vision or RL_ACTION_DICT[p_action] == Robot_vision:
-#                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
-#                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_IMAGE)
-#            elif RL_ACTION_DICT[p_action] == WMU_audio or RL_ACTION_DICT[p_action] == Robot_audio:
-#                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
-#                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_AUDIO)
-#        
-#        except Exception as e:
-#            print("Got error when Send cmd to WMU, err:", e, " p_action:", p_action)
-#            #logging.warn('Got error when Send cmd to WMU')
-#            #logging.warn(e)
+        try:
+            if RL_ACTION_DICT[p_action] == WMU_fusion or RL_ACTION_DICT[p_action] == Robot_audio_vision or RL_ACTION_DICT[p_action] == Robot_audio_WMU_vision:
+                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_FUSION)
+                
+                # send cmd to the robots
+                if RL_ACTION_DICT[p_action] == Robot_audio_vision or RL_ACTION_DICT[p_action] == Robot_audio_WMU_vision :
+                    adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_COMPANION_ROBOT_IPRECEIVE, adl_type_constants.WMU_COMPANION_ROBOT_RECEIVE_PORT,
+                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_FUSION)
+                #self.fusion_check_times += 1
+
+            elif RL_ACTION_DICT[p_action] == Nothing:
+                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+                                                                adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_MOTION)
+                #self.motion_check_times += 1
+            elif RL_ACTION_DICT[p_action] == WMU_vision or RL_ACTION_DICT[p_action] == Robot_vision:
+                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_IMAGE)
+                
+                # send cmd to the robots
+                if RL_ACTION_DICT[p_action] == Robot_audio_vision or RL_ACTION_DICT[p_action] == Robot_audio_WMU_vision :
+                    adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_COMPANION_ROBOT_IPRECEIVE, adl_type_constants.WMU_COMPANION_ROBOT_RECEIVE_PORT,
+                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_IMAGE)
+    
+            elif RL_ACTION_DICT[p_action] == WMU_audio or RL_ACTION_DICT[p_action] == Robot_audio:
+                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_AUDIO)
+        
+        except Exception as e:
+            print("Got error when Send cmd to WMU, err:", e, " p_action:", p_action)
+            #logging.warn('Got error when Send cmd to WMU')
+            #logging.warn(e)
 
         
         
@@ -1385,6 +1398,13 @@ class EnvASCC():
 
         return energy_consum, time_cost
 
+    def get_current_hour_time_real(self):
+        now = datetime.now()
+        dt_string = now.strftime(DATE_HOUR_TIME_FORMAT)
+        # cur_hour_time = dt_string.strftime(DATE_HOUR_TIME_FORMAT).split()[1]
+        # cur = datetime.strptime(cur_hour_time, HOUR_TIME_FORMAT)
+        return dt_string
+    
     def get_current_hour_time(self):
         cur_hour_time = self.running_time.strftime(DATE_HOUR_TIME_FORMAT).split()[1]
         cur = datetime.strptime(cur_hour_time, HOUR_TIME_FORMAT)

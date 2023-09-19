@@ -94,11 +94,21 @@ class MedicineServerMain(object):
     def __init__(self):
         pass
 
+
     def handler_service(self, conn):
         unpacker = struct.Struct('I')
+        #command = "test"
+        #conn.sendall(command.encode('utf-8'))
         data = conn.recv(unpacker.size)
-        unpacked_data = unpacker.unpack(data)
-        state = unpacked_data[0]
+       # command = "test"
+       # conn.sendall(command.encode('utf-8'))
+
+        print('size', unpacker.size)
+        print('data:', data)
+        data_int = int.from_bytes(data, "big")
+        #unpacked_data = unpacker.unpack(data)
+        #state = unpacked_data[0]
+        state = data_int
         print('Got state:', state)
 
         if (state == "0"):
@@ -118,16 +128,48 @@ class MedicineServerMain(object):
             data = {DATA_TYPE : DATA_TYPE_IMAGE, DATA_FILE:file, DATA_CURRENT: cur_time }
             url = adl_env_client_lib.BASE_URL_NOTICE_FILES_RECEIVED
             adl_env_client_lib.notice_post_handler(url, data)
+           
 
             print('Post the image event', file)
 
-        elif (state == adl_type_constants.STATE_ADL_ACTIVITY_WMU_AUDIO):
+        elif (state == adl_type_constants.STATE_ADL_ACTIVITY_ROBOT_IMAGE):
+            cur_time, file = self.socket_image_handler(conn)
+
+            # send notice to the server, and the server notice the CNN modle for recognition
+            # data = {DATA_TYPE : DATA_TYPE_IMAGE, DATA_FILE:file, DATA_CURRENT: cur_time }
+            # url = adl_env_client_lib.BASE_URL_NOTICE_FILES_RECEIVED
+            # adl_env_client_lib.notice_post_handler(url, data)
+           
+
+            print('Post the image ROBOT event', file)
+
+        elif (state == adl_type_constants.STATE_ADL_ACTIVITY_ROBOT_AUDIO): #25
+
+            #command = 111
+            #conn.sendall(command)
             cur_time, file = self.socket_audio_handler(conn)
-            
+           
+            # data = {DATA_TYPE : DATA_TYPE_SOUND, DATA_FILE:file, DATA_CURRENT: cur_time }
+
+            # url = adl_env_client_lib.BASE_URL_NOTICE_FILES_RECEIVED
+            # adl_env_client_lib.notice_post_handler(url, data)
+            #command = "This is a command from the server."
+            #conn.sendall(command.encode('utf-8'))
+
+            print('Post the Robot audio event', file)
+
+        elif (state == adl_type_constants.STATE_ADL_ACTIVITY_WMU_AUDIO): #15
+
+            #command = 111
+            #conn.sendall(command)
+            cur_time, file = self.socket_audio_handler(conn)
+           
             data = {DATA_TYPE : DATA_TYPE_SOUND, DATA_FILE:file, DATA_CURRENT: cur_time }
 
             url = adl_env_client_lib.BASE_URL_NOTICE_FILES_RECEIVED
             adl_env_client_lib.notice_post_handler(url, data)
+            #command = "This is a command from the server."
+            #conn.sendall(command.encode('utf-8'))
 
             print('Post the audio event', file)
 
@@ -144,7 +186,16 @@ class MedicineServerMain(object):
 
             print('Post the motion event', file)
 
+       
+        # close conn
+
+        try:
+            conn.close()
+        except Exception as e:
+            print("error:", e)
+             
         return 0
+
 
     def server(self):
         port = adl_type_constants.ROBOT_PORT
@@ -152,6 +203,7 @@ class MedicineServerMain(object):
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
         ip = adl_type_constants.ROBOT_IP
+        print("IP:", ip)
         s.bind((ip, port))
         print("Server established! IP:", ip)
         print("PORT:",port)
@@ -224,8 +276,41 @@ class MedicineServerMain(object):
 
         return current_time, wf
 
-
+    # for watch
     def socket_image_handler(self, conn):
+        # cnt, time
+        # 1, 20220124101010
+
+        unpacker = struct.Struct('I 14s')
+        data = conn.recv(unpacker.size)
+        print('in image hanlder:', unpacker.size)
+        print('in image hanlder:', data)
+        cnt_byte = data[0:4]
+        print('cnt_byte:', cnt_byte)
+        unpacked_data = unpacker.unpack(data)
+        data = unpacked_data
+
+        #cnt = data[0]
+        cnt = int.from_bytes(cnt_byte, "big")
+        current_time = data[1].decode()
+
+        image_dir = CAM_PATH + current_time + '/'
+        util_mkdir(image_dir)
+
+        image_file = image_dir + 'image' + str(cnt) + '.jpg'
+        with open(image_file, 'wb') as f:
+            while True:
+                l = conn.recv(1024)
+                if not l: break
+                f.write(l)
+        print("Received Image:", image_file)
+
+        adl_utils.write_res_into_file(adl_type_constants.WMU_IMAGE_FILE_NOTIFICATION_FILE, image_file)
+
+
+        return current_time, image_file
+
+    def socket_image_handler_1(self, conn):
         # cnt, time
         # 1, 20220124101010
         unpacker = struct.Struct('I 14s')

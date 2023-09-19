@@ -126,7 +126,7 @@ def robot_socket_image_sending_handler(ipsend, port, cnt, current_time, file):
     s.connect((ipsend, port))
 
     # values = (wmu_type_constants.STATE_ADL_ACTIVITY_ROBOT_IMAGE)
-    values = (socket.htonl(wmu_type_constants.STATE_ADL_ACTIVITY_WMU_IMAGE)) # host to net endian
+    values = (socket.htonl(wmu_type_constants.STATE_ADL_ACTIVITY_ROBOT_IMAGE)) # host to net endian
 
     packer = struct.Struct('I')
     packed_data = packer.pack(values)

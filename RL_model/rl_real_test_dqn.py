@@ -1265,7 +1265,7 @@ def real_time_test_run():
 
 
     # for test and reload the pretrained model
-    state_size = 20
+    state_size = 26
     agent = rl_ascc_dqn.DQNAgent(state_size, action_space, episodes=500*10, epsilon = 0.001, memory_size = 1280)
 
     agent.load_weights()
@@ -1328,8 +1328,9 @@ def real_time_test_run():
 
         env.reset()
         while(pre_activity == ''):
-            # open camera
-
+            # open camere
+            
+            print('CAMS Env Running:', env.get_current_hour_time_real())
             audio_data, vision_data, motion_data, transition_motion = env.step(rl_env_ascc.WMU_FUSION_ACTION)
 
             if check_and_wait_l_o_s_m_result() == False:
@@ -1444,8 +1445,9 @@ def real_time_test_run():
             object_dict = {}
 
             # agent chose an action based on the state
-            print('Env Running:', cur_time_str, " evn.runing:", env.get_running_time()) 
+            # print('From dataset Env Running:', cur_time_str, " evn.runing:", env.get_running_time()) 
 
+            print('CAMS Env Running:', env.get_current_hour_time_real())
             # if living_room_check_flag:
             #     # env.set_current_running_time(10) # wait 6 seconds
             #     time.sleep(6)

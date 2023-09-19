@@ -49,7 +49,7 @@ def notice_post_handler(url, data):
     return 0
 
 
-def cmd_mode_sending_handler(IP, PORT, var):
+def cmd_mode_sending_handler_1(IP, PORT, var):
     port = PORT
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
     s.connect((IP, PORT))
@@ -57,6 +57,20 @@ def cmd_mode_sending_handler(IP, PORT, var):
     values = (var)
     packer = struct.Struct('I')
     packed_data = packer.pack(values)
+    s.send(packed_data)
+
+    s.close()
+
+    # for watch
+def cmd_mode_sending_handler(IP, PORT, var):
+    port = PORT
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
+    s.connect((IP, PORT))
+
+    packed_data = var.to_bytes(4, 'big')
+    #values = (var)
+    #packer = struct.Struct('I')
+    #packed_data = packer.pack(values)
     s.send(packed_data)
 
     s.close()

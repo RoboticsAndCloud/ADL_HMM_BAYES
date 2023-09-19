@@ -21,18 +21,22 @@ STATE_ADL_ACTIVITY_WMU_AUDIO = 15
 STATE_ADL_ACTIVITY_WMU_IMAGE = 16
 STATE_ADL_ACTIVITY_WMU_MOTION = 17
 
+STATE_ADL_ACTIVITY_ROBOT_AUDIO = 15
+STATE_ADL_ACTIVITY_ROBOT_IMAGE = 26
+
 WMU_MOTION_FILE_NOTIFICATION_FILE = '/home/ascc/LF_Workspace/Bayes_model/ADL_HMM_BAYES/room_motion_activity/ascc_data/notice.txt'
 WMU_AUDIO_FILE_NOTIFICATION_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/Sound-Recognition-Tutorial/ascc_data/notice.txt'
 WMU_IMAGE_FILE_NOTIFICATION_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/notice.txt'
 
 
-MOTION_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/motion/'
-AUDIO_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/audio/'
-IMAGE_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/image/'
-IMAGE_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_Monitoring_Web/website/public/image/'
+MOTION_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/09icra_real_test/motion/'
+AUDIO_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/09icra_real_test/audio/'
+IMAGE_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/09icra_real_test/image/'
+# IMAGE_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_Monitoring_Web/website/public/image/'
 
 
 DATE_TIME_FORMAT = '%Y%m%d%H%M%S'
+
 
 
 # WMU
@@ -44,6 +48,11 @@ WMU_IPSEND = '192.168.1.134'
 WMU_RECEIVE_PORT = 59100 # WMU server
 WMU_SEND_PORT = 59000 # robot server
 
+WMU_IPRECEIVE = "192.168.0.100" #TP-LINK 
+WMU_IPSEND = '192.168.0.101' # TP-LINK
+
+WMU_COMPANION_ROBOT_IPRECEIVE = "192.168.0.100" #TP-LINK, the companion robot 
+WMU_COMPANION_ROBOT_RECEIVE_PORT = 59101 # WMU server
 
 ROBOT_IP = WMU_IPSEND 
 ROBOT_PORT = WMU_SEND_PORT # robot server
