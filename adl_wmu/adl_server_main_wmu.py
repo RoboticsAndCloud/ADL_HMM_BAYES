@@ -50,6 +50,19 @@ steps = 0
 
 
 
+def test_sending_image(image_file):
+    now = datetime.now()
+    dt_string = now.strftime(DATE_TIME_FORMAT)
+    print("Date and time =", dt_string)
+
+    current_time = dt_string
+    cnt = 1
+    
+    try:
+        robot_socket_image_sending_handler(wmu_type_constants.WMU_IPSEND, wmu_type_constants.WMU_SEND_PORT, cnt, current_time, image_file)
+
+    except Exception as e:
+        print('send image file error:', image_file, ',', e)
 
 
 def handler_service(conn):
@@ -101,16 +114,19 @@ def handler_service(conn):
     elif (state == "5"):
         pass
 
-    elif (state == STATE_ACTIVITY_TRIGGER_IMAGE):
-        socket_image_handler(conn)
-    elif (state == STATE_ACTIVITY_TRIGGER_AUDIO):
-        socket_audio_handler(conn)
+    # elif (state == STATE_ACTIVITY_TRIGGER_IMAGE):
+    #     socket_image_handler(conn)
+    # elif (state == STATE_ACTIVITY_TRIGGER_AUDIO):
+    #     socket_audio_handler(conn)
     elif (state == wmu_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_MOTION):
         socket_cmd_motion_handler(conn)
         #todo record audio and send the audio
-    elif (state == wmu_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_FUSION):
-        socket_cmd_fussion_handler(conn)
+    elif (state == wmu_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_IMAGE):
+        robot_socket_cmd_taking_images_handler(conn)
         # socket_cmd_taking_images_handler(conn)
+    elif (state == wmu_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_FUSION):
+        # socket_cmd_fussion_handler(conn)
+        robot_socket_cmd_taking_images_handler(conn)
 
 
     return 0
@@ -126,6 +142,7 @@ def server():
 
     ip = wmu_type_constants.WMU_IPRECEIVE
     port = wmu_type_constants.WMU_RECEIVE_PORT
+    port = wmu_type_constants.WMU_ROBOT_RECEIVE_PORT
     s.bind((ip, port))
     print("Server established! IP:", ip)
     print("PORT:", port)
@@ -139,6 +156,12 @@ def server():
         test_file = '/home/pi/Desktop//data/motion/20220903185552//motion.txt'
         #test_sending(test_file)
         #continue
+
+        test_file = './test_sample/kitchen/image9_rotate.jpg'
+        # test_file = './test_sample/read/image9_rotate.jpg'
+        test_sending_image(test_file)
+        time.sleep(5)
+        continue
 
         try: 
             conn, addr = s.accept()

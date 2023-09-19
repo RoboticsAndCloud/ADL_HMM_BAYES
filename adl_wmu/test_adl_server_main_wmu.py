@@ -119,6 +119,31 @@ def handler_service(conn):
     return 0
 
 
+def robot_socket_image_sending_handler(ipsend, port, cnt, current_time, file):
+    # todo open the image, get the lenght, send the lenth, send the data
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((ipsend, port))
+
+    # values = (wmu_type_constants.STATE_ADL_ACTIVITY_ROBOT_IMAGE)
+    values = (socket.htonl(wmu_type_constants.STATE_ADL_ACTIVITY_WMU_IMAGE)) # host to net endian
+
+    packer = struct.Struct('I')
+    packed_data = packer.pack(values)
+    s.send(packed_data)
+
+    values = (cnt, current_time.encode())
+    packer = struct.Struct('I 14s')
+    packed_data = packer.pack(*values)
+    s.send(packed_data)
+
+    with open(file, 'rb') as f:
+        for l in f: s.sendall(l)
+    print('Image sent:', file)
+
+    s.close()
+
+    return ''
 
 def socket_image_sending_handler(ipsend, port, cnt, current_time, file):
     # todo open the image, get the lenght, send the lenth, send the data
@@ -127,6 +152,8 @@ def socket_image_sending_handler(ipsend, port, cnt, current_time, file):
     s.connect((ipsend, port))
 
     values = (wmu_type_constants.STATE_ADL_ACTIVITY_WMU_IMAGE)
+    values = (socket.htonl(wmu_type_constants.STATE_ADL_ACTIVITY_WMU_IMAGE)) # host to net endian
+
     packer = struct.Struct('I')
     packed_data = packer.pack(values)
     s.send(packed_data)
@@ -221,7 +248,9 @@ def test_sending_image(image_file):
     cnt = 1
     
     try:
-        socket_image_sending_handler(wmu_type_constants.WMU_IPSEND, wmu_type_constants.WMU_SEND_PORT, cnt, current_time, image_file)
+        # socket_image_sending_handler(wmu_type_constants.WMU_IPSEND, wmu_type_constants.WMU_SEND_PORT, cnt, current_time, image_file)
+        robot_socket_image_sending_handler(wmu_type_constants.WMU_IPSEND, wmu_type_constants.WMU_SEND_PORT, cnt, current_time, image_file)
+
 
     except Exception as e:
         print('send image file error:', image_file, ',', e)
@@ -260,17 +289,17 @@ def server():
         # time out
 
         conn = None
-        test_file = './test_sample/motion.txt'
-        # test_file = './test_sample/motion_walking.txt'
+        # test_file = './test_sample/motion.txt'
+        # # test_file = './test_sample/motion_walking.txt'
 
-        test_sending_motion(test_file)
+        # test_sending_motion(test_file)
 
         test_file = './test_sample/kitchen/image9_rotate.jpg'
         # test_file = './test_sample/read/image9_rotate.jpg'
         test_sending_image(test_file)
 
-        test_file = './test_sample/quite.wav'
-        test_sending_audio(test_file)
+        # test_file = './test_sample/quite.wav'
+        # test_sending_audio(test_file)
 
 
         time.sleep(10)

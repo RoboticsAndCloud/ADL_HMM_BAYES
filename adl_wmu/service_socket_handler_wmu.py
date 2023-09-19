@@ -432,6 +432,56 @@ def socket_cmd_motion_handler(conn):
     motion_data_saver()
     return 0
 
+
+def robot_socket_cmd_taking_images_handler(conn):
+    # capture 10 images for the activities
+    # resolution: 1920* 1080
+    # capture 5 seconds audio, 431K
+    # todo: it takes 5 seconds to take and save images, 1) reduce image size 2) do not save the image on client
+
+    camera = g_picamera
+    image_file = CAM_PATH
+
+    now = datetime.now()
+    dt_string = now.strftime(DATE_TIME_FORMAT)
+    print("Date and time =", dt_string)
+
+    current_time = dt_string
+    image_dir = image_file + current_time + '/'
+    util_mkdir(image_dir)
+
+    cnt = 0
+
+    # cam_stream = BytesIO()
+    # cam_stream_list = []
+
+    while (cnt < IMAGE_CNT):
+        image_file = image_dir + 'image' + str(cnt) + '.jpg'
+        camera.capture(image_file)
+
+        # camera.capture(cam_stream, 'jpeg')
+        # cam_stream_list.append(cam_stream)
+
+        cnt = cnt + 1
+        # print(image_file)
+
+    ### handler, sending the data
+    cnt = 0
+    start_t = timer()
+
+    while (cnt < IMAGE_CNT):
+        image_file = image_dir + 'image' + str(cnt) + '.jpg'
+
+        robot_socket_image_sending_handler(wmu_type_constants.WMU_IPSEND, wmu_type_constants.WMU_SEND_PORT, cnt, current_time, image_file)
+
+        cnt = cnt + 1
+        # print(image_file)
+
+    end_t = timer()
+    print("Sending files takes:", end_t - start_t)
+
+    return ''
+
 def socket_cmd_taking_images_handler(conn):
     # capture 10 images for the activities
     # resolution: 1920* 1080
@@ -478,6 +528,32 @@ def socket_cmd_taking_images_handler(conn):
 
     end_t = timer()
     print("Sending files takes:", end_t - start_t)
+
+    return ''
+
+def robot_socket_image_sending_handler(ipsend, port, cnt, current_time, file):
+    # todo open the image, get the lenght, send the lenth, send the data
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((ipsend, port))
+
+    values = (wmu_type_constants.STATE_ADL_ACTIVITY_ROBOT_IMAGE)
+    values = (socket.htonl(wmu_type_constants.STATE_ADL_ACTIVITY_WMU_IMAGE)) # host to net endian
+
+    packer = struct.Struct('I')
+    packed_data = packer.pack(values)
+    s.send(packed_data)
+
+    values = (cnt, current_time.encode())
+    packer = struct.Struct('I 14s')
+    packed_data = packer.pack(*values)
+    s.send(packed_data)
+
+    with open(file, 'rb') as f:
+        for l in f: s.sendall(l)
+    print('Image sent:', file)
+
+    s.close()
 
     return ''
 
