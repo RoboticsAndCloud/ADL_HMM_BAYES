@@ -65,7 +65,7 @@ g_audio_data_location = ''
 
 g_stop = False
 
-CHECK_AND_WAIT_THRESHOLD = 5 # due to wifi environment, 20 seconds is good
+CHECK_AND_WAIT_THRESHOLD = 10 # due to wifi environment, 20 seconds is good
 CHECK_AND_WAIT_THRESHOLD_MOTION = 4 # due to wifi environment, 2 seconds is good
 
 
@@ -580,6 +580,7 @@ def get_audio_type_by_activity_cnn(res_file, time_str):
 
 
     # get the results
+    print('Audio Recognition res_file:', res_file, ' time:', time_str)
     res_str = tools_ascc.read_res_from_file(res_file)
 
     
@@ -672,6 +673,27 @@ def motion_feature_extractor(motion_type):
 
     return output_matrix[0]
 
+def adl_location_feature_extractor(location):
+    # todo use private/unprivate types for the features
+    location_id = 0
+    if location in rl_env_ascc.PRIVACY_LOCATION_LIST:
+        location_id = 1
+
+    class_vector =[location_id]
+    output_matrix = to_categorical(class_vector, num_classes = rl_env_ascc.MAX_LOCATION_CLASS, dtype ="int32")
+
+    return output_matrix[0]
+
+    act_id = tools_ascc.get_key(tools_ascc.LOCATION_DICT, location)
+
+    class_vector =[act_id]
+    # print(class_vector)
+
+    # Applying the function on input class vector
+    #from keras.utils import to_categorical
+    output_matrix = to_categorical(class_vector, num_classes = len(tools_ascc.LOCATION_DICT), dtype ="int32")
+
+    return output_matrix[0]
 
 def adl_hidden_feature_extractor(act):
     # motion_type, motion_type_prob = get_motion_type_by_activity_cnn(cur_time_str)
@@ -711,7 +733,16 @@ def check_and_wait_l_o_s_m_result():
 
         # if g_motion_recognition_flag:
         #     return True
-            
+        
+        # # without sound
+        # print('g_image_recognition_flag:', g_image_recognition_flag)
+        # print('g_motion_recognition_flag:', g_motion_recognition_flag)
+        # print('g_image_object_recognition_flag:', g_image_object_recognition_flag)
+        # print('g_sound_recognition_flag:', g_sound_recognition_flag)
+
+        # if g_image_recognition_flag and g_motion_recognition_flag and g_image_object_recognition_flag:
+        #     return True
+
         if g_image_recognition_flag and g_motion_recognition_flag and g_sound_recognition_flag and g_image_object_recognition_flag:
             return True
         
@@ -770,7 +801,6 @@ bayes_model_location = motion_adl_bayes_model.Bayes_Model_Vision_Location(hmm_mo
 bayes_model_motion = motion_adl_bayes_model.Bayes_Model_Motion(hmm_model=hmm_model, simulation=False)
 bayes_model_audio = motion_adl_bayes_model.Bayes_Model_Audio(hmm_model=hmm_model, simulation=False)
 bayes_model_object = motion_adl_bayes_model.Bayes_Model_Vision_Object(hmm_model=hmm_model, simulation=False)
-
 
 cur_activity_prob = 0
 pre_activity = ''
@@ -1331,7 +1361,9 @@ def real_time_test_run():
             # open camere
             
             print('CAMS Env Running:', env.get_current_hour_time_real())
-            audio_data, vision_data, motion_data, transition_motion = env.step(rl_env_ascc.WMU_FUSION_ACTION)
+            # audio_data, vision_data, motion_data, transition_motion = env.step(rl_env_ascc.WMU_FUSION_ACTION)
+            audio_data, vision_data, motion_data, transition_motion = env.step(rl_env_ascc.ROBOT_FUSION_ACTION)
+
 
             if check_and_wait_l_o_s_m_result() == False:
                 # pass
@@ -1398,6 +1430,10 @@ def real_time_test_run():
 
         state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
 
+        # location_type, type_prob = get_location_type_by_activity_cnn(cur_time_str)
+        location_type = bayes_model_location.get_location()
+        location_feature = adl_location_feature_extractor(location_type) # [0, 0, 0, 0, 0, 1]
+        state = state + list(location_feature)
 
         state_size = len(state)
         state = np.reshape(state, [1, state_size])
@@ -1663,6 +1699,12 @@ def real_time_test_run():
             #next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature + current_activity_duration_feature
             # next_state = next_motion_feature + battery_feature + previous_motion_feature + current_activity_feature  
             next_state = transition_feature + current_activity_feature + robot_trigger_feature + battery_feature
+
+            location_type = bayes_model_location.get_location()
+            location_feature = adl_location_feature_extractor(location_type) # [0, 0, 0, 0, 0, 1]
+            next_state = next_state + list(location_feature)
+
+            print("CAMS State: transiton[", pre_motion_type, ' ', motion_type, ']', " activity[",  current_activity, ']', ' robot_feature[', robot_trigger_feature, ']', ' watch_feature[', battery_feature, ']')
 
             #next_state = next_motion_feature + battery_feature + current_activity_feature  
             #next_state = battery_feature + current_activity_feature

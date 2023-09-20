@@ -256,6 +256,7 @@ class Bayes_Model_Vision_Location(object):
         self.base_date = base_date
 
         self.activity_dict_init()
+        self.location = ''
 
 
     def activity_dict_init(self):
@@ -279,6 +280,9 @@ class Bayes_Model_Vision_Location(object):
 
     def set_location_prob(self, prob):
         self.location_prob = prob
+
+    def get_location(self):
+        return self.location
 
     def get_prob(self, pre_activity_list, act_name, location, act_duration, mode = None):
         """ Return the state set of this model. """

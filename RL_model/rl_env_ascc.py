@@ -120,6 +120,8 @@ INTERVAL_FOR_COLLECTING_DATA = 10 # Seconds
 #WMU_VISION_ACTION = 1
 WMU_FUSION_ACTION = 0
 
+ROBOT_FUSION_ACTION = 6
+
 WMU_audio = "WMU_audio"
 WMU_vision = "WMU_vision"
 Nothing = "Nothing"
@@ -678,11 +680,11 @@ class EnvASCC():
                                                                 adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_MOTION)
                 #self.motion_check_times += 1
             elif RL_ACTION_DICT[p_action] == WMU_vision or RL_ACTION_DICT[p_action] == Robot_vision:
-                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
-                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_IMAGE)
+                # adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+                #                                             adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_IMAGE)
                 
                 # send cmd to the robots
-                if RL_ACTION_DICT[p_action] == Robot_audio_vision or RL_ACTION_DICT[p_action] == Robot_audio_WMU_vision :
+                if RL_ACTION_DICT[p_action] == Robot_audio_vision or RL_ACTION_DICT[p_action] == Robot_audio_WMU_vision or RL_ACTION_DICT[p_action] == Robot_vision:
                     adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_COMPANION_ROBOT_IPRECEIVE, adl_type_constants.WMU_COMPANION_ROBOT_RECEIVE_PORT,
                                                             adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_IMAGE)
     
@@ -691,7 +693,7 @@ class EnvASCC():
                                                             adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_AUDIO)
         
         except Exception as e:
-            print("Got error when Send cmd to WMU, err:", e, " p_action:", p_action)
+            print("Got error when Send cmd to WMU, err:", e, " p_action:", p_action, ' ip2:', adl_type_constants.WMU_IPRECEIVE)
             #logging.warn('Got error when Send cmd to WMU')
             #logging.warn(e)
 
