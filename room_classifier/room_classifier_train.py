@@ -3,6 +3,7 @@ from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
 from keras.layers import Input, Flatten, Dense, GlobalAveragePooling2D
 from keras.models import Model
 from keras.applications.xception import Xception, preprocess_input, decode_predictions
+from keras.applications.mobilenet import MobileNet
 from keras.models import Sequential
 
 from keras.regularizers import l2
@@ -123,6 +124,91 @@ def make_model(input_shape=(IMG_WIDTH, IMG_HEIGHT, 3), num_classes=6):
 
     return model
 
+def vgg19_model(img_shape=(224, 224, 3), n_classes=1000, l2_reg=0.,
+	weights=None):
+
+	# Initialize model
+	vgg19 = Sequential()
+
+	# Layer 1 & 2
+	vgg19.add(Conv2D(64, (3, 3), padding='same',
+		input_shape=img_shape, kernel_regularizer=l2(l2_reg)))
+	vgg19.add(Activation('relu'))
+	vgg19.add(ZeroPadding2D((1, 1)))
+	vgg19.add(Conv2D(64, (3, 3), padding='same'))
+	vgg19.add(Activation('relu'))
+	vgg19.add(MaxPooling2D(pool_size=(2, 2)))
+
+	# Layer 3 & 4
+	vgg19.add(ZeroPadding2D((1, 1)))
+	vgg19.add(Conv2D(128, (3, 3), padding='same'))
+	vgg19.add(Activation('relu'))
+	vgg19.add(ZeroPadding2D((1, 1)))
+	vgg19.add(Conv2D(128, (3, 3), padding='same'))
+	vgg19.add(Activation('relu'))
+	vgg19.add(MaxPooling2D(pool_size=(2, 2)))
+
+	# Layer 5, 6, 7, & 8
+	vgg19.add(ZeroPadding2D((1, 1)))
+	vgg19.add(Conv2D(256, (3, 3), padding='same'))
+	vgg19.add(Activation('relu'))
+	vgg19.add(ZeroPadding2D((1, 1)))
+	vgg19.add(Conv2D(256, (3, 3), padding='same'))
+	vgg19.add(Activation('relu'))
+	vgg19.add(ZeroPadding2D((1, 1)))
+	vgg19.add(Conv2D(256, (3, 3), padding='same'))
+	vgg19.add(Activation('relu'))
+	vgg19.add(ZeroPadding2D((1, 1)))
+	vgg19.add(Conv2D(256, (3, 3), padding='same'))
+	vgg19.add(Activation('relu'))
+	vgg19.add(MaxPooling2D(pool_size=(2, 2)))
+
+	# Layers 9, 10, 11, & 12
+	vgg19.add(ZeroPadding2D((1, 1)))
+	vgg19.add(Conv2D(512, (3, 3), padding='same'))
+	vgg19.add(Activation('relu'))
+	vgg19.add(ZeroPadding2D((1, 1)))
+	vgg19.add(Conv2D(512, (3, 3), padding='same'))
+	vgg19.add(Activation('relu'))
+	vgg19.add(ZeroPadding2D((1, 1)))
+	vgg19.add(Conv2D(512, (3, 3), padding='same'))
+	vgg19.add(Activation('relu'))
+	vgg19.add(ZeroPadding2D((1, 1)))
+	vgg19.add(Conv2D(512, (3, 3), padding='same'))
+	vgg19.add(Activation('relu'))
+	vgg19.add(MaxPooling2D(pool_size=(2, 2)))
+
+	# Layers 13, 14, 15, & 16
+	vgg19.add(ZeroPadding2D((1, 1)))
+	vgg19.add(Conv2D(512, (3, 3), padding='same'))
+	vgg19.add(Activation('relu'))
+	vgg19.add(ZeroPadding2D((1, 1)))
+	vgg19.add(Conv2D(512, (3, 3), padding='same'))
+	vgg19.add(Activation('relu'))
+	vgg19.add(ZeroPadding2D((1, 1)))
+	vgg19.add(Conv2D(512, (3, 3), padding='same'))
+	vgg19.add(Activation('relu'))
+	vgg19.add(ZeroPadding2D((1, 1)))
+	vgg19.add(Conv2D(512, (3, 3), padding='same'))
+	vgg19.add(Activation('relu'))
+	vgg19.add(MaxPooling2D(pool_size=(2, 2)))
+
+	# Layers 17, 18, & 19
+	vgg19.add(Flatten())
+	vgg19.add(Dense(4096))
+	vgg19.add(Activation('relu'))
+	vgg19.add(Dropout(0.5))
+	vgg19.add(Dense(4096))
+	vgg19.add(Activation('relu'))
+	vgg19.add(Dropout(0.5))
+	vgg19.add(Dense(n_classes))
+	vgg19.add(Activation('softmax'))
+
+	if weights is not None:
+		vgg19.load_weights(weights)
+
+	return vgg19
+
 def AlexnetModel1(input_shape=(IMG_WIDTH, IMG_HEIGHT, 3),num_classes=6, l2_reg=0.):
     # Initialize model
     alexnet = Sequential()
@@ -195,18 +281,22 @@ def AlexnetModel(input_shape=(IMG_WIDTH, IMG_HEIGHT, 3),num_classes=6):
         pooling='max'
     )
 
-    efficient_net = EfficientNetB3(
-        weights='imagenet',
-        input_shape=input_shape,
-        include_top=False,
-        pooling='max'
-    )    
+#    efficient_net = EfficientNetB3(
+#        weights='imagenet',
+#        input_shape=input_shape,
+#        include_top=False,
+#        pooling='max'
+#    )    
     
     model = Sequential()
     model.add(mobile_net)
+    model.summary()
 
     #model = Sequential()
-    model.add(Conv2D(filters=96,kernel_size=(3,3),strides=(4,4),input_shape=input_shape, activation='relu'))
+    #model.add(Conv2D(filters=96,kernel_size=(3,3),strides=(4,4),input_shape=input_shape, activation='relu'))
+    #model.add(Conv2D(filters=96,kernel_size=(3,3),strides=(4,4), activation='relu'))
+    model.add(Flatten())
+    model.add(Conv2D(64,(5,5),padding='same',activation='relu'))
     model.add(MaxPooling2D(pool_size=(2,2),strides=(2,2)))
     model.add(Conv2D(256,(5,5),padding='same',activation='relu'))
     model.add(MaxPooling2D(pool_size=(2,2),strides=(2,2)))
@@ -227,7 +317,7 @@ def AlexnetModel(input_shape=(IMG_WIDTH, IMG_HEIGHT, 3),num_classes=6):
     model.compile(loss='categorical_crossentropy', optimizer=Adam(learning_rate=learning_rate), metrics=['accuracy'])
         #model.compile(optimizer='adam',loss='categorical_crossentropy',metrics=['accuracy'])
         
-        #model.summary()
+    model.summary()
     return model
 
 def create_model(num_classes):
@@ -375,7 +465,7 @@ m = AlexnetModel1()
 # Run this several times until you get good acurracy in validation (wachout of overfitting)
 # for i in range(MAX_EPOCH):
 #     train(train_generator, validation_generator, m)
-train2(train_generator, validation_generator, m, epoch=60)
+train2(train_generator, validation_generator, m, epoch=150)
 
 
 
