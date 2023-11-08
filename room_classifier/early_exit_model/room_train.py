@@ -138,8 +138,8 @@ def train():
     model.save(MODEL_SAVED_PATH)
 
 
-train()
-exit(0)
+#train()
+#exit(0)
 
 #set location of the training data
 datadir = "./watch_data/labelled"
@@ -148,7 +148,9 @@ datadir = "./watch_data/labelled"
 categories = ["bathroom","bedroom","kitchen", "livingroom", "corridor", "lobby"]
 categories = ['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
 
+
 img_size = 299     # resize all the images to one size
+channel = 3
 training_data=[]
 create_training_data(categories,datadir,img_size,training_data)
 random.shuffle(training_data)
@@ -158,8 +160,14 @@ for features,label in training_data:
     X.append(features)
     y.append(label)
 
-X=np.array(X).reshape(-1,img_size,img_size,1)  #(cannot pass list directly, -1=(calculates the array size), size,1=gray scale)
+print(len(X))
+
+X=np.array(X).reshape(-1,img_size,img_size,channel)  #(cannot pass list directly, -1=(calculates the array size), size,1=gray scale)
 class_num=keras.utils.np_utils.to_categorical(y,num_classes=len(categories))   #one-hot encoder for cateorical values
+
+print('reshape:')
+print(len(X))
+print(X.ndim)
 
 X=X/255.0
 
@@ -205,7 +213,7 @@ test_img = './Images_test' + '/' + 'hunter_room.jpg'
 test_img = './watch_data/Images_test' + '/' + 'kitchen.jpg'
 img_array = cv2.imread(test_img,cv2.IMREAD_GRAYSCALE)
 new_array = cv2.resize(img_array, (img_size, img_size))
-new_array=new_array.reshape(-1,img_size, img_size,1)
+new_array=new_array.reshape(-1,img_size, img_size,channel)
 prediction = model.predict([new_array])
 print(prediction)
 print(categories[np.argmax(prediction)])

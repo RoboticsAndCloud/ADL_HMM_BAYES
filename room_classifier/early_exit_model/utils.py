@@ -26,7 +26,8 @@ def create_training_data(categories,datadir,img_size,training_data):
         class_num = categories.index(category) 
         for img in os.listdir(path):
             try:
-                img_array = cv2.imread(os.path.join(path,img), cv2.IMREAD_GRAYSCALE) #read image and convert to gray scale
+                #img_array = cv2.imread(os.path.join(path,img), cv2.IMREAD_GRAYSCALE) #read image and convert to gray scale
+                img_array = cv2.imread(os.path.join(path,img), cv2.IMREAD_COLOR) #read image as colored
                 new_array = cv2.resize(img_array,(img_size,img_size))
                 random_rotation(new_array)
                 training_data.append([new_array,class_num])
