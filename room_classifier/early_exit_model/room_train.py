@@ -125,7 +125,8 @@ def train():
         X.append(features)
         y.append(label)
     
-    X=np.array(X).reshape(-1,img_size,img_size,1)  #(cannot pass list directly, -1=(calculates the array size), size,1=gray scale)
+    #X=np.array(X).reshape(-1,img_size,img_size,1)  #(cannot pass list directly, -1=(calculates the array size), size,1=gray scale)
+    X=np.array(X).reshape(-1,img_size,img_size,3)  #(cannot pass list directly, -1=(calculates the array size), size,3=color)
     class_num=keras.utils.np_utils.to_categorical(y,num_classes=len(categories))   #one-hot encoder for cateorical values
     
     X=X/255.0
@@ -138,8 +139,8 @@ def train():
     model.save(MODEL_SAVED_PATH)
 
 
-#train()
-#exit(0)
+train()
+exit(0)
 
 #set location of the training data
 datadir = "./watch_data/labelled"
@@ -211,7 +212,8 @@ print('executing prediction')
 test_img = './Images_test' + '/' + 'hunter_room.jpg'
 #test_img = './Images_test' + '/' + 'bedroom.jpg'
 test_img = './watch_data/Images_test' + '/' + 'kitchen.jpg'
-img_array = cv2.imread(test_img,cv2.IMREAD_GRAYSCALE)
+#img_array = cv2.imread(test_img,cv2.IMREAD_GRAYSCALE)
+img_array = cv2.imread(test_img,cv2.IMREAD_COLOR)
 new_array = cv2.resize(img_array, (img_size, img_size))
 new_array=new_array.reshape(-1,img_size, img_size,channel)
 prediction = model.predict([new_array])
