@@ -1,1 +1,3 @@
 https://github.com/sathyanataraja/CNN-MIT-Indoor-Scene-Recognition
+
+https://github.com/giulio-derasmo/Experimenting-with-modularity-in-deep-learning/blob/main/Early_exit_notebook.ipynb

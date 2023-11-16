@@ -44,22 +44,25 @@ IMG_WIDTH, IMG_HEIGHT = 299, 299 # set this according to keras documentation, ea
 BATCH_SIZE = 50 # decrease this if your computer explodes
 MAX_EPOCH = 20
 
+img_size = 299     # resize all the images to one size
+#img_size = 32     # resize all the images to one size
+
 def AlexnetModel1(input_shape=(IMG_WIDTH, IMG_HEIGHT, 3),num_classes=6, l2_reg=0.):
     # Initialize model
     alexnet = Sequential()
 
     # Layer 1
-    alexnet.add(Conv2D(96, (11, 11), input_shape=input_shape,
+    alexnet.add(Conv2D(96, (3,3), input_shape=input_shape,
         padding='same', kernel_regularizer=l2(l2_reg)))
     alexnet.add(BatchNormalization())
     alexnet.add(Activation('relu'))
     alexnet.add(MaxPooling2D(pool_size=(2, 2)))
 
-    # Layer 2
-    alexnet.add(Conv2D(256, (5, 5), padding='same'))
-    alexnet.add(BatchNormalization())
-    alexnet.add(Activation('relu'))
-    alexnet.add(MaxPooling2D(pool_size=(2, 2)))
+  #  # Layer 2
+  #  alexnet.add(Conv2D(256, (5, 5), padding='same'))
+  #  alexnet.add(BatchNormalization())
+  #  alexnet.add(Activation('relu'))
+  #  alexnet.add(MaxPooling2D(pool_size=(2, 2)))
 
     # Layer 3
     alexnet.add(ZeroPadding2D((1, 1)))
@@ -68,12 +71,12 @@ def AlexnetModel1(input_shape=(IMG_WIDTH, IMG_HEIGHT, 3),num_classes=6, l2_reg=0
     alexnet.add(Activation('relu'))
     alexnet.add(MaxPooling2D(pool_size=(2, 2)))
 
-    # Layer 4
-    alexnet.add(ZeroPadding2D((1, 1)))
-    alexnet.add(Conv2D(128, (3, 3), padding='same'))
-    alexnet.add(BatchNormalization())
-    alexnet.add(Activation('relu'))
-
+#    # Layer 4
+#    alexnet.add(ZeroPadding2D((1, 1)))
+#    alexnet.add(Conv2D(128, (3, 3), padding='same'))
+#    alexnet.add(BatchNormalization())
+#    alexnet.add(Activation('relu'))
+#
     # Layer 5
     alexnet.add(ZeroPadding2D((1, 1)))
     alexnet.add(Conv2D(128, (3, 3), padding='same'))
@@ -115,7 +118,9 @@ def train():
     categories = ["bathroom","bedroom","kitchen", "livingroom", "corridor", "lobby"]
     categories = ['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
     
-    img_size = 299     # resize all the images to one size
+    #img_size = 299     # resize all the images to one size
+    global img_size
+
     training_data=[]
     create_training_data(categories,datadir,img_size,training_data)
     random.shuffle(training_data)
@@ -125,18 +130,23 @@ def train():
         X.append(features)
         y.append(label)
     
+    print('shape:', len(X))
     #X=np.array(X).reshape(-1,img_size,img_size,1)  #(cannot pass list directly, -1=(calculates the array size), size,1=gray scale)
     X=np.array(X).reshape(-1,img_size,img_size,3)  #(cannot pass list directly, -1=(calculates the array size), size,3=color)
     class_num=keras.utils.np_utils.to_categorical(y,num_classes=len(categories))   #one-hot encoder for cateorical values
     
     X=X/255.0
 
+    print('reshape:', X.shape[1:])
+    print('shape:', len(X))
+    #X=np.array(X).reshape(-1,img_size,img_size,1)  #(cannot pass list directly, -1=(calculates the array size), size,1=gray scale)
     model = AlexnetModel1(input_shape = X.shape[1:])
     model.fit(X, class_num, epochs=15, batch_size=32,validation_split=0.2)
     print('model fit complete')
 
     MODEL_SAVED_PATH = 'watch-saved-model-alex'
     model.save(MODEL_SAVED_PATH)
+    print("train AlexNet")
 
 
 train()
@@ -150,7 +160,6 @@ categories = ["bathroom","bedroom","kitchen", "livingroom", "corridor", "lobby"]
 categories = ['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
 
 
-img_size = 299     # resize all the images to one size
 channel = 3
 training_data=[]
 create_training_data(categories,datadir,img_size,training_data)
