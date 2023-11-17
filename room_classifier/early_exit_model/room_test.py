@@ -11,8 +11,14 @@ IMG_WIDTH, IMG_HEIGHT = 299, 299 # set this according to keras documentation, ea
 BATCH_SIZE = 200 # decrease this if your computer explodes
 TEST_DIR = './test'
 TEST_DIR = "./room_samples_0831/"
+TEST_DIR = '/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/watch_dataset/Image/test/'
 IMAGE_SIZE = 299
+#IMAGE_SIZE = 32
 
+MODEL_SAVED_PATH = 'watch-saved-model'
+MODEL_SAVED_PATH = 'watch-saved-model-exit1'
+#MODEL_SAVED_PATH = 'watch-saved-model-alex'
+#MODEL_SAVED_PATH = '/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/watch-saved-model'
 
 def create_generators(train_data_dir, validation_data_dir):
     # Read Data and Augment it: Make sure to select augmentations that are appropriate to your images.
@@ -91,14 +97,15 @@ def get_file_count_of_dir(dir, prefix=''):
 
 
 # makes the prediction of the file path image passed as parameter 
-def predict(file, model, to_class):
-    img_array = cv2.imread(file,cv2.IMREAD_GRAYSCALE)
+def predict(imgfile, model, to_class):
+    #img_array = cv2.imread(file,cv2.IMREAD_GRAYSCALE)
+    img_array = cv2.imread(imgfile,cv2.IMREAD_COLOR)
     new_array = cv2.resize(img_array, (IMAGE_SIZE, IMAGE_SIZE))
-    new_array=new_array.reshape(-1,IMAGE_SIZE, IMAGE_SIZE, 1)
+    new_array=new_array.reshape(-1,IMAGE_SIZE, IMAGE_SIZE, 3)
     prediction = model.predict([new_array])
     return to_class[np.argmax(prediction)]
 
-    im = load_img(file, target_size=(IMG_WIDTH, IMG_HEIGHT))
+    im = load_img(imgfile, target_size=(IMG_WIDTH, IMG_HEIGHT))
     x = img_to_array(im)
     x = np.expand_dims(x, axis=0)
     x = preprocess_input(x)
@@ -173,7 +180,7 @@ def room_sample_plot():
 def test():
     # execute this when you want to load the model
     from keras.models import load_model
-    MODEL_SAVED_PATH = 'watch-saved-model'
+    #MODEL_SAVED_PATH = 'watch-saved-model'
 
     ml = load_model(MODEL_SAVED_PATH)
     ml.summary()
@@ -272,7 +279,7 @@ def get_confusion_matrix():
 
 def test_confusion_matrix(file_dir):
     from keras.models import load_model
-    MODEL_SAVED_PATH = 'watch-saved-model'
+    #MODEL_SAVED_PATH = 'watch-saved-model'
 
     ml = load_model(MODEL_SAVED_PATH)
     
@@ -307,9 +314,12 @@ def test_confusion_matrix(file_dir):
    # for num,img in enumerate(images):
     for imgfile in files:
             print('file:', imgfile)
+            #if -1 == imgfile.find('bedroom'):
+            #    continue
             #print('*****************************')
             label = predict(str(imgfile), ml, class_names)
             predict_res.append(label)
+            print('predict label:', label)
 
             # if label == 'bedroom':
             #     continue
