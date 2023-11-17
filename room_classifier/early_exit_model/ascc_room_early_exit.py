@@ -41,7 +41,11 @@ import matplotlib.pyplot as plt
 import time
 
 import tensorflow as tf
+# utils
+import pickle
 
+
+EPOCHS = 15
 
 class ExitBranch(tf.keras.layers.Layer):
     "Exit classifier branch"
@@ -105,7 +109,14 @@ print('----------------------------one')
 name = "{}-conv-{}-nodes-{}-dense-{}".format(conv_layer,layer_size,dense_layer,int(time.time()))
 print(name)
 print('shape:', X.shape[1:])
-tensorboard = TensorBoard(log_dir='.\logs{}'.format(name))
+tensorboard = TensorBoard(log_dir='./log/logs{}'.format(name))
+
+
+# define callback: Early Stopping 
+early_stopping_callback  = tf.keras.callbacks.EarlyStopping(monitor = 'val_accuracy', 
+                                                            patience = 10,
+                                                            restore_best_weights = True, 
+                                                            verbose = 1)
 
 def modelFull(model_name='full'):
   model = models.Sequential()
@@ -124,11 +135,21 @@ def modelFull(model_name='full'):
 
   model.compile(optimizer='adam',loss='categorical_crossentropy',metrics=['accuracy'])
   model.summary()
-  model.fit(X, class_num, epochs=15, batch_size=32,validation_split=0.2,callbacks=[tensorboard])
+  # model.fit(X, class_num, epochs=15, batch_size=32,validation_split=0.2,callbacks=[tensorboard])
+
+
+    # ---------- TRAINING --------------------
+  tf.keras.utils.set_random_seed(1)
+  with tf.device('/GPU:0'):
+      history = model.fit(X, class_num, epochs=EPOCHS, batch_size=32,validation_split=0.2,callbacks=[early_stopping_callback])
+  # ---------- SAVE -------------------------
+  with open(f'history_exitVggnet11_training1.pkl', 'wb') as f:
+      pickle.dump(history.history, f)
   print('model fit complete')
 
   MODEL_SAVED_PATH = 'watch-saved-model-' + model_name
   model.save(MODEL_SAVED_PATH)
+
 
   return model
 
@@ -151,15 +172,63 @@ def modelExit1(model_name='exit1'):
 
   model.compile(optimizer='adam',loss='categorical_crossentropy',metrics=['accuracy'])
   model.summary()
-  model.fit(X, class_num, epochs=15, batch_size=32,validation_split=0.2,callbacks=[tensorboard])
+  # model.fit(X, class_num, epochs=15, batch_size=32,validation_split=0.2,callbacks=[tensorboard])
+  # print('model fit complete')
+
+  # MODEL_SAVED_PATH = 'watch-saved-model-' + model_name
+  # model.save(MODEL_SAVED_PATH)
+
+    # ---------- TRAINING --------------------
+  tf.keras.utils.set_random_seed(1)
+  with tf.device('/GPU:0'):
+      history = model.fit(X, class_num, epochs=EPOCHS, batch_size=32,validation_split=0.2,callbacks=[early_stopping_callback])
+  # ---------- SAVE -------------------------
+  with open(f'history_exitVggnet11_training1.pkl', 'wb') as f:
+      pickle.dump(history.history, f)
   print('model fit complete')
 
   MODEL_SAVED_PATH = 'watch-saved-model-' + model_name
   model.save(MODEL_SAVED_PATH)
+  return model
 
 
-model = modelFull()
-# model = modelExit1()
+def modelExit2(model_name='exit2'):
+  model = models.Sequential()
+  model.add(Conv2D(layer_size,(3,3), input_shape = X.shape[1:]))
+  model.add(Activation("relu"))
+  model.add(MaxPooling2D(pool_size=(2,2)))
+  for l in range(conv_layer-1):
+      model.add(Conv2D(layer_size,(3,3)))
+      model.add(Activation("relu"))
+      model.add(MaxPooling2D(pool_size=(2,2)))
+
+  model.add(Flatten())
+  model.add(Dense(layer_size, activation='relu'))
+  exit_layer = ExitBranch(num_classes=len(categories))
+  model.add(exit_layer)
+   
+
+  model.compile(optimizer='adam',loss='categorical_crossentropy',metrics=['accuracy'])
+  model.summary()
+
+    # ---------- TRAINING --------------------
+  tf.keras.utils.set_random_seed(1)
+  with tf.device('/GPU:0'):
+      history = model.fit(X, class_num, epochs=EPOCHS, batch_size=32,validation_split=0.2,callbacks=[early_stopping_callback])
+  # ---------- SAVE -------------------------
+  with open(f'history_exitVggnet11_training1.pkl', 'wb') as f:
+      pickle.dump(history.history, f)
+  print('model fit complete')
+
+  MODEL_SAVED_PATH = 'watch-saved-model-' + model_name
+  model.save(MODEL_SAVED_PATH)
+  return model
+
+
+
+#model = modelFull()
+model = modelExit1()
+#model = modelExit2()
 
 
 
