@@ -47,6 +47,7 @@ import pickle
 
 EPOCHS = 15
 
+
 class ExitBranch(tf.keras.layers.Layer):
     "Exit classifier branch"
     def __init__(self, num_classes):
@@ -94,8 +95,9 @@ print(len(X))
 X=np.array(X).reshape(-1,img_size,img_size,channel)  #(cannot pass list directly, -1=(calculates the array size), size,1=gray scale)
 class_num=keras.utils.np_utils.to_categorical(y,num_classes=len(categories))   #one-hot encoder for cateorical values
 
-print('reshape:')
+print('reshape: len X {}, len(class_num) {}', len(X), len(class_num))
 print(len(X))
+print(len(class_num))
 print(X.ndim)
 
 X=X/255.0
@@ -104,6 +106,7 @@ X=X/255.0
 dense_layer=4
 layer_size=128
 conv_layer=2
+
 
 print('----------------------------one')
 name = "{}-conv-{}-nodes-{}-dense-{}".format(conv_layer,layer_size,dense_layer,int(time.time()))
@@ -123,7 +126,7 @@ def modelFull(model_name='full'):
   model.add(Conv2D(layer_size,(3,3), input_shape = X.shape[1:]))
   model.add(Activation("relu"))
   model.add(MaxPooling2D(pool_size=(2,2)))
-  for l in range(conv_layer-1):
+  for l in range(conv_layer):
       model.add(Conv2D(layer_size,(3,3)))
       model.add(Activation("relu"))
       model.add(MaxPooling2D(pool_size=(2,2)))
@@ -143,7 +146,7 @@ def modelFull(model_name='full'):
   with tf.device('/GPU:0'):
       history = model.fit(X, class_num, epochs=EPOCHS, batch_size=32,validation_split=0.2,callbacks=[early_stopping_callback])
   # ---------- SAVE -------------------------
-  with open(f'history_exitVggnet11_training1.pkl', 'wb') as f:
+  with open(f'history_exitVggnet11_training1.pkl'+model_name, 'wb') as f:
       pickle.dump(history.history, f)
   print('model fit complete')
 
@@ -178,12 +181,12 @@ def modelExit1(model_name='exit1'):
   # MODEL_SAVED_PATH = 'watch-saved-model-' + model_name
   # model.save(MODEL_SAVED_PATH)
 
-    # ---------- TRAINING --------------------
+  # ---------- TRAINING --------------------
   tf.keras.utils.set_random_seed(1)
   with tf.device('/GPU:0'):
       history = model.fit(X, class_num, epochs=EPOCHS, batch_size=32,validation_split=0.2,callbacks=[early_stopping_callback])
   # ---------- SAVE -------------------------
-  with open(f'history_exitVggnet11_training1.pkl', 'wb') as f:
+  with open(f'history_exitVggnet11_training1.pkl'+model_name, 'wb') as f:
       pickle.dump(history.history, f)
   print('model fit complete')
 
@@ -197,13 +200,14 @@ def modelExit2(model_name='exit2'):
   model.add(Conv2D(layer_size,(3,3), input_shape = X.shape[1:]))
   model.add(Activation("relu"))
   model.add(MaxPooling2D(pool_size=(2,2)))
-  for l in range(conv_layer-1):
+  for l in range(conv_layer):
       model.add(Conv2D(layer_size,(3,3)))
       model.add(Activation("relu"))
       model.add(MaxPooling2D(pool_size=(2,2)))
 
-  model.add(Flatten())
-  model.add(Dense(layer_size, activation='relu'))
+  #model.add(Flatten())
+  #model.add(Dense(layer_size, activation='relu'))
+  #model.add(Dense(len(categories), activation='softmax'))   
   exit_layer = ExitBranch(num_classes=len(categories))
   model.add(exit_layer)
    
@@ -211,12 +215,12 @@ def modelExit2(model_name='exit2'):
   model.compile(optimizer='adam',loss='categorical_crossentropy',metrics=['accuracy'])
   model.summary()
 
-    # ---------- TRAINING --------------------
+  # ---------- TRAINING --------------------
   tf.keras.utils.set_random_seed(1)
   with tf.device('/GPU:0'):
       history = model.fit(X, class_num, epochs=EPOCHS, batch_size=32,validation_split=0.2,callbacks=[early_stopping_callback])
   # ---------- SAVE -------------------------
-  with open(f'history_exitVggnet11_training1.pkl', 'wb') as f:
+  with open(f'history_exitVggnet11_training1.pkl'+model_name, 'wb') as f:
       pickle.dump(history.history, f)
   print('model fit complete')
 
@@ -226,11 +230,33 @@ def modelExit2(model_name='exit2'):
 
 
 
-#model = modelFull()
-model = modelExit1()
+model = modelFull()
+#model = modelExit1()
 #model = modelExit2()
 
 
+# define parameters for the plotting
+params_dict = {"axes.titlesize" : 24, "axes.labelsize" : 20,
+               "lines.linewidth" : 4, "lines.markersize" : 10,
+               "xtick.labelsize" : 16,"ytick.labelsize" : 16}
+# load the history
+with open('history_vggnet11_base.pkl', 'rb') as f:
+    history = pickle.load(f)
+# Learning curves
+with plt.rc_context(params_dict):
+    fig, ax = plt.subplots(1, 2, figsize = (20, 7))
+
+    fig.suptitle("Learning curves of the model", fontsize = 25)
+    ax[0].plot(history['loss'], label = "train", color = "blue")
+    ax[0].plot(history['val_loss'], label = "val", color = "red")
+    ax[0].legend(fontsize = 20)
+    ax[0].set_xlabel("Epochs"); ax[0].set_ylabel("Loss")
+
+    ax[1].plot(history['sparse_categorical_accuracy'], label = "train", color = "blue")
+    ax[1].plot(history['val_sparse_categorical_accuracy'], label = "val", color = "red")
+    ax[1].legend(fontsize = 20)
+    ax[1].set_xlabel("Epochs"); ax[1].set_ylabel("Accuracy")
+    plt.show()
 
 
 #predicting
@@ -239,6 +265,7 @@ print('executing prediction')
 test_img = './Images_test' + '/' + 'hunter_room.jpg'
 #test_img = './Images_test' + '/' + 'bedroom.jpg'
 test_img = './watch_data/Images_test' + '/' + 'kitchen.jpg'
+test_img = './watch_data/Images_test' + '/' + 'bedroom.jpg'
 #img_array = cv2.imread(test_img,cv2.IMREAD_GRAYSCALE)
 img_array = cv2.imread(test_img,cv2.IMREAD_COLOR)
 new_array = cv2.resize(img_array, (img_size, img_size))
