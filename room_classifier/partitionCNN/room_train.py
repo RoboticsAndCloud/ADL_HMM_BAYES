@@ -122,17 +122,17 @@ def AlexnetModel2(input_shape=(IMG_WIDTH, IMG_HEIGHT, 3),num_classes=6, l2_reg=0
     conv_1 = Conv2D(96, (11, 11), strides=(4, 4), padding='same',  activation='relu',name='conv_1')(inputs)
     #conv_1 = BatchNormalization()(conv_1)
     conv_1 = MaxPooling2D((3, 3), strides=(2, 2), padding='same')(conv_1)
-    #conv_1 = ZeroPadding2D((2,2))(conv_1)
+    conv_1 = ZeroPadding2D((2,2))(conv_1)
 
     conv_2 = Conv2D(256,(5,5),activation='relu', padding='same')(conv_1)
     conv_2 = MaxPooling2D((3,3), strides=(2, 2), padding='same')(conv_2)
-    #conv_2 = ZeroPadding2D((1,1))(conv_2)
+    conv_2 = ZeroPadding2D((1,1))(conv_2)
 
     conv_3 = Conv2D(384, (3, 3), activation='relu', padding='same', name='Part_1')(conv_2)
-    #conv_4 = ZeroPadding2D((1,1))(conv_3)
+    conv_4 = ZeroPadding2D((1,1))(conv_3)
 
     conv_4 = Conv2D(384, (3,3),activation='relu', padding='same')(conv_3)
-    #conv_4 = ZeroPadding2D((1,1))(conv_4)
+    conv_4 = ZeroPadding2D((1,1))(conv_4)
 
     conv_5 = Conv2D(384, (3,3),activation='relu', padding='same')(conv_4)
     conv_5 = MaxPooling2D((3, 3), strides=(2, 2), padding='same')(conv_5)
@@ -147,8 +147,8 @@ def AlexnetModel2(input_shape=(IMG_WIDTH, IMG_HEIGHT, 3),num_classes=6, l2_reg=0
     dense_3 = Dense(num_classes,activation='softmax', name='Part_Final')(dense_2)
 
     p_outputs = [conv_3, dense_3]
-    #alexnet = Model(inputs=inputs, outputs=dense_3)
-    alexnet = Model(inputs=inputs, outputs=p_outputs)
+    alexnet = Model(inputs=inputs, outputs=dense_3)
+    #alexnet = Model(inputs=inputs, outputs=p_outputs)
     alexnet.summary()
 
     learning_rate = 0.001
@@ -190,7 +190,7 @@ def train():
     model = AlexnetModel2(input_shape = X.shape[1:])
     for layer in model.layers:
         print('Layer:', layer)
-    model.fit(X, class_num, epochs=25, batch_size=32,validation_split=0.2)
+    model.fit(X, class_num, epochs=30, batch_size=32,validation_split=0.2)
     print('model fit complete')
 
     MODEL_SAVED_PATH = 'watch-saved-model-alex'
@@ -198,6 +198,7 @@ def train():
     print("train AlexNet")
 
     print('executing prediction')
+    channel = 3
     test_img = './Images_test' + '/' + 'hunter_room.jpg'
     #test_img = './Images_test' + '/' + 'bedroom.jpg'
     test_img = './watch_data/Images_test' + '/' + 'kitchen.jpg'
