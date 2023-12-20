@@ -30,10 +30,12 @@ def classify_image(interpreter, image, top_k=2):
 
   output_details = interpreter.get_output_details()
   print("output details:", output_details)
-  output_details = interpreter.get_output_details()[1]
+  output_details = interpreter.get_output_details()[0]
   print("output2 details:", output_details)
   output = np.squeeze(interpreter.get_tensor(output_details['index']))
   print('output1:', output)
+  print('output1:', type(output))
+  print('output1:', output.shape)
   prediction_classes = np.argmax(output)
   print('prediction_classes:', prediction_classes)
 
