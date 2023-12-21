@@ -1,12 +1,69 @@
 import imghdr
 from tflite_runtime.interpreter import Interpreter
+#from keras.models import load_model
 from PIL import Image
 import numpy as np
 import time
 import os
 # import tensorflow as tf
 # from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
+IMG_WIDTH, IMG_HEIGHT = 299, 299
 
+def AlexnetModel2(input_shape=(IMG_WIDTH, IMG_HEIGHT, 3),num_classes=6, l2_reg=0.):
+    """
+    https://github.com/visionatseecs/keras-starter/blob/main/keras_alexnet.ipynb
+    https://colab.research.google.com/gist/SuryanarayanaY/07c54cc27046514599476fc0edd9b58f/43379-sr1.ipynb#scrollTo=h4jjjeqNfGMc
+    https://github.com/pravinkr/alexnet-cifar10-using-keras/blob/master/cifar_10_with_Alexnet.ipynb
+    """
+    print('AlexnetModel2:')
+    inputs = Input(shape=input_shape)
+
+    conv_1 = Conv2D(96, (11, 11), strides=(4, 4), padding='same',  activation='relu',name='conv_1')(inputs)
+    #conv_1 = BatchNormalization()(conv_1)
+    conv_1 = MaxPooling2D((3, 3), strides=(2, 2), padding='same')(conv_1)
+    conv_1 = ZeroPadding2D((2,2))(conv_1)
+
+    conv_2 = Conv2D(256,(5,5),activation='relu', padding='same')(conv_1)
+    conv_2 = MaxPooling2D((3,3), strides=(2, 2), padding='same')(conv_2)
+    conv_2 = ZeroPadding2D((1,1))(conv_2)
+
+    conv_3 = Conv2D(384, (3, 3), activation='relu', padding='same', name='Part_1')(conv_2)
+    conv_4 = ZeroPadding2D((1,1))(conv_3)
+
+    conv_4 = Conv2D(384, (3,3),activation='relu', padding='same')(conv_3)
+    conv_4 = ZeroPadding2D((1,1))(conv_4)
+
+    conv_5 = Conv2D(384, (3,3),activation='relu', padding='same')(conv_4)
+    conv_5 = MaxPooling2D((3, 3), strides=(2, 2), padding='same')(conv_5)
+
+    dense_1 = Flatten()(conv_5)
+    dense_1 = Dense(384, activation='relu')(dense_1)
+    dense_1 = Dropout(0.5)(dense_1)
+
+    dense_2 = Dense(384, activation='relu')(dense_1)
+    dense_2 = Dropout(0.5)(dense_2)
+
+    dense_3 = Dense(num_classes,activation='softmax', name='Part_Final')(dense_2)
+
+    p_outputs = [conv_3, dense_3]
+    alexnet = Model(inputs=inputs, outputs=dense_3)
+    #alexnet = Model(inputs=inputs, outputs=p_outputs)
+    alexnet.summary()
+
+    learning_rate = 0.001
+    batch_size = 128
+    alexnet.compile(loss='categorical_crossentropy', optimizer=Adam(learning_rate=learning_rate), metrics=['accuracy'])
+
+    return alexnet
+
+MODEL_SAVED_PATH = 'watch-saved-model-alex'
+
+
+
+def server_call(model, inputs, layer_start):
+  for layer in model.layers[layer_start:]:
+    inputs = layer(inputs)
+  return inputs
 
 
 def load_labels(path): # Read the labels from the text file as a Python list.
@@ -32,6 +89,7 @@ def classify_image(interpreter, image, top_k=2):
   print("output details:", output_details)
   output_details = interpreter.get_output_details()[0]
   print("output2 details:", output_details)
+  p_inputs = output_details
   output = np.squeeze(interpreter.get_tensor(output_details['index']))
   print('output1:', output)
   print('output1:', type(output))
@@ -45,6 +103,12 @@ def classify_image(interpreter, image, top_k=2):
 
   # ordered = np.argpartition(-output, 1)
   # print('ordered:', ordered)
+  #layer_end = 8
+  #base_model = AlexnetModel2()
+  #base_model.summary()
+  #res = server_call(base_model, p_inputs, layer_end)
+  #print('res:', res)
+
 
   return prediction_classes, output[prediction_classes]
 

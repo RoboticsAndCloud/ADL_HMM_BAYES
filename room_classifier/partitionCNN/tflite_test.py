@@ -49,13 +49,29 @@ print(type(prediction[0][0]))
 print(prediction[0][0].shape)
 print(prediction[1])
 print(len(prediction))
+p_inputs = prediction[0]
+
 prediction = prediction[1][0]
 categories = ['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
 print(categories[np.argmax(prediction)])
 
 
 
+#functions for partition call
+def mobile_call(model, inputs, layer_end):
+  for layer in model.layers[:layer_end]:
+    inputs = layer(inputs)
+  return inputs
 
+
+def server_call(model, inputs, layer_start):
+  for layer in model.layers[layer_start:]:
+    inputs = layer(inputs)
+  return inputs
+
+layer_end = 8
+res = server_call(model, p_inputs, layer_end)
+print('res:', res)
 
 res_model = 'watch-saved-model-alex_multioutput.tflite'
 # Convert and save the model.
@@ -74,3 +90,6 @@ input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
 
 print(output_details)
+
+
+
