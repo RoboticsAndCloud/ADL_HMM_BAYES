@@ -40,6 +40,7 @@ channel = 3
 test_img = './Images_test' + '/' + 'hunter_room.jpg'
 #test_img = './Images_test' + '/' + 'bedroom.jpg'
 test_img = './watch_data/Images_test' + '/' + 'kitchen.jpg'
+test_img = '/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/partitionCNN/test_img/20230425115416.jpg'
 #img_array = cv2.imread(test_img,cv2.IMREAD_GRAYSCALE)
 img_array = cv2.imread(test_img,cv2.IMREAD_COLOR)
 new_array = cv2.resize(img_array, (img_size, img_size))
@@ -71,7 +72,8 @@ def server_call(model, inputs, layer_start):
 
 layer_end = 8
 res = server_call(model, p_inputs, layer_end)
-print('res:', res)
+print('================')
+print('partion from Tensor Flow model res:', res)
 
 res_model = 'watch-saved-model-alex_multioutput.tflite'
 # Convert and save the model.
