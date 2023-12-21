@@ -1,0 +1,39 @@
+https://github.com/sathyanataraja/CNN-MIT-Indoor-Scene-Recognition
+
+https://github.com/giulio-derasmo/Experimenting-with-modularity-in-deep-learning/blob/main/Early_exit_notebook.ipynb
+
+
+Test
+
+file: /home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/partitionCNN/test_img/20230425115416.jpg
+Pred: bathroom
+
+=================================================================
+TensorFlow model result: bathroom
+
+                                                                 
+Total params: 29,260,294
+Trainable params: 29,260,294
+Non-trainable params: 0
+_________________________________________________________________
+file: /home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/partitionCNN/test_img/20230425115416.jpg
+Pred: bathroom
+file: /home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/partitionCNN/test_img/20230425115410.jpg
+Pred: bathroom
+
+=================================================================
+TensorLite model Result: Living room
+
+/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/watch_dataset/Image/test/0/20230425115410.jpg
+interpreter: <tflite_runtime.interpreter.Interpreter object at 0x7ff02b711450>
+label id: 3
+Classificaiton Time = 0.051 seconds.
+Image Label is : livingroom , with Accuracy : 100.0 %.
+
+
+=================================================================
+Parti_server: living room
+   [ 0.        0.        0.       ...  0.        0.        0.      ]]]], shape=(1, 23, 23, 384), dtype=float32)
+server output
+[[0. 0. 0. 1. 0. 0.]]
+
