@@ -191,6 +191,9 @@ def test():
     test_img = './Images_test' + '/' + 'hunter_room.jpg'
     #test_img = './Images_test' + '/' + 'bedroom.jpg'
     test_img = './watch_data/Images_test' + '/' + 'kitchen.jpg'
+    test_img = '/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/watch_dataset/Image/test/0/20230426121804.jpg'
+    test_img = '/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/watch_dataset/Image/test/0/20230426121525.jpg'
+    test_img = '/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/watch_dataset/Image/test/0/20230425115410.jpg'
 
     image = Image.open(test_img).convert('RGB').resize((width, height))
     # image = Image.open(data_folder_image + "Livingroom(WatchTV).jpg").convert('RGB').resize((width, height))

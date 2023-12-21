@@ -197,9 +197,9 @@ def test():
 
 
     # Retreive 9 random images from directory
-
-    files=Path(TEST_DIR).resolve().glob('*.*')
-    test_sample= get_file_count_of_dir(TEST_DIR)
+    test_dir = './test_img'
+    files=Path(test_dir).resolve().glob('*.*')
+    test_sample= get_file_count_of_dir(test_dir)
 
     images=random.sample(list(files), test_sample)
 
@@ -208,9 +208,9 @@ def test():
     # rows,cols = 3,3
     fig = plt.figure(figsize=(36,36))
     rows, cols = 6, 7
-
+    #img = '/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/watch_dataset/Image/test/0/20230426121525.jpg'
     for num,img in enumerate(images):
-            file = img
+            file = str(img)
             print('file:', file)
             label = predict(file, ml, class_names)
 
@@ -350,9 +350,9 @@ if __name__ == "__main__":
     print('Test running:===========================================================\n')
     test()
     # room_sample_plot()
-    get_confusion_matrix()
+    #get_confusion_matrix()
     # test_confusion_matrix('./room_dataset/test/1')
 
 
 
-get_confusion_matrix
+#get_confusion_matrix

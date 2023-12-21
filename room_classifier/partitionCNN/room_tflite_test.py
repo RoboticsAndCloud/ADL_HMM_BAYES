@@ -5,9 +5,12 @@ from PIL import Image
 import numpy as np
 import time
 import os
+import socket
+import pickle
 # import tensorflow as tf
 # from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
 IMG_WIDTH, IMG_HEIGHT = 299, 299
+model_path = "./watch-saved-model-alex_multioutput.tflite"
 
 def AlexnetModel2(input_shape=(IMG_WIDTH, IMG_HEIGHT, 3),num_classes=6, l2_reg=0.):
     """
@@ -85,30 +88,74 @@ def classify_image(interpreter, image, top_k=2):
   #output_tensor = interpreter.tensor(interpreter.get_output_details()[layer_index]['index'])
   #print('layer {:10s}, output_tensor:{}'.format(layer_index, output_tensor))
 
+ # output_details = interpreter.get_output_details()
+ ## print("output details:", output_details)
+ # output_details = interpreter.get_output_details()[0]
+ ## print("output2 details:", output_details)
+ # p_inputs = output_details
+ # print('part1 output :', interpreter.get_tensor(output_details['index']))
+ # # send out to the server
+ # output = np.squeeze(interpreter.get_tensor(output_details['index']))
+ # print('output1:', output)
+ # print('output1:', type(output))
+ # print('output1:', output.shape)
+ # prediction_classes = np.argmax(output)
+ # print('prediction_classes:', prediction_classes)
+
+ # scale, zero_point = output_details['quantization']
+ # # output = scale * (output - zero_point)
+ # # print('output:', output)
+
+ # # ordered = np.argpartition(-output, 1)
+ # # print('ordered:', ordered)
+ # #layer_end = 8
+ # #base_model = AlexnetModel2()
+ # #base_model.summary()
+ # #res = server_call(base_model, p_inputs, layer_end)
+ # #print('res:', res)
+
+ # # Send partition result to server
+
+ # partition_outputs = interpreter.get_tensor(output_details['index'])
+ # #saver_part=np.save('partial_data.npy', partition_outputs.numpy())
+ # print('partition_outputs:')
+ # print(partition_outputs)
+ # part_output= partition_outputs
+ # 
+ # 
+ # 
+ # TCP_IP2 = '10.227.97.123'
+ # TCP_PORT2 = 5006
+ # 
+ # s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+ # s.connect((TCP_IP2,TCP_PORT2))
+ # 
+ # data_part=pickle.dumps(part_output, protocol=pickle.HIGHEST_PROTOCOL)
+ # 
+ # 
+ # s.sendall(data_part)
+ # 
+ # #data=s.recv(4096)
+ # #data_arr=pickle.loads(data)
+ # 
+ # #data=s.recv(4096)
+ # s.close()
+ # 
+ # print('Final Output')
+
   output_details = interpreter.get_output_details()
-  print("output details:", output_details)
-  output_details = interpreter.get_output_details()[0]
-  print("output2 details:", output_details)
+  #print("output details:", output_details)
+  output_details = interpreter.get_output_details()[1]
+  #print("output2 details:", output_details)
   p_inputs = output_details
+  #print('part1 output :', interpreter.get_tensor(output_details['index']))
+  # send out to the server
   output = np.squeeze(interpreter.get_tensor(output_details['index']))
-  print('output1:', output)
-  print('output1:', type(output))
-  print('output1:', output.shape)
+  #print('output1:', output)
+  #print('output1:', type(output))
+  #print('output1:', output.shape)
   prediction_classes = np.argmax(output)
-  print('prediction_classes:', prediction_classes)
-
-  scale, zero_point = output_details['quantization']
-  # output = scale * (output - zero_point)
-  # print('output:', output)
-
-  # ordered = np.argpartition(-output, 1)
-  # print('ordered:', ordered)
-  #layer_end = 8
-  #base_model = AlexnetModel2()
-  #base_model.summary()
-  #res = server_call(base_model, p_inputs, layer_end)
-  #print('res:', res)
-
+  #print('prediction_classes:', prediction_classes)
 
   return prediction_classes, output[prediction_classes]
 
@@ -118,7 +165,8 @@ def test():
 
     #model_path = "./home_model.tflite"
     #model_path = "./home_model_default_onlinedataset.tflite"
-    model_path = "./watch-saved-model-alex_multioutput.tflite"
+    #model_path = "./watch-saved-model-alex_multioutput.tflite"
+    global model_path
 
     # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, hallway:4, door:5
     labels=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
@@ -145,6 +193,10 @@ def test():
     test_img = './Images_test' + '/' + 'hunter_room.jpg'
     #test_img = './Images_test' + '/' + 'bedroom.jpg'
     test_img = './watch_data/Images_test' + '/' + 'kitchen.jpg'
+    test_img = '/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/watch_dataset/Image/test/0/20230426121804.jpg'
+    test_img = '/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/watch_dataset/Image/test/0/20230425115416.jpg'
+    test_img = '/home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/watch_dataset/Image/test/0/20230425115410.jpg'
+    print(test_img)
 
     image = Image.open(test_img).convert('RGB').resize((width, height))
     # image = Image.open(data_folder_image + "Livingroom(WatchTV).jpg").convert('RGB').resize((width, height))
@@ -318,6 +370,7 @@ def get_confusion_matrix():
             y_test.extend(test_truth_label)
             print('len test_truth_label:', len(test_truth_label))
             print('len y_test:', len(y_test))
+            print('test_dir:', test_dir)
 
             predict_res = test_confusion_matrix(test_dir)
             print('len(predict_res):', len(predict_res))
@@ -325,6 +378,7 @@ def get_confusion_matrix():
                 if predict_res[index] == test_truth_label[index]:
                     accurate_count += 1
             y_pred.extend(predict_res)
+        break
 
 
     import matplotlib.pyplot as plt
@@ -345,7 +399,7 @@ def get_confusion_matrix():
     cm = plot_confusion_matrix(conf_mat=mat, class_names=class_names, show_normed=True, figsize=(7,7))
     plt.show()
     #plt.savefig("room_cm_tflite_online_mnetv2.png")
-    plt.savefig("room_cm_tflite_ascc_e0net.png")
+    plt.savefig("room_cm_tflite_alexnet.png")
 
 
 # makes the prediction of the file path image passed as parameter 
@@ -409,10 +463,12 @@ def predict(file, model, to_class, width, height):
 def test_confusion_matrix(file_dir):
     #model_path = "./home_model.tflite"
     #model_path = "./home_default_model.tflite"
-    model_path = "./home_16_size_model.tflite"
-    model_path = "./home_model_default_onlinedataset.tflite"
-    model_path = "./ascc_efficientNet_model_default.tflite"
+    #model_path = "./home_16_size_model.tflite"
+    #model_path = "./home_model_default_onlinedataset.tflite"
+    #model_path = "./ascc_efficientNet_model_default.tflite"
     #model_path = "./ascc_mobilev2_model_default.tflite"
+
+    global model_path
 
     # bathroom: 0, bedroom:1, kitchen:2, livingroom:3, hallway:4, door:5
     labels=['bathroom','bedroom', 'kitchen','livingroom', 'hallway', 'door']
@@ -454,6 +510,7 @@ def test_confusion_matrix(file_dir):
 
     for num,img in enumerate(images):
             file = img
+            print('file name:', file)
             label = predict(file, interpreter, class_names, width, height)
             predict_res.append(label)
 
