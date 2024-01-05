@@ -389,7 +389,7 @@ class EnvASCC():
                 self.motion_check_times += 1
         
         except Exception as e:
-            print("Got error when Send cmd to WMU, err:", e, " p_action:", p_action)
+            print("Got error when Send cmd to WMU, err:", e, " p_action:", p_action, ' ip:', )
             logging.warn('Got error when Send cmd to WMU')
             logging.warn(e)
 

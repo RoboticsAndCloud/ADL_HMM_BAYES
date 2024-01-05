@@ -17,6 +17,9 @@ BASE_URL_NOTICE_RECOGNITION_RES = 'http://127.0.0.1:5000/notice_recognition'
 BASE_URL_NOTICE_FILES_RECEIVED = 'http://127.0.0.1:5000/notice_files'
 BASE_URL_PUSH = 'http://127.0.0.1:5000/push'
 
+BASE_URL_NOTICE_ROBOT_FILES_RECEIVED = 'http://127.0.0.1:5000/notice_files_from_robot'
+
+
 
 state = -1
 activeTime = 1

@@ -37,6 +37,9 @@ DATA_TYPE_IMAGE = 'image'
 DATA_TYPE_SOUND = 'audio'
 DATA_TYPE_MOTION = 'motion'
 
+DATA_TYPE_IMAGE_ROBOT = 'image_robot'
+
+
 
 
 STATE_HEARTBEAT = 0
@@ -135,10 +138,13 @@ class MedicineServerMain(object):
         elif (state == adl_type_constants.STATE_ADL_ACTIVITY_ROBOT_IMAGE):
             cur_time, file = self.socket_image_handler(conn)
 
+            # todo: 
+
             # send notice to the server, and the server notice the CNN modle for recognition
-            # data = {DATA_TYPE : DATA_TYPE_IMAGE, DATA_FILE:file, DATA_CURRENT: cur_time }
+            data = {DATA_TYPE : DATA_TYPE_IMAGE_ROBOT, DATA_FILE:file, DATA_CURRENT: cur_time }
             # url = adl_env_client_lib.BASE_URL_NOTICE_FILES_RECEIVED
-            # adl_env_client_lib.notice_post_handler(url, data)
+            url = adl_env_client_lib.BASE_URL_NOTICE_ROBOT_FILES_RECEIVED
+            adl_env_client_lib.notice_post_handler(url, data)
            
 
             print('Post the image ROBOT event', file)

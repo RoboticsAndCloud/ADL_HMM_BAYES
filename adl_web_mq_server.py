@@ -10,6 +10,8 @@ from flask import request
 DATA_FILE_RECEIVED_FROM_WMU_EVENT_NAME = 'DATA_FILE_RECEIVED_FROM_WMU'
 DATA_RECOGNITION_FROM_WMU_EVENT_NAME = 'DATA_RECOGNITION_FROM_WMU'
 
+DATA_FILE_RECEIVED_FROM_ROBOT_EVENT_NAME = 'DATA_FILE_RECEIVED_FROM_ROBOT'
+
 DATA_RECOGNITION_FINAL_TO_ADL_EVENT_NAME = 'DATA_RECOGNITION_TO_ADL'
 
 STOP_ADL_SERVER = 'stop_adl_server'
@@ -58,6 +60,17 @@ def notice():
     print('data:', data)
     
     event_name = DATA_FILE_RECEIVED_FROM_WMU_EVENT_NAME
+    broadcasted_data = data
+    socketio.emit(event_name, broadcasted_data, namespace=name_space)
+    return 'done!'
+
+
+@app.route('/notice_files_from_robot', methods=['GET', 'POST'])
+def notice():
+    data = request.json
+    print('data:', data)
+    
+    event_name = DATA_FILE_RECEIVED_FROM_ROBOT_EVENT_NAME
     broadcasted_data = data
     socketio.emit(event_name, broadcasted_data, namespace=name_space)
     return 'done!'
