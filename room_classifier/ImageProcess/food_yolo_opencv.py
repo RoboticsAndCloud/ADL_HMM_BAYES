@@ -17,6 +17,7 @@ import utils
 # import image_rotate
 ASCC_DATA_NOTICE_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/notice.txt'
 ASCC_DATA_YOLOV3_RES_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/recognition_yolov3_result.txt'
+ASCC_DATA_YOLOV3_RES_FILE_FROM_ROBOT = '/home/ascc/LF_Workspace/Motion-Trigered-Activity/home_room_classification/keras-image-room-clasification/ascc_data/recognition_yolov3_result_from_robot.txt'
 
 
 ap = argparse.ArgumentParser()
@@ -466,7 +467,7 @@ def object_detection(image_str, image_save_path):
 
     return res
 
-def run_cnn_model(file, cur_time):
+def run_cnn_model(file, cur_time, res_file=ASCC_DATA_YOLOV3_RES_FILE):
     image_dir = '/home/ascc/asccbot_v3/wearable_device_new_design/server/images/'
     res_dir = '/home/ascc/asccbot_v3/wearable_device_new_design/server/images_food_res/'
 
@@ -527,7 +528,7 @@ def run_cnn_model(file, cur_time):
 
         res.extend(tmp_res)
 
-    write_res_into_file(ASCC_DATA_YOLOV3_RES_FILE, res) 
+    write_res_into_file(res_file, res) 
 
     # print("Pred: ", res)
 
@@ -597,6 +598,9 @@ DATA_RECOGNITION_FROM_WMU_EVENT_NAME = 'DATA_RECOGNITION_FROM_WMU'
 
 DATA_RECOGNITION_FINAL_TO_ADL_EVENT_NAME = 'DATA_RECOGNITION_TO_ADL'
 
+
+DATA_FILE_RECEIVED_FROM_ROBOT_EVENT_NAME = 'DATA_FILE_RECEIVED_FROM_ROBOT'
+
 DATA_TYPE = 'type'
 DATA_CURRENT = 'current_time'
 DATA_FILE = 'file'
@@ -633,6 +637,28 @@ async def on_message(data):
         pass
     event_name = DATA_RECOGNITION_FROM_WMU_EVENT_NAME
     data = {DATA_TYPE : DATA_TYPE_IMAGE_YOLO, DATA_FILE:ASCC_DATA_YOLOV3_RES_FILE, DATA_CURRENT: cur_time }
+    await sio.emit(event_name, data)
+    print('send recognition :', data)
+
+@sio.on(DATA_FILE_RECEIVED_FROM_ROBOT_EVENT_NAME)
+async def on_message(data):
+    try:
+        if data[DATA_TYPE] != DATA_TYPE_IMAGE:
+            return
+        print('Got new data:', data)
+
+        cur_time = data[DATA_CURRENT]
+        file = data[DATA_FILE]
+        print('cur_time:', cur_time, 'file:', file)
+        
+        run_cnn_model(file, cur_time, res_file=ASCC_DATA_YOLOV3_RES_FILE_FROM_ROBOT)
+
+    except Exception as e:
+        print('Got error:', e)
+        return
+        pass
+    event_name = DATA_RECOGNITION_FROM_WMU_EVENT_NAME
+    data = {DATA_TYPE : DATA_TYPE_IMAGE_YOLO, DATA_FILE:ASCC_DATA_YOLOV3_RES_FILE_FROM_ROBOT, DATA_CURRENT: cur_time }
     await sio.emit(event_name, data)
     print('send recognition :', data)
 

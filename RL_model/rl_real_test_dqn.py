@@ -65,7 +65,7 @@ g_audio_data_location = ''
 
 g_stop = False
 
-CHECK_AND_WAIT_THRESHOLD = 10 # due to wifi environment, 20 seconds is good
+CHECK_AND_WAIT_THRESHOLD = 20 # due to wifi environment, 20 seconds is good
 CHECK_AND_WAIT_THRESHOLD_MOTION = 4 # due to wifi environment, 2 seconds is good
 
 
@@ -749,11 +749,39 @@ def check_and_wait_l_o_s_m_result():
         end = timer()
 
         if (end-start) > CHECK_AND_WAIT_THRESHOLD:
-            print("Get_prediction losm time out cost:", end-start)  
+            # print("Get_prediction losm time out cost:", end-start)  
 
             break
 
     return False
+
+# TODO logfunc, decorator method 
+
+def check_and_wait_l_o_m_result():
+    global g_image_recognition_flag
+    global g_image_recognition_file
+    global g_image_recognition_time
+
+    global g_image_object_recognition_flag
+    global g_image_object_recognition_file
+    global g_image_object_recognition_time
+
+
+    start = timer()
+    while(True):
+
+        if g_image_recognition_flag and g_image_object_recognition_flag:
+            return True
+        
+        end = timer()
+
+        if (end-start) > CHECK_AND_WAIT_THRESHOLD:
+            # print("Get_prediction lom time out cost:", end-start)  
+
+            break
+
+    return False
+
 
 def check_and_wait_motion_result():
 
@@ -1002,6 +1030,7 @@ def get_activity_by_action(cur_time_str, action, pre_act = '', pre_act_symbol_li
 
     location, location_prob = get_location_by_activity_cnn(g_image_recognition_file, g_image_recognition_time)
     bayes_model_location.set_location_prob(location_prob)
+    bayes_model_location.set_location(location)
 
     # tools_ascc.ASCC_DATA_YOLOV3_RES_FILE
     object_dict = get_object_by_activity_yolo(g_image_object_recognition_file, g_image_object_recognition_time)
@@ -1131,12 +1160,12 @@ def get_activity_by_action(cur_time_str, action, pre_act = '', pre_act_symbol_li
                     bayes_model_object.set_object_prob(res_object_p)
                     p4 = bayes_model_object.get_prob(pre_act_list, act, res_object, activity_duration)
 
-        print("act:", act)
-        print("p1:", p1)
-        print("p2:", p2)
-        print("p3:", p3)
-        print("p4:", p4)
-        print("hmm_prob:", hmm_prob)
+        # print("act:", act)
+        # print("p1:", p1)
+        # print("p2:", p2)
+        # print("p3:", p3)
+        # print("p4:", p4)
+        # print("hmm_prob:", hmm_prob)
         # print("pre_act_symbol_list:", pre_act_symbol_list)
 
         p = p1*p2*p3*p4 * hmm_prob
@@ -1361,8 +1390,8 @@ def real_time_test_run():
             # open camere
             
             print('CAMS Env Running:', env.get_current_hour_time_real())
-            # audio_data, vision_data, motion_data, transition_motion = env.step(rl_env_ascc.WMU_FUSION_ACTION)
-            audio_data, vision_data, motion_data, transition_motion = env.step(rl_env_ascc.ROBOT_FUSION_ACTION)
+            audio_data, vision_data, motion_data, transition_motion = env.step(rl_env_ascc.WMU_FUSION_ACTION)
+            # audio_data, vision_data, motion_data, transition_motion = env.step(rl_env_ascc.ROBOT_FUSION_ACTION)
 
 
             if check_and_wait_l_o_s_m_result() == False:
@@ -1507,6 +1536,14 @@ def real_time_test_run():
                 if check_and_wait_l_o_s_m_result() == False:
                     # pass
                     continue
+
+            if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.WMU_vision  \
+                or rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Robot_vision:
+                
+                # check location object and motion
+                if check_and_wait_l_o_m_result() == False:
+                    # pass
+                    continue
             
             if rl_env_ascc.RL_ACTION_DICT[action] == rl_env_ascc.Nothing:
                 # wait for motion data
@@ -1600,7 +1637,7 @@ def real_time_test_run():
                 rank_res.append((detected_activity, '1', cur_time_str))
             
             end_t_iter = timer()
-            print(" 1 each iter takes:", end_t_iter - start_t_iter)
+            # print(" 1 each iter takes:", end_t_iter - start_t_iter)
 
             # TODO: in real test, cur_activity = detected_activity
 
@@ -1703,8 +1740,10 @@ def real_time_test_run():
             location_type = bayes_model_location.get_location()
             location_feature = adl_location_feature_extractor(location_type) # [0, 0, 0, 0, 0, 1]
             next_state = next_state + list(location_feature)
-
-            print("CAMS State: transiton[", pre_motion_type, ' ', motion_type, ']', " activity[",  current_activity, ']', ' robot_feature[', robot_trigger_feature, ']', ' watch_feature[', battery_feature, ']')
+            
+            print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+            print("CAMS State: transiton[", pre_motion_type, ' ', motion_type, ']'," location[", location_type, ']', " activity[",  current_activity, ']', ' robot_feature[', robot_trigger_feature, ']', ' watch_feature[', battery_feature, ']')
+            print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 
             #next_state = next_motion_feature + battery_feature + current_activity_feature  
             #next_state = battery_feature + current_activity_feature
@@ -1719,7 +1758,7 @@ def real_time_test_run():
             previous_motion_feature = next_motion_feature
 
             end_t_iter = timer()
-            print("each iter takes:", end_t_iter - start_t_iter)
+            # print("each iter takes:", end_t_iter - start_t_iter)
 
 
 
@@ -1894,6 +1933,8 @@ DATA_TYPE_MOTION = 'motion'
 DATA_TYPE_IMAGE_YOLO = 'yolo'
 DATA_LOCATION = 'data_location'
 
+DATA_TYPE_IMAGE_ROBOT = 'image_robot'
+
 
 STOP_ADL_SERVER = 'stop_adl_server'
 
@@ -1910,10 +1951,12 @@ async def on_message(data):
     global g_stop
     g_stop = True
 
+# DATA_RECOGNITION_FINAL_TO_ADL_EVENT_NAME_FROM_ROBOT = 'DATA_RECOGNITION_TO_ADL_FROM_ROBOT'
 @sio.on(DATA_RECOGNITION_FINAL_TO_ADL_EVENT_NAME)
 async def on_message(data):
     try:
-        if data['type'] == DATA_TYPE_IMAGE:
+        # todo: data type from the robot recognition, DATA_TYPE_IMAGE
+        if data['type'] == DATA_TYPE_IMAGE or data['type'] == DATA_TYPE_IMAGE_ROBOT:
             print('Get image recognition:', data)
             global g_image_recognition_flag
             global g_image_recognition_file

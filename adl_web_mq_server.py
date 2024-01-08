@@ -11,8 +11,14 @@ DATA_FILE_RECEIVED_FROM_WMU_EVENT_NAME = 'DATA_FILE_RECEIVED_FROM_WMU'
 DATA_RECOGNITION_FROM_WMU_EVENT_NAME = 'DATA_RECOGNITION_FROM_WMU'
 
 DATA_FILE_RECEIVED_FROM_ROBOT_EVENT_NAME = 'DATA_FILE_RECEIVED_FROM_ROBOT'
+DATA_RECOGNITION_FROM_ROBOT_EVENT_NAME = 'DATA_RECOGNITION_FROM_ROBOT'
 
 DATA_RECOGNITION_FINAL_TO_ADL_EVENT_NAME = 'DATA_RECOGNITION_TO_ADL'
+
+DATA_RECOGNITION_FINAL_TO_ADL_EVENT_NAME_FROM_ROBOT = 'DATA_RECOGNITION_TO_ADL_FROM_ROBOT'
+
+
+
 
 STOP_ADL_SERVER = 'stop_adl_server'
 
@@ -93,6 +99,18 @@ def on_msg_recognition_result(data):
     socketio.emit(event_name, broadcasted_data, namespace=name_space)
     print('Got recognition result:', data)
     return 'done!'
+
+@socketio.on(DATA_RECOGNITION_FROM_ROBOT_EVENT_NAME, namespace=name_space)
+def on_msg_recognition_result(data):
+    # send the notice to the main to get the recognition results
+    # event_name = DATA_RECOGNITION_FINAL_TO_ADL_EVENT_NAME_FROM_ROBOT  # the data includes the notice file type: recognition_robot_result.txt or notice.txt(wmu image), so we can share the type DATA_RECOGNITION_FINAL_TO_ADL_EVENT_NAME
+    event_name = DATA_RECOGNITION_FINAL_TO_ADL_EVENT_NAME
+
+    broadcasted_data = data
+    socketio.emit(event_name, broadcasted_data, namespace=name_space)
+    print('Got recognition result:', data)
+    return 'done!'
+
 
 
 # @socketio.on(DATA_FILE_RECEIVED_FROM_WMU_EVENT_NAME, namespace=name_space)

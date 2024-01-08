@@ -279,6 +279,9 @@ class Bayes_Model_Vision_Location(object):
     def set_location_prob(self, prob):
         self.location_prob = prob
 
+    def get_location(self):
+        return self.location
+
     def get_prob(self, pre_activity_list, act_name, location, act_duration, mode = None):
         """ Return the state set of this model. """
         p = 0
