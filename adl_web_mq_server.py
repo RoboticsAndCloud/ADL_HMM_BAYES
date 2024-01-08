@@ -66,7 +66,7 @@ def notice():
 
 
 @app.route('/notice_files_from_robot', methods=['GET', 'POST'])
-def notice():
+def notice_files_from_robot():
     data = request.json
     print('data:', data)
     

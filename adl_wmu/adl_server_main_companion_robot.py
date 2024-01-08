@@ -157,7 +157,7 @@ def server():
         #test_sending(test_file)
         #continue
 
-        test_file = './test_sample/kitchen/image9_rotate.jpg'
+        test_file = './home/ascc/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier/test_room/shot_0_002-478.jpg'
         # test_file = './test_sample/read/image9_rotate.jpg'
         test_sending_image(test_file)
         time.sleep(5)

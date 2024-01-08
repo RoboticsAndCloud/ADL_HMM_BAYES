@@ -489,3 +489,27 @@ main : simulation using online dataset Milan
 real_env_v2: test using offline dataset
 real_time: real-time test
 
+
+
+################01/08/2024#####################
+
+Env requirements:
+source  ~/LF_Workspace/venv3.7_energy/bin/activate
+
+
+(venv3.7_energy) (base) ascc@ascc-XPS-8940:~/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES$ python adl_web_mq_server.py
+
+
+(venv3.7_energy) (base) ascc@ascc-XPS-8940:~/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier$ python ascc_robot_room_activity_test.py 
+
+
+(venv3.7_energy) (base) ascc@ascc-XPS-8940:~/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES$ python adl_server_main_node.py
+
+Image Reconition for WMU images
+(venv3.7_energy) (base) ascc@ascc-XPS-8940:~/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/room_classifier$ python ascc_room_activity_test.py 
+
+Test WMU
+(venv3.7_energy) (base) ascc@ascc-XPS-8940:~/LF_Workspace/Bayes_model/IROS23/ADL_HMM_BAYES/adl_wmu$ python test_adl_server_main_wmu.py 
+
+Robot:
+python2.7 adl_server_main_companion_robot.py 
