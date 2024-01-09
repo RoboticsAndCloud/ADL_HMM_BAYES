@@ -34,10 +34,14 @@ WMU_IMAGE_FILE_NOTIFICATION_FILE = '/home/ascc/LF_Workspace/Motion-Trigered-Acti
 # IMAGE_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/image/'
 # IMAGE_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_Monitoring_Web/website/public/image/'
 
-MOTION_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/09icra_real_test/motion/'
-AUDIO_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/09icra_real_test/audio/'
-IMAGE_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/09icra_real_test/image/'
+# MOTION_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/09icra_real_test/motion/'
+# AUDIO_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/09icra_real_test/audio/'
+# IMAGE_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/09icra_real_test/image/'
 # IMAGE_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_Monitoring_Web/website/public/image/'
+
+MOTION_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/2024_real_test/motion/'
+AUDIO_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/2024_real_test/audio/'
+IMAGE_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/2024_real_test/image/'
 
 
 
@@ -47,7 +51,8 @@ DATE_TIME_FORMAT = '%Y%m%d%H%M%S'
 # WMU
 WMU_IPRECEIVE = "192.168.1.131" 
 WMU_IPRECEIVE = "192.168.1.127" # watch
-WMU_IPRECEIVE = "192.168.0.111" # watch, TP-LINK
+WMU_IPRECEIVE = "192.168.0.113" # watch, TP-LINK
+WMU_IPRECEIVE = "192.168.0.126" # watch, TP-LINK
 
 
 # WMU_IPSEND = "10.227.99.196"

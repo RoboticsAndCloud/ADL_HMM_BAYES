@@ -34,6 +34,10 @@ AUDIO_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_H
 IMAGE_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/09icra_real_test/image/'
 # IMAGE_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_Monitoring_Web/website/public/image/'
 
+MOTION_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/2024_real_test/motion/'
+AUDIO_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/2024_real_test/audio/'
+IMAGE_FILE_SAVED_FOLDER = '/home/ascc/LF_Workspace/Bayes_model/Product_ADL/ADL_HMM_BAYES/ascc_data/2024_real_test/image/'
+
 
 DATE_TIME_FORMAT = '%Y%m%d%H%M%S'
 
