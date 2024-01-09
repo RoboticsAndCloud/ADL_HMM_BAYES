@@ -709,6 +709,19 @@ def adl_hidden_feature_extractor(act):
 
     return output_matrix[0]
 
+# Python closure, to log the time cost of a function
+# help us access the outer function's variables even after the outer function is closed.
+def time_cal_func(target_func):
+    def wrapper(*args, **kwargs):
+        start = timer()
+        res = target_func(*args, **kwargs)
+        end = timer()
+        print('in function {}, time diff: {}'.format(target_func.__name__, end-start))
+        # print('func name:', target_func.__name__)
+        return res
+    return wrapper
+
+@time_cal_func
 def check_and_wait_l_o_s_m_result():
 
 
@@ -755,8 +768,9 @@ def check_and_wait_l_o_s_m_result():
 
     return False
 
-# TODO logfunc, decorator method 
 
+
+@time_cal_func
 def check_and_wait_l_o_m_result():
     global g_image_recognition_flag
     global g_image_recognition_file
