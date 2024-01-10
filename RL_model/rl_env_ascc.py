@@ -659,18 +659,23 @@ class EnvASCC():
         action = p_action
         # if(p_action[0] in {'NaN','infinity','nan','Infinity'}):
         #     action = 0
-
+        
+        print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
         print("CAMS-DQN: Action:", RL_ACTION_DICT[p_action])
+        print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 
         import adl_env_client_lib
         import adl_type_constants
         try:
             if RL_ACTION_DICT[p_action] == WMU_fusion or RL_ACTION_DICT[p_action] == Robot_audio_vision or RL_ACTION_DICT[p_action] == Robot_audio_WMU_vision:
-                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+                # adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+                                                            # adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_FUSION)
+                
+                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_COMPANION_ROBOT_IPRECEIVE, adl_type_constants.WMU_COMPANION_ROBOT_RECEIVE_PORT,
                                                             adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_FUSION)
                 
                 # send cmd to the robots
-                if RL_ACTION_DICT[p_action] == Robot_audio_vision or RL_ACTION_DICT[p_action] == Robot_audio_WMU_vision :
+                if RL_ACTION_DICT[p_action] == Robot_audio_vision:
                     adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_COMPANION_ROBOT_IPRECEIVE, adl_type_constants.WMU_COMPANION_ROBOT_RECEIVE_PORT,
                                                             adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_FUSION)
                 #self.fusion_check_times += 1
@@ -680,16 +685,21 @@ class EnvASCC():
                                                                 adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_MOTION)
                 #self.motion_check_times += 1
             elif RL_ACTION_DICT[p_action] == WMU_vision or RL_ACTION_DICT[p_action] == Robot_vision:
-                # adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
-                #                                             adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_IMAGE)
+                adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_IMAGE)
                 
                 # send cmd to the robots
-                if RL_ACTION_DICT[p_action] == Robot_audio_vision or RL_ACTION_DICT[p_action] == Robot_audio_WMU_vision or RL_ACTION_DICT[p_action] == Robot_vision:
+                if RL_ACTION_DICT[p_action] == Robot_audio_vision or RL_ACTION_DICT[p_action] == Robot_vision:
                     adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_COMPANION_ROBOT_IPRECEIVE, adl_type_constants.WMU_COMPANION_ROBOT_RECEIVE_PORT,
                                                             adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_IMAGE)
     
             elif RL_ACTION_DICT[p_action] == WMU_audio or RL_ACTION_DICT[p_action] == Robot_audio:
                 adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_IPRECEIVE, adl_type_constants.WMU_RECEIVE_PORT,
+                                                            adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_AUDIO)
+                
+                # send cmd to the robots
+                if RL_ACTION_DICT[p_action] == Robot_audio:
+                    adl_env_client_lib.cmd_mode_sending_handler(adl_type_constants.WMU_COMPANION_ROBOT_IPRECEIVE, adl_type_constants.WMU_COMPANION_ROBOT_RECEIVE_PORT,
                                                             adl_type_constants.STATE_ENV_ACTIVITY_CMD_TAKING_AUDIO)
         
         except Exception as e:
