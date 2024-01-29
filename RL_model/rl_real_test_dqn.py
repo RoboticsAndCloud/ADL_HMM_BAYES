@@ -797,6 +797,53 @@ def check_and_wait_l_o_m_result():
     return False
 
 
+def check_and_wait_image_result():
+
+
+    global g_image_recognition_flag
+    global g_sound_recognition_flag
+    
+    start = timer()
+    while(True):
+        if g_image_recognition_flag and g_sound_recognition_flag:
+            g_image_recognition_flag = False
+            g_sound_recognition_flag = False
+            return True
+        
+        end = timer()
+        # print("Get_prediction time cost:", end-start)  
+
+        if (end-start) > CHECK_AND_WAIT_THRESHOLD_MOTION*2:
+            print("Get_prediction image time out cost:", end-start)  
+
+            break
+    g_image_recognition_flag = False
+    g_sound_recognition_flag = False
+    return False
+
+
+def check_and_wait_sound_result():
+
+
+    global g_sound_recognition_flag
+
+    start = timer()
+    while(True):
+        if g_sound_recognition_flag:
+            g_sound_recognition_flag = False
+            return True
+        
+        end = timer()
+        # print("Get_prediction time cost:", end-start)  
+
+        if (end-start) > CHECK_AND_WAIT_THRESHOLD_MOTION*2:
+            print("Get_prediction image time out cost:", end-start)  
+
+            break
+    g_sound_recognition_flag = False
+    return False
+
+
 def check_and_wait_motion_result():
 
 
@@ -1014,7 +1061,7 @@ def get_activity_prediction_by_hmm():
 
 time_detected_act_dict = {}
 
-def get_activity_by_action(cur_time_str, action, pre_act = '', pre_act_symbol_list = []):
+def get_activity_by_action(cur_time_str, action, pre_act = '', pre_act_symbol_list = [], current_activity_duration = None):
     # env.running_time
     # test_time_str = '2009-12-11 12:58:33'
     # cur_time = env.get_running_time()
@@ -1031,6 +1078,10 @@ def get_activity_by_action(cur_time_str, action, pre_act = '', pre_act_symbol_li
     audio_type = ""
     motion_type = ""
 
+    global g_image_recognition_flag 
+    global g_motion_recognition_flag
+    global g_sound_recognition_flag
+    global g_image_object_recognition_flag
 
     # target_folder_time_str = get_target_folder_time_str(cur_time_str)
     # key = (target_folder_time_str, action)
@@ -1095,6 +1146,14 @@ def get_activity_by_action(cur_time_str, action, pre_act = '', pre_act_symbol_li
     if location == constants.LOCATION_LOBBY:
         cur_activity = pre_act
         print('++++++++++++++Around lobby,', cur_time_str)
+
+
+
+        g_image_recognition_flag = False 
+        g_motion_recognition_flag = False
+        g_sound_recognition_flag = False
+        g_image_object_recognition_flag = False
+
         return cur_activity, location
 
     
@@ -1114,6 +1173,10 @@ def get_activity_by_action(cur_time_str, action, pre_act = '', pre_act_symbol_li
     # 6: Robot_WMU_fusion,
     # 7: Nothing
     # }
+
+    # activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
+    if current_activity_duration != None:
+        activity_duration = current_activity_duration
 
     # TODO: update HMM_START_MATRIX, the min pro should be MIN_Prob, not 0
     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
@@ -1206,10 +1269,10 @@ def get_activity_by_action(cur_time_str, action, pre_act = '', pre_act_symbol_li
     #rank3_res_prob.append(top3_prob[2])
 
     rank1_res_prob_norm.append(p_activity_end)
-# p_rank2 = (1-p_activity_end) * (rank2_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
-# rank2_res_prob_norm.append(p_rank2)
-# p_rank3 = (1-p_activity_end) * (rank3_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
-# rank3_res_prob_norm.append(p_rank3)
+    # p_rank2 = (1-p_activity_end) * (rank2_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
+    # rank2_res_prob_norm.append(p_rank2)
+    # p_rank3 = (1-p_activity_end) * (rank3_res_prob[-1][1] + 1e-200)/(rank2_res_prob[-1][1]+ 1e-200+rank3_res_prob[-1][1]+ 1e-200)
+    # rank3_res_prob_norm.append(p_rank3)
     # print('rank1_res_prob_norm:', rank1_res_prob_norm)
     # print('rank2_res_prob_norm:', rank2_res_prob_norm)
     # print('rank3_res_prob_norm:', rank3_res_prob_norm)
@@ -1224,10 +1287,10 @@ def get_activity_by_action(cur_time_str, action, pre_act = '', pre_act_symbol_li
     del heap_prob
 
     
-    global g_image_recognition_flag 
-    global g_motion_recognition_flag
-    global g_sound_recognition_flag
-    global g_image_object_recognition_flag
+    # global g_image_recognition_flag 
+    # global g_motion_recognition_flag
+    # global g_sound_recognition_flag
+    # global g_image_object_recognition_flag
 
     g_image_recognition_flag = False 
     g_motion_recognition_flag = False
@@ -1408,6 +1471,26 @@ def real_time_test_run():
             # audio_data, vision_data, motion_data, transition_motion = env.step(rl_env_ascc.ROBOT_FUSION_ACTION)
 
 
+            # TODO the test for the energy consumption on watch
+            time1 = timer()
+            time2 = timer()
+            duration = time2 - time1
+            cnt = 1
+            # print("    Time start:", env.get_current_hour_time_real())
+            # while duration < 10*60:
+            #     env.step(rl_env_ascc.WMU_FUSION_ACTION)
+            #     time2 = timer()
+            #     duration = time2 - time1
+            #     print("duration time: {}, cnt: {}".format(duration, cnt))
+            #     if check_and_wait_image_result() == False:
+            #         continue
+            #     # if check_and_wait_sound_result() == False:
+            #     #     continue
+            #     cnt += 1
+            # print("    Time end:", env.get_current_hour_time_real())
+            # print("Experiment Done, time: {}, cnt: {}".format(duration, cnt))
+            # # exit(0)
+            
             if check_and_wait_l_o_s_m_result() == False:
                 # pass
                 continue
@@ -1423,7 +1506,7 @@ def real_time_test_run():
             bayes_model_audio.set_time(cur_time_str)
             bayes_model_object.set_time(cur_time_str)
 
-            detected_activity, _ = get_activity_by_action(cur_time_str, rl_env_ascc.WMU_FUSION_ACTION, pre_act_symbol_list)
+            detected_activity, _ = get_activity_by_action(cur_time_str, rl_env_ascc.WMU_FUSION_ACTION, pre_act = '', pre_act_symbol_list=[])
             if detected_activity == '':
                 continue
             
@@ -1640,7 +1723,7 @@ def real_time_test_run():
                 global g_motion_recognition_flag
                 g_motion_recognition_flag = False
             else:
-                detected_activity, location = get_activity_by_action(cur_time_str, action, pre_act_list[-1], pre_act_symbol_list)
+                detected_activity, location = get_activity_by_action(cur_time_str, action, pre_act_list[-1], pre_act_symbol_list, current_activity_duration)
 
 
 
