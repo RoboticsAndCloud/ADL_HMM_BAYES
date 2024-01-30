@@ -22,6 +22,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.model_selection import LeaveOneOut, cross_validate, KFold
 
 import seaborn as sns
 
@@ -211,112 +212,152 @@ print('y.shape:', y.shape)
 
 # X.shape, y.shape
 
+
+
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0, stratify = y)
 
+kf = KFold(n_splits=5)
+cnt = 0
+for train_index, test_index in kf.split(X_train, y_train):
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0, stratify = y)
 
-# X_train.shape, X_test.shape
-print('X_train.shape:', X_train.shape)
-print('X_test.shape:', X_test.shape)
+    cnt += 1
+    print('train size: {}, test size: {}'.format(len(train_index), len(test_index)))
+    print(train_index)
+    print(test_index)
+    X_train_fold = X_train[train_index]
+    y_train_fold = y_train[train_index]
+
+    X_test_fold = X_train[test_index]
+    y_test_fold = y_train[test_index]
+    print('X_train_fold.shape:', X_train_fold.shape)
+    print('y_train_fold.shape:', y_train_fold.shape)
 
 
-X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2], 1)
-X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
+    # print(test_index)
+# print('X_train.shape:', X_train.shape)
+# print('X_test.shape:', X_test.shape)
 
-print('x_train shape:', X_train[0].shape)
-print('X_test shape:', X_test[0].shape)
-print('X_test len:', len(X_test))
-tmp_xtest = X_test[0]
-tmp_ytest = y_test[0]
-print('tmp_xtest:', tmp_xtest)
-print('tmp_ytest:', tmp_ytest)
+# # loo = LeaveOneOut()
+# # for train, test in loo.split(X_train):
+# #     print('train size: {}, test size: {}'.format(len(train), len(test)))
 
-# CNN model
-model = Sequential()
-model.add(Conv2D(16, (2, 2), activation = 'relu', input_shape = X_train[0].shape))
-model.add(Dropout(0.1))
+# exit(0)
+    # exit(0)
 
-model.add(Conv2D(32, (2, 2), activation='relu'))
-model.add(Dropout(0.2))
+    # k fold 
+    X_train = X_train_fold
+    y_train = y_train_fold
+    X_test = X_test_fold
+    y_test = y_test_fold
 
-model.add(Flatten())
 
-model.add(Dense(64, activation = 'relu'))
-model.add(Dropout(0.6))
 
-model.add(Dense(6, activation='softmax'))
+    # X_train.shape, X_test.shape
+    print('X_train.shape:', X_train.shape)
+    print('X_test.shape:', X_test.shape)
 
-model.compile(optimizer=Adam(learning_rate = 0.00001), loss = 'sparse_categorical_crossentropy', metrics = ['accuracy'])
 
-epochs = 500
+    X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2], 1)
+    X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
 
-history = model.fit(X_train, y_train, epochs = epochs, validation_data= (X_test, y_test), verbose=1)
+    print('x_train shape:', X_train[0].shape)
+    print('X_test shape:', X_test[0].shape)
+    print('X_test len:', len(X_test))
+    tmp_xtest = X_test[0]
+    tmp_ytest = y_test[0]
+    print('tmp_xtest:', tmp_xtest)
+    print('tmp_ytest:', tmp_ytest)
 
-def plot_learningCurve(history, epochs):
-  # Plot training & validation accuracy values
-  plt.figure()
-  epoch_range = range(1, epochs+1)
-  plt.plot(epoch_range, history.history['accuracy'])
-  plt.plot(epoch_range, history.history['val_accuracy'])
-  plt.title('Model accuracy')
-  plt.ylabel('Accuracy')
-  plt.xlabel('Epoch')
-  plt.legend(['Train', 'Val'], loc='upper left')
-  plt.show()
-  plt.savefig("accuracy.png")
+    # CNN model
+    model = Sequential()
+    model.add(Conv2D(16, (2, 2), activation = 'relu', input_shape = X_train[0].shape))
+    model.add(Dropout(0.1))
 
-  # Plot training & validation loss values
-  plt.figure()
-  plt.plot(epoch_range, history.history['loss'])
-  plt.plot(epoch_range, history.history['val_loss'])
-  plt.title('Model loss')
-  plt.ylabel('Loss')
-  plt.xlabel('Epoch')
-  plt.legend(['Train', 'Val'], loc='upper left')
-  plt.show()
-  plt.savefig("loss.png")
+    model.add(Conv2D(32, (2, 2), activation='relu'))
+    model.add(Dropout(0.2))
 
-plot_learningCurve(history, epochs)
+    model.add(Flatten())
 
-# confusion matrix
-from mlxtend.plotting import plot_confusion_matrix
-from sklearn.metrics import confusion_matrix
+    model.add(Dense(64, activation = 'relu'))
+    model.add(Dropout(0.6))
 
-# y_pred = model.predict_classes(X_test)
+    model.add(Dense(6, activation='softmax'))
 
-# print('X_test:', X_test)
+    model.compile(optimizer=Adam(learning_rate = 0.00001), loss = 'sparse_categorical_crossentropy', metrics = ['accuracy'])
 
-predict_x=model.predict(X_test) 
-y_pred=np.argmax(predict_x,axis=1)
-#print('y_pred len:', len(y_pred))
-#print('y_pred:', y_pred)
+    epochs = 500
 
-plt.figure()
-mat = confusion_matrix(y_test, y_pred)
-cm = plot_confusion_matrix(conf_mat=mat, class_names=label.classes_, show_normed=True, figsize=(7,7))
-plt.show()
-plt.savefig("cm.png")
+    history = model.fit(X_train, y_train, epochs = epochs, validation_data= (X_test, y_test), verbose=1)
 
-# # confusion matrix
-# LABELS = label.classes_
+    def plot_learningCurve(history, epochs):
+    # Plot training & validation accuracy values
+        plt.figure()
+        epoch_range = range(1, epochs+1)
+        plt.plot(epoch_range, history.history['accuracy'])
+        plt.plot(epoch_range, history.history['val_accuracy'])
+        plt.title('Model accuracy')
+        plt.ylabel('Accuracy')
+        plt.xlabel('Epoch')
+        plt.legend(['Train', 'Val'], loc='upper left')
+        plt.show()
+        plt.savefig("accuracy.png")
 
-# plt.figure(figsize=(6, 4))
-# sns.heatmap(mat,
-#             cmap='coolwarm',
-#             linecolor='white',
-#             linewidths=1,
-#             xticklabels=LABELS,
-#             yticklabels=LABELS,
-#             annot=True,
-#             fmt='d')
-# plt.title('Confusion Matrix')
-# plt.ylabel('True Label')
-# plt.xlabel('Predicted Label')
-# plt.show()
-# plt.savefig("confusion_matrix.png")
+        # Plot training & validation loss values
+        plt.figure()
+        plt.plot(epoch_range, history.history['loss'])
+        plt.plot(epoch_range, history.history['val_loss'])
+        plt.title('Model loss')
+        plt.ylabel('Loss')
+        plt.xlabel('Epoch')
+        plt.legend(['Train', 'Val'], loc='upper left')
+        plt.show()
+        plt.savefig("loss.png")
 
-MODEL_SAVED_PATH = 'motion-saved-model'
-# model.save_weights('model.h5')
-model.save(MODEL_SAVED_PATH)
+    plot_learningCurve(history, epochs)
+
+    # confusion matrix
+    from mlxtend.plotting import plot_confusion_matrix
+    from sklearn.metrics import confusion_matrix
+
+    # y_pred = model.predict_classes(X_test)
+
+    # print('X_test:', X_test)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0, stratify = y)
+    predict_x=model.predict(X_test) 
+    y_pred=np.argmax(predict_x,axis=1)
+    #print('y_pred len:', len(y_pred))
+    #print('y_pred:', y_pred)
+
+    plt.figure()
+    mat = confusion_matrix(y_test, y_pred)
+    cm = plot_confusion_matrix(conf_mat=mat, class_names=label.classes_, show_normed=True, figsize=(7,7))
+    plt.show()
+    plt.savefig("motion_cm_k" + str(cnt)+".png")
+
+    # # confusion matrix
+    # LABELS = label.classes_
+
+    # plt.figure(figsize=(6, 4))
+    # sns.heatmap(mat,
+    #             cmap='coolwarm',
+    #             linecolor='white',
+    #             linewidths=1,
+    #             xticklabels=LABELS,
+    #             yticklabels=LABELS,
+    #             annot=True,
+    #             fmt='d')
+    # plt.title('Confusion Matrix')
+    # plt.ylabel('True Label')
+    # plt.xlabel('Predicted Label')
+    # plt.show()
+    # plt.savefig("confusion_matrix.png")
+
+    # MODEL_SAVED_PATH = 'motion-saved-model'
+    MODEL_SAVED_PATH = 'motion-saved-model_k' + str(cnt)
+    # model.save_weights('model.h5')
+    model.save(MODEL_SAVED_PATH)
+    
 
 
 
