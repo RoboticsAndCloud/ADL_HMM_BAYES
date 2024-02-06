@@ -29,13 +29,18 @@ import motion_adl_bayes_model
 import tools_ascc
 import constants
 
-# import tools_sql
+import sys
+sys.path.append("..")
+import tools_sql as tools_sql
+
 import matplotlib.pyplot as plt
 import numpy as np
 
 import time_adl_res_dict
 
 from timeit import default_timer as timer
+import time
+
 
 #from tensorflow.keras.utils import to_categorical
 
@@ -43,6 +48,7 @@ from timeit import default_timer as timer
 #print(mem_top(limit=15,width=180))
 
 
+FOLDER_DATE_TIME_FORMAT = '%Y%m%d%H%M%S'
 
 g_image_recognition_flag = False
 g_sound_recognition_flag = False
@@ -1118,15 +1124,15 @@ def get_activity_by_action(cur_time_str, action, pre_act = '', pre_act_symbol_li
     print('audio_type:', audio_type)
     print('motion_type:', motion_type)
 
-    # activity = cur_activity
-    # time = cur_time_str
+    # cur_g_image_recognition_time = datetime.strptime(g_image_recognition_time, FOLDER_DATE_TIME_FORMAT)
+    # cur_g_image_recognition_time_str = cur_g_image_recognition_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
+    # time = cur_g_image_recognition_time_str
     # image_source = location
     # sound_source = audio_type
     # motion_source = motion_type
     # image_dir = g_image_recognition_file
-    # TODO: the recognition model should send the image dir file as well
-    # tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source)
-    # print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
+    # # TODO: the recognition model should send the image dir file as well
+
 
     
     heap_prob = []
@@ -1175,8 +1181,11 @@ def get_activity_by_action(cur_time_str, action, pre_act = '', pre_act_symbol_li
     # }
 
     # activity_duration = (cur_time - activity_begin_time).seconds / 60 # in minutes
+    # activity_duration = None
+    activity_duration = 0
     if current_activity_duration != None:
         activity_duration = current_activity_duration
+        print('activity_duration:', activity_duration)
 
     # TODO: update HMM_START_MATRIX, the min pro should be MIN_Prob, not 0
     for act in motion_adl_bayes_model.PROB_OF_ALL_ACTIVITIES.keys():
@@ -1283,6 +1292,10 @@ def get_activity_by_action(cur_time_str, action, pre_act = '', pre_act_symbol_li
     cur_activity = top3_prob[0][0]
     # activity_begin_time = cur_time
     # time_detected_act_dict[key] = cur_activity
+
+    # activity = cur_activity
+    # tools_sql.insert_adl_activity_data(activity, time, image_source, sound_source, motion_source)
+    # print('insert int to db: activity:', activity, ' cur_time:', cur_time_str)
 
     del heap_prob
 
@@ -1506,7 +1519,7 @@ def real_time_test_run():
             bayes_model_audio.set_time(cur_time_str)
             bayes_model_object.set_time(cur_time_str)
 
-            detected_activity, _ = get_activity_by_action(cur_time_str, rl_env_ascc.WMU_FUSION_ACTION, pre_act = '', pre_act_symbol_list=[])
+            detected_activity, location = get_activity_by_action(cur_time_str, rl_env_ascc.WMU_FUSION_ACTION, pre_act = '', pre_act_symbol_list=[])
             if detected_activity == '':
                 continue
             
@@ -1522,6 +1535,31 @@ def real_time_test_run():
             node = tools_ascc.Activity_Node_Observable(pre_activity, tools_ascc.get_activity_type(cur_time_str), 0)
             pre_activity_symbol = node.activity_res_generation()
             pre_act_symbol_list.append(pre_activity_symbol)
+
+
+            # insert into db
+            motion_type, motion_type_prob = get_motion_type_by_activity_cnn(g_motion_recognition_file, cur_time_str)
+            audio_type = ''
+            cur_g_image_recognition_time = datetime.strptime(g_image_recognition_time, FOLDER_DATE_TIME_FORMAT)
+            cur_g_image_recognition_time_str = cur_g_image_recognition_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
+            activity = cur_activity
+            time_act = cur_g_image_recognition_time_str
+            image_source = location + LOCATION_DIR_SPLIT_SYMBOL + g_image_data_location
+            sound_source = audio_type
+            motion_source = motion_type
+            object_source = ''
+
+            # activity = cur_activity
+            time_act = cur_g_image_recognition_time_str
+            # image_source = location + LOCATION_DIR_SPLIT_SYMBOL + g_image_data_location
+
+            # sound_source = audio_type
+            # motion_source = motion_type
+            # object_source = ''
+        
+            tools_sql.insert_adl_activity_data(activity, time_act, image_source, sound_source, motion_source, object_source)
+            print('insert into db: cur time first activity:', activity, ' cur_time:', cur_time_str, ' real time:', time_act)
+    
             
         motion_type, motion_type_prob = get_motion_type_by_activity_cnn(g_motion_recognition_file, cur_time_str)
 
@@ -1616,6 +1654,7 @@ def real_time_test_run():
             #     living_room_check_flag = False
 
             if need_recollect_data:
+                
                 time.sleep(10)
                 env.step(0, need_recollect_data)
                 # total_need_recollect_data_cnt = total_need_recollect_data_cnt +1
@@ -1768,6 +1807,32 @@ def real_time_test_run():
                     pre_act_symbol_list.append(pre_activity_symbol)
                     # pre_activity = detected_activity
                     activity_begin_time = env.get_running_time()
+
+                    # insert into db
+                    cur_g_image_recognition_time = datetime.strptime(g_image_recognition_time, FOLDER_DATE_TIME_FORMAT)
+                    cur_g_image_recognition_time_str = cur_g_image_recognition_time.strftime(rl_env_ascc.DATE_HOUR_TIME_FORMAT)
+                    activity = cur_activity
+                    time_act_str = cur_g_image_recognition_time_str
+                    image_source = location + LOCATION_DIR_SPLIT_SYMBOL + g_image_data_location
+                    sound_source = audio_type
+                    motion_source = motion_type
+                    object_source = ''
+
+                    # activity = cur_activity
+                    time_act_str = cur_g_image_recognition_time_str
+                    # image_source = location + LOCATION_DIR_SPLIT_SYMBOL + g_image_data_location
+
+                    # sound_source = audio_type
+                    # motion_source = motion_type
+                    # object_source = ''
+                    
+                    if location == constants.LOCATION_LIVINGROOM:
+                        for object, prob in object_dict:
+                            object_source = object_source + '_' + object
+                
+                    tools_sql.insert_adl_activity_data(activity, time_act_str, image_source, sound_source, motion_source, object_source)
+                    print('insert into db: cur time activity:', activity, ' cur_time:', cur_time_str, ' real time:', time_act_str)
+
             else:
                 double_check = 2 # not a new activity
             
